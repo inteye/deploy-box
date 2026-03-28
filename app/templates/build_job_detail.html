@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>构建 #{{ build_job.id }}</h1>
+  <p>{{ build_job.project.name }}{% if build_job.environment %} · 生成后自动发布到 {{ build_job.environment.name }}{% endif %}</p>
+</section>
+
+<section class="stats">
+  <article class="card stat"><strong id="build-status">{{ build_job.status }}</strong><span>当前状态</span></article>
+  <article class="card stat"><strong id="build-progress">{{ build_job.progress_percent or 0 }}%</strong><span>进度</span></article>
+  <article class="card stat"><strong id="build-version">{{ build_job.output_version or '-' }}</strong><span>输出版本</span></article>
+  <article class="card stat"><strong>{{ build_job.storage_mode or build_job.artifact_mode }}</strong><span>制品模式</span></article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2>构建进度</h2>
+      <p id="build-stage">{{ build_job.current_stage or 'queued' }}</p>
+    </div>
+  </div>
+  <div class="progress-shell">
+    <div id="build-progress-bar" class="progress-bar" style="width:{{ build_job.progress_percent or 0 }}%;"></div>
+  </div>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>基本信息</h2>
+      </div>
+    </div>
+    <table>
+      <tbody>
+        <tr><th>项目</th><td>{{ build_job.project.name }}</td></tr>
+        <tr><th>模板</th><td>{{ build_job.template.name if build_job.template else '-' }}</td></tr>
+        <tr><th>触发人</th><td>{{ build_job.triggered_by or '-' }}</td></tr>
+        <tr><th>Manifest</th><td id="build-manifest-url" style="word-break:break-word;overflow-wrap:anywhere;">{{ build_job.manifest_url or '-' }}</td></tr>
+        <tr><th>开始时间</th><td id="build-started-at">{{ build_job.started_at.strftime('%Y-%m-%d %H:%M:%S') if build_job.started_at else '-' }}</td></tr>
+        <tr><th>完成时间</th><td id="build-finished-at">{{ build_job.finished_at.strftime('%Y-%m-%d %H:%M:%S') if build_job.finished_at else '-' }}</td></tr>
+      </tbody>
+    </table>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>结果摘要</h2>
+      </div>
+    </div>
+    <pre id="build-result" style="white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;overflow:auto;">{{ parsed_result | tojson(indent=2) if parsed_result else (build_job.result_json or '暂无结果') }}</pre>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2>阶段事件</h2>
+      <p>页面会自动轮询更新，适合移动端实时查看构建和上传进度。</p>
+    </div>
+  </div>
+  <div id="build-events" class="timeline">
+    {% for event in events %}
+    <article class="timeline-item">
+      <div class="meta-line">
+        <span class="badge {% if event.event_type == 'error' %}failed{% elif event.event_type == 'success' %}{% else %}subtle{% endif %}">{{ event.event_type }}</span>
+        <span>{{ event.stage or '-' }}</span>
+        <span>{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+      </div>
+      <strong>{{ event.message }}</strong>
+      {% if event.progress_percent is not none %}
+      <span class="muted small">进度 {{ event.progress_percent }}%</span>
+      {% endif %}
+    </article>
+    {% else %}
+    <div class="muted">还没有阶段事件。</div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2>日志摘要</h2>
+    </div>
+  </div>
+  <pre id="build-log" style="white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;overflow:auto;">{{ build_job.log_excerpt or '暂无日志摘要' }}</pre>
+</section>
+
+<script>
+  (() => {
+    const buildJobId = {{ build_job.id }};
+    const statusNode = document.getElementById("build-status");
+    const progressNode = document.getElementById("build-progress");
+    const progressBarNode = document.getElementById("build-progress-bar");
+    const versionNode = document.getElementById("build-version");
+    const stageNode = document.getElementById("build-stage");
+    const manifestNode = document.getElementById("build-manifest-url");
+    const startedAtNode = document.getElementById("build-started-at");
+    const finishedAtNode = document.getElementById("build-finished-at");
+    const resultNode = document.getElementById("build-result");
+    const logNode = document.getElementById("build-log");
+    const eventsNode = document.getElementById("build-events");
+
+    function renderEvents(events) {
+      if (!Array.isArray(events) || !events.length) {
+        eventsNode.innerHTML = '<div class="muted">还没有阶段事件。</div>';
+        return;
+      }
+      eventsNode.innerHTML = events.map((event) => `
+        <article class="timeline-item">
+          <div class="meta-line">
+            <span class="badge ${event.event_type === "error" ? "failed" : event.event_type === "success" ? "" : "subtle"}">${event.event_type}</span>
+            <span>${event.stage || "-"}</span>
+            <span>${event.created_at || "-"}</span>
+          </div>
+          <strong>${event.message}</strong>
+          ${event.progress_percent !== null && event.progress_percent !== undefined ? `<span class="muted small">进度 ${event.progress_percent}%</span>` : ""}
+        </article>
+      `).join("");
+    }
+
+    function shouldKeepPolling(status) {
+      return ["queued", "running", "pending"].includes(status);
+    }
+
+    async function poll() {
+      try {
+        const [jobResponse, eventsResponse] = await Promise.all([
+          fetch(`/api/build-jobs/${buildJobId}`, { credentials: "same-origin" }),
+          fetch(`/api/build-jobs/${buildJobId}/events`, { credentials: "same-origin" }),
+        ]);
+        if (!jobResponse.ok) return false;
+        const payload = await jobResponse.json();
+        const events = eventsResponse.ok ? await eventsResponse.json() : [];
+        statusNode.textContent = payload.status;
+        progressNode.textContent = `${payload.progress_percent || 0}%`;
+        progressBarNode.style.width = `${payload.progress_percent || 0}%`;
+        versionNode.textContent = payload.output_version || "-";
+        stageNode.textContent = payload.current_stage || "-";
+        manifestNode.textContent = payload.manifest_url || "-";
+        startedAtNode.textContent = payload.started_at || "-";
+        finishedAtNode.textContent = payload.finished_at || "-";
+        resultNode.textContent = payload.result_json || "暂无结果";
+        logNode.textContent = payload.log_excerpt || "暂无日志摘要";
+        renderEvents(events);
+        return shouldKeepPolling(payload.status);
+      } catch (_error) {
+        return true;
+      }
+    }
+
+    let timer = null;
+    async function tick() {
+      const keep = await poll();
+      if (!keep && timer) {
+        clearInterval(timer);
+      }
+    }
+    tick();
+    timer = setInterval(tick, 3000);
+  })();
+</script>
+{% endblock %}

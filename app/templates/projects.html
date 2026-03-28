@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>把构建与发布收敛成一套可复用的流程</h1>
+  <p>每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。</p>
+</section>
+
+{% if notice %}
+<section class="notice">{{ notice }}</section>
+{% endif %}
+{% if error %}
+<section class="error">{{ error }}</section>
+{% endif %}
+
+<section class="stats">
+  <article class="card stat"><strong>{{ summary.projects }}</strong><span>项目总数</span></article>
+  <article class="card stat"><strong>{{ summary.environments }}</strong><span>环境总数</span></article>
+  <article class="card stat"><strong>{{ summary.releases }}</strong><span>已登记 Release</span></article>
+  <article class="card stat"><strong>{{ summary.build_jobs }}</strong><span>构建任务</span></article>
+</section>
+
+<section class="workflow-grid">
+  <a class="anchor-card" href="#create-project">
+    <span class="workflow-step">入口 1</span>
+    <strong style="font-size:18px;">新项目接入</strong>
+    <p class="muted small" style="margin:0;">适合首次接入。创建项目后，继续在项目工作台里完成模板和环境配置。</p>
+  </a>
+  <a class="anchor-card" href="#project-list">
+    <span class="workflow-step">入口 2</span>
+    <strong style="font-size:18px;">继续构建与发布</strong>
+    <p class="muted small" style="margin:0;">已有项目直接进入工作台，主操作永远是“一键生成”或“一键生成并发布”。</p>
+  </a>
+  <a class="anchor-card" href="/console/deployments">
+    <span class="workflow-step">入口 3</span>
+    <strong style="font-size:18px;">异常排查</strong>
+    <p class="muted small" style="margin:0;">部署任务页集中查看超时、失败、回滚和状态轮询，不需要再翻多个页面。</p>
+  </a>
+</section>
+
+<section class="grid two">
+  <article class="card" id="create-project">
+    <div class="section-head">
+      <div>
+        <h2>新增项目</h2>
+        <p>创建项目时先填工作区路径。它相对于统一工作区根，可以是真目录，也可以是管理员提前放好的软链接目录。</p>
+      </div>
+    </div>
+    <form method="post" action="/console/projects" class="grid">
+      <div class="form-grid">
+        <label>项目名称
+          <input type="text" name="name" placeholder="Sample Service" required>
+        </label>
+        <label>项目标识
+          <input type="text" name="slug" placeholder="sample-service" required>
+        </label>
+        <label>项目工作区路径
+          <div style="display:flex; gap:8px;">
+            <input type="text" name="workspace_path" placeholder="sample-service 或 services/sample-service" required>
+            <button type="button" class="secondary browse-directory-button" data-target-input="workspace_path">浏览选择</button>
+          </div>
+        </label>
+        <label>镜像仓库前缀
+          <input type="text" name="image_registry_prefix" placeholder="registry.example.com/team 或留空使用本地镜像名">
+        </label>
+      </div>
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">工作区模型</span>
+          <span>统一工作区根</span>
+        </div>
+        <p class="muted small" style="margin:0;">推荐把所有待发布项目聚合到同一个工作区根下。这里填写的是相对路径；如果你偏向软链接方案，可由管理员先在工作区根下创建软链接，再在这里选择该目录。</p>
+      </article>
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">发布协议</span>
+          <span>Webhook Manifest v1</span>
+        </div>
+        <p class="muted small" style="margin:0;">这是当前唯一支持的执行适配器，表示平台会把 `manifest_url` 通过 webhook 发给兼容的 `deploy-agent`。新用户不需要修改，先按默认值使用即可。</p>
+      </article>
+      <label>项目说明
+        <textarea name="description" placeholder="描述此项目如何接入、部署到哪里、谁负责。"></textarea>
+      </label>
+      <div class="actions">
+        <button type="submit">创建并进入接入流程</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="card" id="project-list">
+    <div class="section-head">
+      <div>
+        <h2>已接入项目</h2>
+        <p>进入项目后可配置构建模板、环境、生成策略和一键发布入口。</p>
+      </div>
+    </div>
+    <div class="list-stack">
+      {% for project in projects %}
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">{{ project.adapter_type }}</span>
+          <span>{{ project.slug }}</span>
+        </div>
+        <div>
+          <strong style="font-size:18px;">{{ project.name }}</strong>
+          <p class="muted small" style="margin:6px 0 0;">{{ project.description or '尚未填写项目说明。' }}</p>
+          <p class="muted small" style="margin:6px 0 0;">工作区路径：{{ project.workspace_path or '未设置，默认使用全局工作区根' }}</p>
+          <p class="muted small" style="margin:6px 0 0;">镜像仓库前缀：{{ project.image_registry_prefix or '未设置，默认不拼接 registry 前缀' }}</p>
+        </div>
+        <div class="meta-line">
+          <span>{{ project.environments|length }} 个环境</span>
+          <span>{{ project.releases|length }} 个 Release</span>
+          <span>{{ project.build_jobs|length }} 个构建任务</span>
+        </div>
+        <div class="actions">
+          <a class="button secondary" href="/console/projects/{{ project.id }}">进入项目工作台</a>
+        </div>
+        <details class="advanced">
+          <summary>编辑或删除项目</summary>
+          <form method="post" action="/console/projects/{{ project.id }}/update" class="grid" style="margin-top:12px;">
+            <div class="form-grid">
+              <label>项目名称
+                <input type="text" name="name" value="{{ project.name }}" required>
+              </label>
+              <label>项目标识
+                <input type="text" name="slug" value="{{ project.slug }}" required>
+              </label>
+              <label>项目工作区路径
+                <div style="display:flex; gap:8px;">
+                  <input type="text" name="workspace_path" value="{{ project.workspace_path or '' }}" placeholder="sample-service 或 services/sample-service" required>
+                  <button type="button" class="secondary browse-directory-button" data-target-input="workspace_path">浏览选择</button>
+                </div>
+              </label>
+              <label>镜像仓库前缀
+                <input type="text" name="image_registry_prefix" value="{{ project.image_registry_prefix or '' }}" placeholder="registry.example.com/team 或留空使用本地镜像名">
+              </label>
+            </div>
+            <label>项目说明
+              <textarea name="description">{{ project.description or '' }}</textarea>
+            </label>
+            <div class="actions">
+              <button type="button" class="secondary validate-workspace-button" data-project-id="{{ project.id }}">校验路径</button>
+            </div>
+            <pre id="workspace-validation-{{ project.id }}" class="muted small" style="display:none; margin:0; white-space:pre-wrap;"></pre>
+            <div class="actions">
+              <button type="submit" class="secondary">保存项目信息</button>
+            </div>
+          </form>
+          <form method="post" action="/console/projects/{{ project.id }}/delete" style="margin-top:10px;" onsubmit="return confirm('确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。');">
+            <button type="submit" class="danger">删除项目</button>
+          </form>
+        </details>
+      </article>
+      {% else %}
+      <div class="muted">还没有项目，先创建一个项目开始接入。</div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<dialog id="directory-picker" class="card" style="max-width:720px; width:min(92vw, 720px);">
+  <div class="section-head">
+    <div>
+      <h2>选择项目工作区路径</h2>
+      <p id="directory-picker-root" class="muted small" style="margin:4px 0 0;">-</p>
+      <p id="directory-picker-current" class="muted small" style="margin:4px 0 0;">-</p>
+    </div>
+    <div class="actions">
+      <button type="button" id="directory-picker-close" class="secondary">关闭</button>
+    </div>
+  </div>
+  <div class="actions" style="margin-bottom:12px;">
+    <button type="button" id="directory-picker-up" class="secondary">返回上级</button>
+    <button type="button" id="directory-picker-select-current">使用当前目录</button>
+  </div>
+  <div id="directory-picker-status" class="muted small" style="margin-bottom:12px;">正在加载目录...</div>
+  <div id="directory-picker-list" class="list-stack"></div>
+</dialog>
+
+<script>
+  (() => {
+    const dialog = document.getElementById("directory-picker");
+    if (!dialog) return;
+    const rootNode = document.getElementById("directory-picker-root");
+    const currentNode = document.getElementById("directory-picker-current");
+    const statusNode = document.getElementById("directory-picker-status");
+    const listNode = document.getElementById("directory-picker-list");
+    const closeButton = document.getElementById("directory-picker-close");
+    const upButton = document.getElementById("directory-picker-up");
+    const selectCurrentButton = document.getElementById("directory-picker-select-current");
+    let activeInput = null;
+    let currentPath = "";
+    let parentPath = null;
+
+    function resolveCurrentPath() {
+      return currentPath || "";
+    }
+
+    function setInputValue(path) {
+      if (!activeInput) return;
+      activeInput.value = path;
+      dialog.close();
+    }
+
+    function renderEntries(entries) {
+      if (!entries.length) {
+        listNode.innerHTML = '<div class="muted">当前目录下没有子目录。</div>';
+        return;
+      }
+      listNode.innerHTML = entries.map((entry) => `
+        <article class="list-card">
+          <div>
+            <strong>${entry.name}</strong>
+            <p class="muted small" style="margin:6px 0 0;">${entry.path || "."}</p>
+          </div>
+          <div class="actions">
+            <button type="button" class="secondary directory-open" data-path="${entry.path}">进入</button>
+            <button type="button" class="directory-select" data-path="${entry.path}">选择</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function loadDirectory(path) {
+      statusNode.textContent = "正在加载目录...";
+      listNode.innerHTML = "";
+      const response = await fetch(`/console/fs/directories?path=${encodeURIComponent(path || "")}`, {
+        credentials: "same-origin",
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        statusNode.textContent = payload.detail || "目录加载失败";
+        return;
+      }
+      currentPath = payload.current_path || "";
+      parentPath = payload.parent_path || null;
+      rootNode.textContent = `浏览根目录：${payload.root}`;
+      currentNode.textContent = `当前目录：${currentPath || "."}`;
+      statusNode.textContent = "选择一个目录，或直接使用当前目录。";
+      upButton.disabled = !parentPath;
+      renderEntries(payload.entries || []);
+    }
+
+    document.querySelectorAll(".browse-directory-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const form = button.closest("form");
+        if (!form) return;
+        activeInput = form.querySelector(`input[name="${button.dataset.targetInput}"]`);
+        const initial = activeInput ? activeInput.value.trim() : "";
+        dialog.showModal();
+        loadDirectory(initial.startsWith("/") ? "" : initial).catch(() => {
+          statusNode.textContent = "目录加载失败";
+        });
+      });
+    });
+
+    closeButton.addEventListener("click", () => dialog.close());
+    upButton.addEventListener("click", () => {
+      if (!parentPath) return;
+      loadDirectory(parentPath).catch(() => {
+        statusNode.textContent = "目录加载失败";
+      });
+    });
+    selectCurrentButton.addEventListener("click", () => setInputValue(resolveCurrentPath()));
+    listNode.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (target.classList.contains("directory-open")) {
+        loadDirectory(target.dataset.path || "").catch(() => {
+          statusNode.textContent = "目录加载失败";
+        });
+      }
+      if (target.classList.contains("directory-select")) {
+        setInputValue(target.dataset.path || "");
+      }
+    });
+
+    document.querySelectorAll(".validate-workspace-button").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const projectId = button.dataset.projectId;
+        const output = document.getElementById(`workspace-validation-${projectId}`);
+        if (!output) return;
+        output.style.display = "block";
+        output.textContent = "正在校验路径...";
+        try {
+          const response = await fetch(`/console/projects/${projectId}/workspace/validate`, {
+            credentials: "same-origin",
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            output.textContent = payload.detail || "路径校验失败";
+            return;
+          }
+          output.textContent = [
+            `工作区根: ${payload.workspace_root}`,
+            `配置路径: ${payload.configured_path || "(空)"}`,
+            `解析路径: ${payload.resolved_path}`,
+            `真实路径: ${payload.real_path}`,
+            `存在: ${payload.exists ? "是" : "否"}`,
+            `目录: ${payload.is_dir ? "是" : "否"}`,
+            `软链接: ${payload.is_symlink ? "是" : "否"}`,
+            `docker-compose.yml: ${payload.docker_compose_exists ? "存在" : "不存在"}`,
+            `打包脚本: ${payload.package_script_exists ? payload.package_script : "不存在"}`,
+          ].join("\n");
+        } catch (_error) {
+          output.textContent = "路径校验失败";
+        }
+      });
+    });
+  })();
+</script>
+{% endblock %}

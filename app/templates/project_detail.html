@@ -1,0 +1,878 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>{{ project.name }}</h1>
+  <p>{{ project.description or '当前项目已接入独立发布平台，可直接配置模板、生成制品并发版。' }}</p>
+</section>
+
+{% if notice %}
+<section class="notice">{{ notice }}</section>
+{% endif %}
+{% if error %}
+<section class="error">{{ error }}</section>
+{% endif %}
+
+<section class="stats">
+  <article class="card stat"><strong>{{ project.environments|length }}</strong><span>环境</span></article>
+  <article class="card stat"><strong>{{ project.releases|length }}</strong><span>Release</span></article>
+  <article class="card stat"><strong>{{ build_jobs|length }}</strong><span>最近构建任务</span></article>
+  <article class="card stat"><strong>{{ deployments|length }}</strong><span>最近部署任务</span></article>
+</section>
+
+<section class="workflow-grid">
+  <article class="workflow-card">
+    <span class="workflow-step">Step 1 / 接入</span>
+    <strong style="font-size:18px;">先配模板与环境</strong>
+    <p class="muted small" style="margin:0;">把项目工作目录、打包脚本、目标环境 webhook 和状态接口在线配置好，后面就不需要再手工拼参数。</p>
+  </article>
+  <article class="workflow-card">
+    <span class="workflow-step">Step 2 / 生成</span>
+    <strong style="font-size:18px;">默认走一键生成</strong>
+    <p class="muted small" style="margin:0;">构建任务会自动记录阶段、日志和制品地址，适合大文件和移动端查看。</p>
+  </article>
+  <article class="workflow-card">
+    <span class="workflow-step">Step 3 / 发布</span>
+    <strong style="font-size:18px;">发布改为异步跟踪</strong>
+    <p class="muted small" style="margin:0;">提交后不再阻塞页面，部署详情页会自动轮询状态并给出回滚入口。</p>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2>工作台标签</h2>
+      <p>先选你当前要处理的阶段。默认打开“构建发布”，避免一进来被所有表单和列表淹没。</p>
+    </div>
+  </div>
+  <div class="tabs">
+    <a class="tab {% if active_tab == 'onboarding' %}active{% endif %}" href="/console/projects/{{ project.id }}?tab=onboarding">接入配置</a>
+    <a class="tab {% if active_tab == 'builds' %}active{% endif %}" href="/console/projects/{{ project.id }}?tab=builds">构建发布</a>
+    <a class="tab {% if active_tab == 'advanced' %}active{% endif %}" href="/console/projects/{{ project.id }}?tab=advanced">高级操作</a>
+  </div>
+</section>
+
+{% if active_tab == 'onboarding' %}
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>Starter 模板中心</h2>
+        <p>这里不再要求你先选固定模式。先把项目里的可发布组件定义清楚，再预览脚本、配置和接入说明。</p>
+      </div>
+    </div>
+    <form method="post" action="/console/projects/{{ project.id }}/components/import-compose" class="grid">
+      <div class="form-grid">
+        <label>从 Compose 导入
+          <input type="text" name="compose_path" value="{{ compose_path_hint }}" placeholder="docker-compose.yml">
+        </label>
+      </div>
+      <p class="muted small" style="margin:0;">当前工作区路径：{{ project.workspace_path or '(空，表示直接使用全局工作区根)' }}</p>
+      <p class="muted small" style="margin:0;">当前解析目录：{{ resolved_workspace_path }}</p>
+      <div class="actions">
+        <button type="button" id="validate-project-workspace" class="secondary">校验路径</button>
+        <button type="submit" class="secondary">从 compose 读取组件候选</button>
+        <a class="button" href="/console/projects/{{ project.id }}/starter/download{% if starter_environment %}?environment_id={{ starter_environment.id }}{% endif %}">下载当前 starter 包</a>
+      </div>
+    </form>
+    <pre id="project-workspace-validation" class="muted small" style="display:none; margin:0 0 16px; white-space:pre-wrap;"></pre>
+    {% if compose_refresh %}
+    <article class="list-card" style="margin-bottom:16px;">
+      <div class="meta-line">
+        <span class="badge">推荐文件已更新</span>
+      </div>
+      <p class="muted small" style="margin:0;">组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。</p>
+    </article>
+    {% endif %}
+    {% if compose_analysis or compose_analysis_error %}
+    <article class="list-card" style="margin-bottom:16px;">
+      <div class="section-head">
+        <div>
+          <h2 style="margin:0; font-size:18px;">Compose 规范检查</h2>
+          <p class="muted small" style="margin:6px 0 0;">路径：{{ compose_analysis.compose_path if compose_analysis else compose_path_hint }}</p>
+          {% if compose_analysis %}
+          <p class="muted small" style="margin:6px 0 0;">解析到的 services：{{ compose_analysis.service_count }}</p>
+          {% endif %}
+        </div>
+        {% if compose_analysis %}
+        <div class="actions">
+          <a class="button secondary" href="/console/projects/{{ project.id }}/compose/recommended?compose_path={{ compose_path_hint }}">下载推荐 docker-compose.yml</a>
+        </div>
+        {% endif %}
+      </div>
+      {% if compose_analysis_error %}
+      <p class="muted small" style="margin:0;">{{ compose_analysis_error }}</p>
+      {% elif compose_analysis %}
+      <div class="list-stack">
+        {% for issue in compose_analysis.issues %}
+        <article class="list-card" style="padding:12px;">
+          <div class="meta-line">
+            <span class="badge">{{ issue.severity }}</span>
+          </div>
+          <strong>{{ issue.summary }}</strong>
+          <p class="muted small" style="margin:6px 0 0;">{{ issue.detail }}</p>
+        </article>
+        {% endfor %}
+      </div>
+      <details class="advanced" style="margin-top:12px;">
+        <summary>预览推荐 docker-compose.yml</summary>
+        <pre class="code-block" style="white-space:pre-wrap; overflow-wrap:anywhere;">{{ compose_analysis.recommended_compose }}</pre>
+      </details>
+      {% endif %}
+    </article>
+    {% endif %}
+    <div class="list-stack" style="margin-top:16px;">
+      {% for component in project_components %}
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">{{ component.name }}</span>
+          <span>{{ component.service_name }}</span>
+          <span>{{ '需要构建' if component.build_enabled else '外部镜像' }}</span>
+          <span>{{ '默认勾选' if component.default_selected else '手动勾选' }}</span>
+          <span>{{ component.source_type }}</span>
+        </div>
+        <div>
+          <strong style="word-break:break-all;">{{ component.image }}</strong>
+          <p class="muted small" style="margin:6px 0 0;">Dockerfile: {{ component.dockerfile }} · Context: {{ component.context_path }} · Tar: {{ component.tar_name_pattern }}</p>
+        </div>
+        <details class="advanced">
+          <summary>编辑组件</summary>
+          <form id="component-form-{{ component.id }}" method="post" action="/console/projects/{{ project.id }}/components" class="grid" style="margin-top:12px;">
+            <input type="hidden" name="component_id" value="{{ component.id }}">
+            <input type="hidden" name="compose_path" value="{{ compose_path_hint }}">
+            <div class="form-grid">
+              <label>组件名
+                <input type="text" name="name" value="{{ component.name }}" required>
+              </label>
+              <label>Compose service 名
+                <input type="text" name="service_name" value="{{ component.service_name }}" required>
+              </label>
+              <label>镜像名
+                <input type="text" name="image" value="{{ component.image }}" required>
+              </label>
+              <label>Dockerfile
+                <input type="text" name="dockerfile" value="{{ component.dockerfile }}" required>
+              </label>
+              <label>Context
+                <input type="text" name="context_path" value="{{ component.context_path }}" required>
+              </label>
+              <label>Tar 文件名模板
+                <input type="text" name="tar_name_pattern" value="{{ component.tar_name_pattern }}" required>
+              </label>
+            </div>
+            <div class="meta-line">
+              <label><input type="checkbox" name="build_enabled" {% if component.build_enabled %}checked{% endif %}> 需要构建</label>
+              <label><input type="checkbox" name="enabled" {% if component.enabled %}checked{% endif %}> 启用</label>
+              <label><input type="checkbox" name="default_selected" {% if component.default_selected %}checked{% endif %}> 默认参与发版</label>
+            </div>
+          </form>
+          <div class="actions" style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+            <button type="submit" form="component-form-{{ component.id }}" class="secondary">保存组件</button>
+            <form method="post" action="/console/projects/{{ project.id }}/components/{{ component.id }}/delete" style="margin:0;" onsubmit="return confirm('确认删除该组件？');">
+              <input type="hidden" name="compose_path" value="{{ compose_path_hint }}">
+              <button type="submit" class="danger">删除组件</button>
+            </form>
+          </div>
+        </details>
+      </article>
+      {% else %}
+      <div class="muted">还没有组件，先手工新增一个，或者从 compose 文件导入。</div>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>远端 deploy-agent 接入</h2>
+        <p>这部分就是给目标 Docker 主机的。最少只需要一个兼容 `/deploy/hook` 和 `/deploy/status` 的轻量服务。</p>
+      </div>
+    </div>
+    {% if project.environments %}
+    <form method="get" action="/console/projects/{{ project.id }}" class="grid">
+      <input type="hidden" name="tab" value="onboarding">
+      <label>用于生成示例的目标环境
+        <select name="starter_environment_id" onchange="this.form.submit()">
+          {% for env in project.environments %}
+          <option value="{{ env.id }}" {% if starter_environment and starter_environment.id == env.id %}selected{% endif %}>{{ env.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+    {% else %}
+    <p class="muted small" style="margin:0;">还没有环境配置。当前展示的是通用 deploy-agent 示例，等你先创建环境后这里会自动带入 webhook 和 status 地址。</p>
+    {% endif %}
+    <ol class="guide-steps">
+      {% for step in starter_bundle.remote_agent.steps %}
+      <li>{{ step }}</li>
+      {% endfor %}
+    </ol>
+    <div class="meta-grid">
+      <div>
+        <span class="muted small">Webhook</span>
+        <strong style="display:block; word-break:break-all;">{{ starter_bundle.remote_agent.webhook_url }}</strong>
+      </div>
+      <div>
+        <span class="muted small">Status</span>
+        <strong style="display:block; word-break:break-all;">{{ starter_bundle.remote_agent.status_url }}</strong>
+      </div>
+    </div>
+    <details class="advanced" open>
+      <summary>查看最小协议请求体</summary>
+      <pre class="code-block">{{ starter_bundle.remote_agent.required_contract.hook_payload | tojson(indent=2) }}</pre>
+    </details>
+    <details class="advanced">
+      <summary>查看 deploy-agent compose 示例</summary>
+      <pre class="code-block">{{ starter_bundle.files["deploy/deploy-agent/deploy-agent.compose.yml"] }}</pre>
+    </details>
+    <details class="advanced">
+      <summary>查看 deploy-agent env 示例</summary>
+      <pre class="code-block">{{ starter_bundle.files["deploy/deploy-agent/deploy-agent.env.example"] }}</pre>
+    </details>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2>Starter 预览</h2>
+      <p>当前 starter 直接根据项目组件生成。不会写脚本时，下载 starter 包并按 README 调整字段即可。</p>
+    </div>
+    <div class="meta-line">
+      <span class="badge">当前组件</span>
+      <span>{{ starter_bundle.component_names|join(' + ') if starter_bundle.component_names else '暂无启用组件' }}</span>
+    </div>
+  </div>
+  <div class="list-stack">
+    <article class="list-card">
+      <div class="meta-line">
+        <span class="badge">deploy/release.config.json</span>
+        <span>在线可配置</span>
+      </div>
+      <pre class="code-block">{{ starter_bundle.files["deploy/release.config.json"] }}</pre>
+    </article>
+    <article class="list-card">
+      <div class="meta-line">
+        <span class="badge">build-release.sh</span>
+        <span>deploy/scripts/package_release.sh</span>
+      </div>
+      <pre class="code-block">{{ starter_bundle.files["deploy/scripts/package_release.sh"] }}</pre>
+    </article>
+    <article class="list-card">
+      <div class="meta-line">
+        <span class="badge">README.md</span>
+        <span>新手接入说明</span>
+      </div>
+      <pre class="code-block">{{ starter_bundle.files["README.md"] }}</pre>
+    </article>
+  </div>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>接入配置</h2>
+        <p>这里决定“项目怎么生成 release”。组件列表负责描述可发布镜像，这里只保留构建模板和覆盖配置。</p>
+      </div>
+    </div>
+    <form method="post" action="/console/projects/{{ project.id }}/build-config" class="grid">
+      <div class="form-grid">
+        <label>构建模板
+          <select name="template_id" id="build-template-select">
+            {% for template in templates_list %}
+            <option
+              value="{{ template.id }}"
+              data-template-slug="{{ template.slug }}"
+              data-description="{{ template.description or '' }}"
+              data-config-json="{{ template.config_json or '{}' }}"
+              {% if build_config and build_config.template_id == template.id %}selected{% endif %}
+            >
+              {{ template.name }}{% if template.slug == 'manifest_script_v1' %}（推荐）{% elif template.slug == 'manifest_upload_v1' %}（高级）{% endif %} / {{ template.strategy }}
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>新增组件
+          <input type="text" value="在左上卡片中手工新增或从 compose 导入" disabled>
+        </label>
+      </div>
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge" id="build-template-mode-badge">主路径</span>
+          <span id="build-template-slug">{{ build_config.template.slug if build_config and build_config.template else '' }}</span>
+        </div>
+        <p class="muted small" id="build-template-description" style="margin:0;">{{ build_config.template.description if build_config and build_config.template and build_config.template.description else '优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。' }}</p>
+      </article>
+      <label>配置覆盖(JSON)
+        <textarea id="build-config-override" name="config_override_json" placeholder='{"workspace_path":"/workspace","package_script":"deploy/scripts/package_release.sh"}'>{{ build_config.config_override_json if build_config and build_config.config_override_json else '' }}</textarea>
+      </label>
+      <div class="actions">
+        <button type="submit" class="secondary">保存接入配置</button>
+      </div>
+    </form>
+    {% if build_config and build_config.template %}
+    <details class="advanced">
+      <summary>查看模板默认配置</summary>
+      <pre style="margin-top:12px;">{{ build_config.template.config_json or '{}' }}</pre>
+    </details>
+    {% endif %}
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>手工新增组件</h2>
+        <p>适合没有 compose 文件，或只想挑出少数组件纳入发版时使用。</p>
+      </div>
+    </div>
+    <form method="post" action="/console/projects/{{ project.id }}/components" class="grid">
+      <input type="hidden" name="compose_path" value="{{ compose_path_hint }}">
+      <div class="form-grid">
+        <label>组件名
+          <input type="text" name="name" value="api" required>
+        </label>
+        <label>Compose service 名
+          <input type="text" name="service_name" value="api" required>
+        </label>
+        <label>镜像名
+          <input type="text" name="image" value="{{ (project.image_registry_prefix ~ '/' if project.image_registry_prefix else '') ~ project.slug ~ '-api:__VERSION__' }}" required>
+        </label>
+        <label>Dockerfile
+          <input type="text" name="dockerfile" value="./Dockerfile" required>
+        </label>
+        <label>Context
+          <input type="text" name="context_path" value="." required>
+        </label>
+        <label>Tar 文件名模板
+          <input type="text" name="tar_name_pattern" value="{{ project.slug }}-api-__VERSION__.tar" required>
+        </label>
+      </div>
+      <div class="meta-line">
+        <label><input type="checkbox" name="build_enabled" checked> 需要构建</label>
+        <label><input type="checkbox" name="enabled" checked> 启用</label>
+        <label><input type="checkbox" name="default_selected" checked> 默认参与发版</label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="secondary">新增组件</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>环境管理</h2>
+        <p>这里决定“生成好的 release 发到哪里”。建议至少配置一个正式环境和一个测试环境。</p>
+      </div>
+    </div>
+    <form method="post" action="/console/projects/{{ project.id }}/environments" class="grid">
+      <div class="form-grid">
+        <label>环境名
+          <input type="text" name="name" value="prod" required>
+        </label>
+        <label>显示域名
+          <input type="text" name="base_url" placeholder="https://api.example.com">
+        </label>
+        <label>逻辑环境名
+          <input type="text" name="default_environment_name" value="prod" required>
+        </label>
+        <label>Webhook URL
+          <input type="text" name="webhook_url" required>
+        </label>
+        <label>Status URL
+          <input type="text" name="status_url" required>
+        </label>
+        <label>共享密钥
+          <div style="display:flex; gap:8px;">
+            <input type="text" name="shared_secret" data-shared-secret-input required>
+            <button type="button" class="secondary generate-shared-secret-button">生成密钥</button>
+          </div>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="secondary">保存环境</button>
+      </div>
+    </form>
+  </article>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>当前接入摘要</h2>
+        <p>用最少的信息确认这个项目现在能不能直接一键生成和一键发布。</p>
+      </div>
+    </div>
+    <div class="list-stack">
+      <article class="list-card">
+        <div class="meta-line"><span class="badge">执行适配器</span></div>
+        <strong>Webhook Manifest v1</strong>
+        <p class="muted small" style="margin:0;">负责把 release 的 `manifest_url` 发给兼容的 deploy-agent。当前只有这一种协议，新用户按默认方式接入即可。</p>
+      </article>
+      <article class="list-card">
+        <div class="meta-line"><span class="badge">项目目录</span></div>
+        <strong>{{ project.workspace_path or '未设置' }}</strong>
+        <p class="muted small" style="margin:0;">用于 compose 导入、starter 预览和构建脚本执行。相对路径会基于全局工作目录解析。</p>
+      </article>
+      <article class="list-card">
+        <div class="meta-line"><span class="badge">镜像仓库前缀</span></div>
+        <strong>{{ project.image_registry_prefix or '未设置' }}</strong>
+        <p class="muted small" style="margin:0;">compose 未声明 `image:` 时，会按此前缀自动生成镜像地址；未设置时只生成本地镜像名。</p>
+      </article>
+      <article class="list-card">
+        <div class="meta-line"><span class="badge">构建模板</span></div>
+        <strong>{{ build_config.template.name if build_config and build_config.template else '-' }}</strong>
+        <p class="muted small" style="margin:0;">{{ build_config.template.description if build_config and build_config.template and build_config.template.description else '尚未配置构建模板说明。' }}</p>
+      </article>
+      <article class="list-card">
+        <div class="meta-line"><span class="badge">环境数量</span></div>
+        <strong>{{ project.environments|length }} 个</strong>
+        <p class="muted small" style="margin:0;">建议至少配置一个测试环境和一个正式环境。</p>
+      </article>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>环境列表</h2>
+        <p>环境编辑和删除放在这里，不再混进主发布流程。</p>
+      </div>
+    </div>
+    <div class="list-stack">
+      {% for env in project.environments %}
+      <article class="list-card">
+        <div>
+          <strong>{{ env.name }}</strong>
+          <p class="muted small" style="margin:6px 0 0;">{{ env.base_url or '未设置显示域名' }}</p>
+        </div>
+        <div class="meta-line">
+          <span>Webhook：{{ env.webhook_url }}</span>
+          <span>Status：{{ env.status_url }}</span>
+        </div>
+        <details class="advanced">
+          <summary>编辑或删除环境</summary>
+          <form method="post" action="/console/projects/{{ project.id }}/environments/{{ env.id }}/update" class="grid" style="margin-top:12px;">
+            <div class="form-grid">
+              <label>环境名
+                <input type="text" name="name" value="{{ env.name }}" required>
+              </label>
+              <label>显示域名
+                <input type="text" name="base_url" value="{{ env.base_url or '' }}">
+              </label>
+              <label>逻辑环境名
+                <input type="text" name="default_environment_name" value="{{ env.default_environment_name }}" required>
+              </label>
+              <label>Webhook URL
+                <input type="text" name="webhook_url" value="{{ env.webhook_url }}" required>
+              </label>
+              <label>Status URL
+                <input type="text" name="status_url" value="{{ env.status_url }}" required>
+              </label>
+              <label>共享密钥
+                <div style="display:flex; gap:8px;">
+                  <input type="text" name="shared_secret" value="{{ env.shared_secret }}" data-shared-secret-input required>
+                  <button type="button" class="secondary generate-shared-secret-button">生成密钥</button>
+                </div>
+              </label>
+            </div>
+            <div class="actions">
+              <button type="submit" class="secondary">保存修改</button>
+            </div>
+          </form>
+          <form method="post" action="/console/projects/{{ project.id }}/environments/{{ env.id }}/delete" style="margin-top:10px;" onsubmit="return confirm('确认删除该环境？');">
+            <button type="submit" class="danger">删除环境</button>
+          </form>
+        </details>
+      </article>
+      {% else %}
+      <div class="muted">还没有环境。</div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+{% endif %}
+
+{% if active_tab == 'builds' %}
+<section class="card primary-stack">
+  <div class="section-head">
+    <div>
+      <h2>主操作</h2>
+      <p>如果你只想完成一次正常发布，只需要在这里二选一。其它人工处理入口都已经折叠到高级操作。</p>
+    </div>
+  </div>
+  <div class="primary-actions">
+    <form method="post" action="/console/projects/{{ project.id }}/builds" class="action-panel">
+      <strong>一键生成制品</strong>
+      <div class="form-grid">
+        <label>制品模式
+          <select name="artifact_mode">
+            <option value="auto">自动</option>
+            <option value="local">本地制品站</option>
+            <option value="oss">OSS</option>
+          </select>
+        </label>
+      </div>
+      <div class="list-stack">
+        {% for component in project_components if component.enabled %}
+        <label class="list-card" style="padding:12px;">
+          <span><input type="checkbox" name="selected_component_ids" value="{{ component.id }}" {% if component.default_selected %}checked{% endif %}> {{ component.name }}</span>
+          <span class="muted small">{{ component.service_name }} · {{ component.image }} · {{ '构建' if component.build_enabled else '外部镜像' }}</span>
+        </label>
+        {% else %}
+        <div class="muted">没有启用中的组件，先到“接入配置”维护组件。</div>
+        {% endfor %}
+      </div>
+      <label>附加 payload
+        <textarea name="payload_json" placeholder='可选，保存本次构建说明或附加信息'></textarea>
+      </label>
+      <div class="actions">
+        <button type="submit">开始构建</button>
+      </div>
+    </form>
+
+    <form method="post" action="/console/projects/{{ project.id }}/builds" class="action-panel">
+      <strong>一键生成并发布</strong>
+      <div class="form-grid">
+        <label>目标环境
+          <select name="environment_id">
+            {% for env in project.environments %}
+            <option value="{{ env.id }}">{{ env.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>制品模式
+          <select name="artifact_mode">
+            <option value="auto">自动</option>
+            <option value="local">本地制品站</option>
+            <option value="oss">OSS</option>
+          </select>
+        </label>
+      </div>
+      <div class="list-stack">
+        {% for component in project_components if component.enabled %}
+        <label class="list-card" style="padding:12px;">
+          <span><input type="checkbox" name="selected_component_ids" value="{{ component.id }}" {% if component.default_selected %}checked{% endif %}> {{ component.name }}</span>
+          <span class="muted small">{{ component.service_name }} · {{ component.image }} · {{ '构建' if component.build_enabled else '外部镜像' }}</span>
+        </label>
+        {% else %}
+        <div class="muted">没有启用中的组件，先到“接入配置”维护组件。</div>
+        {% endfor %}
+      </div>
+      <label>附加 payload
+        <textarea name="payload_json" placeholder='可选，保存本次构建与发布说明'></textarea>
+      </label>
+      <div class="actions">
+        <button type="submit">生成后自动发布</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>最近构建任务</h2>
+        <p>构建任务支持阶段进度、最终 release 地址和自动发布联动。</p>
+      </div>
+    </div>
+    <div class="list-stack">
+      {% for build_job in build_jobs %}
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge {% if build_job.status == 'failed' %}failed{% elif build_job.status in ['queued', 'running'] %}warning{% endif %}">{{ build_job.status }}</span>
+          <span>{{ build_job.current_stage or '-' }}</span>
+          <span>{{ build_job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+        </div>
+        <div>
+          <strong>构建 #{{ build_job.id }}</strong>
+          <p class="muted small" style="margin:6px 0 0;">版本：{{ build_job.output_version or '生成中' }} · 存储：{{ build_job.storage_mode or build_job.artifact_mode }}</p>
+        </div>
+        <div class="progress-shell">
+          <div class="progress-bar" style="width:{{ build_job.progress_percent or 0 }}%;"></div>
+        </div>
+        <div class="actions">
+          <a class="button secondary" href="/console/build-jobs/{{ build_job.id }}">查看构建详情</a>
+        </div>
+      </article>
+      {% else %}
+      <div class="muted">还没有构建任务。</div>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>最近部署任务</h2>
+        <p>大制品场景下部署会以异步任务方式轮询收敛状态，不再要求页面一直等待。</p>
+      </div>
+    </div>
+    <div class="list-stack">
+      {% for deployment in deployments %}
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge {% if deployment.status == 'failed' %}failed{% elif deployment.status in ['queued', 'running', 'submitted', 'timed_out_but_running'] %}warning{% endif %}">{{ deployment.status }}</span>
+          <span>{{ deployment.environment.name }}</span>
+          <span>{{ deployment.release.version }}</span>
+        </div>
+        <div class="progress-shell">
+          <div class="progress-bar" style="width:{{ deployment.progress_percent or 0 }}%;"></div>
+        </div>
+        <div class="actions">
+          <a class="button secondary" href="/console/deployments/{{ deployment.id }}">查看部署详情</a>
+        </div>
+      </article>
+      {% else %}
+      <div class="muted">还没有部署任务。</div>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2>可发布 Release</h2>
+      <p>这里只保留最近的可发布版本，强调“选版本发版”，而不是把所有信息糅在一个列表里。</p>
+    </div>
+  </div>
+  <div class="list-stack">
+    {% for release in project.releases|sort(attribute='created_at', reverse=True) %}
+    <article class="list-card">
+      <div class="meta-line">
+        <span class="badge {% if release.manifest_sync_status == 'failed' %}failed{% endif %}">{{ release.manifest_sync_status }}</span>
+        <span>{{ release.storage_mode }}</span>
+        <span>{{ release.source_type }}</span>
+      </div>
+      <div>
+        <strong>{{ release.version }}</strong>
+        <p class="muted small" style="margin:6px 0 0;">{{ release.manifest_url }}</p>
+      </div>
+      <div class="meta-line">
+        <span>{{ release.component_count }} 个组件</span>
+        <span>{{ release.commit or '-' }}</span>
+        <span>{{ release.created_by or '-' }}</span>
+      </div>
+      {% if release.components %}
+      <div class="meta-line">
+        <span>组件：</span>
+        <span>{{ release.components|sort(attribute='position')|map(attribute='name')|join(', ') }}</span>
+      </div>
+      {% endif %}
+      <div class="actions">
+        <form method="post" action="/console/releases/{{ release.id }}/sync-manifest" class="inline">
+          <button type="submit" class="secondary">重新同步 manifest</button>
+        </form>
+        {% if project.environments %}
+        <form method="post" action="/console/projects/{{ project.id }}/deploy" class="inline">
+          <input type="hidden" name="release_id" value="{{ release.id }}">
+          <input type="hidden" name="environment_id" value="{{ project.environments[0].id }}">
+          <button type="submit">快速发布到 {{ project.environments[0].name }}</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% else %}
+    <div class="muted">还没有 Release。</div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if active_tab == 'advanced' %}
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h3>手动登记已有 Release</h3>
+        <p>兼容已有 manifest_url 流程，建议仅在特殊场景下使用。</p>
+      </div>
+    </div>
+    <form method="post" action="/console/projects/{{ project.id }}/releases" class="grid">
+      <div class="form-grid">
+        <label>版本号
+          <input type="text" name="version" required>
+        </label>
+        <label>Commit
+          <input type="text" name="commit">
+        </label>
+        <label>Manifest URL
+          <input type="text" name="manifest_url" required>
+        </label>
+      </div>
+      <label>附加 payload
+        <textarea name="payload_json"></textarea>
+      </label>
+      <div class="actions">
+        <button type="submit" class="secondary">登记版本</button>
+      </div>
+    </form>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h3>上传已有制品</h3>
+        <p>支持本地制品站或 OSS。页面会显示上传进度，适合外部构建系统产出的 release 包。</p>
+      </div>
+    </div>
+    <form id="artifact-upload-form" method="post" action="/console/projects/{{ project.id }}/releases/upload" class="grid" enctype="multipart/form-data">
+      <div class="form-grid">
+        <label>版本号
+          <input type="text" name="version" required>
+        </label>
+        <label>Commit
+          <input type="text" name="commit">
+        </label>
+        <label>存储模式
+          <select name="artifact_mode">
+            <option value="auto">自动</option>
+            <option value="local">本地制品站</option>
+            <option value="oss">OSS</option>
+          </select>
+        </label>
+        <label>Manifest 文件
+          <input type="file" name="manifest_file" accept=".json,application/json" required>
+        </label>
+        <label>组件 tar 文件
+          <input type="file" name="artifact_files" accept=".tar,application/x-tar" multiple required>
+        </label>
+        <label>SHA256 文件
+          <input type="file" name="sha256_file" accept=".txt,text/plain">
+        </label>
+      </div>
+      <label>附加 payload
+        <textarea name="payload_json"></textarea>
+      </label>
+      <div class="progress-shell">
+        <div id="artifact-upload-progress" class="progress-bar"></div>
+      </div>
+      <div id="artifact-upload-status" class="muted small">尚未开始上传</div>
+      <div class="actions">
+        <button type="submit" class="secondary">上传并登记</button>
+      </div>
+    </form>
+  </article>
+</section>
+{% endif %}
+
+<script>
+  (() => {
+    function generateSharedSecret() {
+      const bytes = new Uint8Array(32);
+      window.crypto.getRandomValues(bytes);
+      return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+
+    document.querySelectorAll(".generate-shared-secret-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const wrapper = button.parentElement;
+        const input = wrapper ? wrapper.querySelector("[data-shared-secret-input]") : null;
+        if (!input) return;
+        input.value = generateSharedSecret();
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    });
+
+    const templateSelect = document.getElementById("build-template-select");
+    const templateDescriptionNode = document.getElementById("build-template-description");
+    const templateSlugNode = document.getElementById("build-template-slug");
+    const templateModeBadgeNode = document.getElementById("build-template-mode-badge");
+    const buildConfigOverrideNode = document.getElementById("build-config-override");
+    function updateBuildTemplateHint() {
+      if (!templateSelect || !templateDescriptionNode || !buildConfigOverrideNode) return;
+      const option = templateSelect.options[templateSelect.selectedIndex];
+      const slug = option?.dataset.templateSlug || "";
+      const description = option?.dataset.description || "";
+      const configJson = option?.dataset.configJson || "{}";
+      templateDescriptionNode.textContent = description || "未提供模板说明。";
+      if (templateSlugNode) {
+        templateSlugNode.textContent = slug;
+      }
+      if (templateModeBadgeNode) {
+        templateModeBadgeNode.textContent = slug === "manifest_upload_v1" ? "高级场景" : "主路径";
+      }
+      buildConfigOverrideNode.placeholder = configJson;
+    }
+    if (templateSelect) {
+      templateSelect.addEventListener("change", updateBuildTemplateHint);
+      updateBuildTemplateHint();
+    }
+
+    const validateButton = document.getElementById("validate-project-workspace");
+    const validationNode = document.getElementById("project-workspace-validation");
+    if (validateButton && validationNode) {
+      validateButton.addEventListener("click", async () => {
+        validationNode.style.display = "block";
+        validationNode.textContent = "正在校验路径...";
+        try {
+          const response = await fetch(`/console/projects/{{ project.id }}/workspace/validate`, {
+            credentials: "same-origin",
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            validationNode.textContent = payload.detail || "路径校验失败";
+            return;
+          }
+          validationNode.textContent = [
+            `工作区根: ${payload.workspace_root}`,
+            `配置路径: ${payload.configured_path || "(空)"}`,
+            `解析路径: ${payload.resolved_path}`,
+            `真实路径: ${payload.real_path}`,
+            `存在: ${payload.exists ? "是" : "否"}`,
+            `目录: ${payload.is_dir ? "是" : "否"}`,
+            `软链接: ${payload.is_symlink ? "是" : "否"}`,
+            `docker-compose.yml: ${payload.docker_compose_exists ? "存在" : "不存在"}`,
+            `打包脚本: ${payload.package_script_exists ? payload.package_script : "不存在"}`,
+          ].join("\n");
+        } catch (_error) {
+          validationNode.textContent = "路径校验失败";
+        }
+      });
+    }
+
+    const form = document.getElementById("artifact-upload-form");
+    if (!form) return;
+    const progressBar = document.getElementById("artifact-upload-progress");
+    const statusNode = document.getElementById("artifact-upload-status");
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", form.action);
+      xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+      xhr.upload.addEventListener("progress", (progressEvent) => {
+        if (!progressEvent.lengthComputable) return;
+        const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+        progressBar.style.width = `${percent}%`;
+        statusNode.textContent = `正在上传制品：${percent}%`;
+      });
+
+      xhr.addEventListener("load", () => {
+        try {
+          const payload = JSON.parse(xhr.responseText || "{}");
+          if (xhr.status >= 200 && xhr.status < 300 && payload.ok) {
+            progressBar.style.width = "100%";
+            statusNode.textContent = "上传完成，正在跳转。";
+            window.location.href = payload.redirect_url;
+            return;
+          }
+          statusNode.textContent = payload.error || "上传失败";
+        } catch (_error) {
+          statusNode.textContent = "上传失败";
+        }
+      });
+
+      xhr.addEventListener("error", () => {
+        statusNode.textContent = "上传失败，请检查网络或服务器状态。";
+      });
+
+      xhr.send(new FormData(form));
+    });
+  })();
+</script>
+{% endblock %}

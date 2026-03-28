@@ -1,0 +1,1025 @@
+import json
+from pathlib import Path
+from urllib.parse import quote_plus
+
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, status
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, joinedload
+
+from ..auth import authenticate_user, get_current_user, get_optional_user
+from ..config import get_settings
+from ..database import get_db
+from ..models import BuildJob, BuildJobEvent, BuildTemplate, Deployment, Environment, OperatorUser, Project, ProjectBuildConfig, Release
+from ..services import (
+    analyze_compose_release_readiness,
+    build_starter_archive,
+    build_starter_bundle,
+    create_build_job,
+    delete_project_component,
+    ensure_default_project_components,
+    ensure_project_build_config,
+    import_project_components_from_compose,
+    list_project_components,
+    normalize_build_config_override,
+    refresh_deployment_status,
+    resolve_project_workspace,
+    run_deployment,
+    save_project_component,
+    save_project_build_config,
+    sync_release_manifest,
+    sync_release_manifest_payload,
+)
+from ..storage import build_artifact_storage
+
+
+router = APIRouter(tags=["web"])
+templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
+
+
+def render(request: Request, template_name: str, **context):
+    base_context = {"request": request, "current_path": request.url.path}
+    base_context.update(context)
+    return templates.TemplateResponse(template_name, base_context)
+
+
+def try_parse_json(raw: str | None):
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+
+
+def success_redirect(url: str, message: str) -> RedirectResponse:
+    separator = "&" if "?" in url else "?"
+    return RedirectResponse(url=f"{url}{separator}notice={quote_plus(message)}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+def error_redirect(url: str, message: str) -> RedirectResponse:
+    separator = "&" if "?" in url else "?"
+    return RedirectResponse(url=f"{url}{separator}error={quote_plus(message)}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/console/fs/directories")
+def list_workspace_directories(
+    path: str = "",
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    root = Path(get_settings().workspace_path).resolve()
+    requested = path.strip().strip("/")
+    current = (root / requested).resolve() if requested else root
+    if root not in current.parents and current != root:
+        return JSONResponse({"detail": "path_out_of_workspace"}, status_code=400)
+    if not current.exists() or not current.is_dir():
+        return JSONResponse({"detail": "directory_not_found"}, status_code=404)
+    entries = []
+    for item in sorted(current.iterdir(), key=lambda entry: entry.name.lower()):
+        if item.is_dir():
+            relative = item.relative_to(root).as_posix()
+            entries.append({"name": item.name, "path": relative})
+    current_relative = current.relative_to(root).as_posix() if current != root else ""
+    parent_relative = current.parent.relative_to(root).as_posix() if current != root else None
+    return {
+        "root": str(root),
+        "current_path": current_relative,
+        "parent_path": parent_relative,
+        "entries": entries,
+    }
+
+
+@router.get("/console/projects/{project_id}/workspace/validate")
+def validate_project_workspace(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return JSONResponse({"detail": "project_not_found"}, status_code=404)
+    settings = get_settings()
+    configured = (project.workspace_path or "").strip()
+    resolved = resolve_project_workspace(project, settings)
+    path_exists = resolved.exists()
+    is_dir = resolved.is_dir() if path_exists else False
+    compose_path = resolved / "docker-compose.yml"
+    package_script_path = resolved / settings.package_script
+    return {
+        "workspace_root": str(Path(settings.workspace_path).resolve()),
+        "configured_path": configured,
+        "resolved_path": str(resolved),
+        "exists": path_exists,
+        "is_dir": is_dir,
+        "is_symlink": Path(settings.workspace_path).resolve().joinpath(configured).is_symlink()
+        if configured and not Path(configured).is_absolute()
+        else Path(configured).is_symlink() if configured else False,
+        "real_path": str(resolved.resolve(strict=False)),
+        "docker_compose_exists": compose_path.exists(),
+        "package_script_exists": package_script_path.exists(),
+        "package_script": str(package_script_path),
+    }
+
+
+@router.get("/", response_class=HTMLResponse)
+def root(request: Request, current_user: OperatorUser | None = Depends(get_optional_user)):
+    if current_user:
+        return RedirectResponse(url="/console/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/login", response_class=HTMLResponse)
+def login_page(request: Request, current_user: OperatorUser | None = Depends(get_optional_user)):
+    if current_user:
+        return RedirectResponse(url="/console/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    return render(request, "login.html", title="DeployBox 登录", error=None)
+
+
+@router.post("/login", response_class=HTMLResponse)
+def login_submit(
+    request: Request,
+    username: str = Form(),
+    password: str = Form(),
+    db: Session = Depends(get_db),
+):
+    user = authenticate_user(db, username=username.strip(), password=password)
+    if not user:
+        return render(request, "login.html", title="DeployBox 登录", error="用户名或密码错误")
+    request.session["user_id"] = user.id
+    return RedirectResponse(url="/console/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/console/dashboard", response_class=HTMLResponse)
+def dashboard_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    projects = db.execute(
+        select(Project)
+        .options(joinedload(Project.environments), joinedload(Project.releases), joinedload(Project.build_jobs))
+        .order_by(Project.updated_at.desc())
+        .limit(8)
+    ).unique().scalars().all()
+    recent_builds = db.scalars(select(BuildJob).order_by(BuildJob.created_at.desc()).limit(8)).all()
+    recent_deployments = db.execute(
+        select(Deployment)
+        .options(joinedload(Deployment.project), joinedload(Deployment.environment), joinedload(Deployment.release))
+        .order_by(Deployment.created_at.desc())
+        .limit(8)
+    ).unique().scalars().all()
+    summary = {
+        "projects": db.scalar(select(func.count(Project.id))) or 0,
+        "builds": db.scalar(select(func.count(BuildJob.id))) or 0,
+        "deployments": db.scalar(select(func.count(Deployment.id))) or 0,
+        "running_deployments": db.scalar(
+            select(func.count(Deployment.id)).where(
+                Deployment.status.in_(["queued", "submitted", "running", "timed_out_but_running"])
+            )
+        )
+        or 0,
+    }
+    return render(
+        request,
+        "dashboard.html",
+        title="Dashboard",
+        current_user=current_user,
+        projects=projects,
+        recent_builds=recent_builds,
+        recent_deployments=recent_deployments,
+        summary=summary,
+    )
+
+
+@router.get("/console/projects", response_class=HTMLResponse)
+def projects_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    projects = db.execute(
+        select(Project)
+        .options(
+            joinedload(Project.environments),
+            joinedload(Project.releases),
+            joinedload(Project.build_jobs),
+            joinedload(Project.build_config),
+        )
+        .order_by(Project.created_at.desc())
+    ).unique().scalars().all()
+    summary = {
+        "projects": len(projects),
+        "environments": sum(len(project.environments) for project in projects),
+        "releases": sum(len(project.releases) for project in projects),
+        "build_jobs": sum(len(project.build_jobs) for project in projects),
+    }
+    return render(
+        request,
+        "projects.html",
+        title="项目与接入",
+        current_user=current_user,
+        projects=projects,
+        summary=summary,
+        notice=request.query_params.get("notice"),
+        error=request.query_params.get("error"),
+    )
+
+
+@router.post("/console/projects")
+def create_project_form(
+    name: str = Form(),
+    slug: str = Form(),
+    workspace_path: str = Form(default=""),
+    image_registry_prefix: str = Form(default=""),
+    description: str = Form(default=""),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = Project(
+        name=name.strip(),
+        slug=slug.strip(),
+        adapter_type="webhook_manifest_v1",
+        workspace_path=workspace_path.strip() or None,
+        image_registry_prefix=image_registry_prefix.strip().rstrip("/") or None,
+        description=description.strip() or None,
+    )
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+    ensure_project_build_config(db, project)
+    ensure_default_project_components(db, project)
+    return success_redirect("/console/projects", f"项目 {project.name} 已创建")
+
+
+@router.post("/console/projects/{project_id}/update")
+def update_project_form(
+    project_id: int,
+    name: str = Form(),
+    slug: str = Form(),
+    workspace_path: str = Form(default=""),
+    image_registry_prefix: str = Form(default=""),
+    description: str = Form(default=""),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    duplicate = db.scalar(select(Project).where(Project.slug == slug.strip(), Project.id != project.id))
+    if duplicate:
+        return error_redirect("/console/projects", f"项目标识已存在: {slug.strip()}")
+    project.name = name.strip()
+    project.slug = slug.strip()
+    project.workspace_path = workspace_path.strip() or None
+    project.image_registry_prefix = image_registry_prefix.strip().rstrip("/") or None
+    project.description = description.strip() or None
+    db.add(project)
+    db.commit()
+    return success_redirect("/console/projects", f"项目 {project.name} 已更新")
+
+
+@router.post("/console/projects/{project_id}/delete")
+def delete_project_form(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    project_name = project.name
+    db.delete(project)
+    db.commit()
+    return success_redirect("/console/projects", f"项目 {project_name} 已删除")
+
+
+@router.get("/console/projects/{project_id}", response_class=HTMLResponse)
+def project_detail_page(
+    project_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.execute(
+        select(Project)
+        .options(
+            joinedload(Project.environments),
+            joinedload(Project.releases).joinedload(Release.components),
+            joinedload(Project.build_jobs),
+            joinedload(Project.build_config).joinedload(ProjectBuildConfig.template),
+            joinedload(Project.components),
+        )
+        .where(Project.id == project_id)
+    ).unique().scalar_one_or_none()
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+
+    compose_path_hint = request.query_params.get("compose_path", "docker-compose.yml").strip() or "docker-compose.yml"
+    build_config = ensure_project_build_config(db, project)
+    project_components = list_project_components(db, project)
+    build_config = db.execute(
+        select(ProjectBuildConfig)
+        .options(joinedload(ProjectBuildConfig.template))
+        .where(ProjectBuildConfig.id == build_config.id)
+    ).unique().scalar_one_or_none()
+    deployments = db.execute(
+        select(Deployment)
+        .options(joinedload(Deployment.environment), joinedload(Deployment.release))
+        .where(Deployment.project_id == project.id)
+        .order_by(Deployment.created_at.desc())
+        .limit(12)
+    ).unique().scalars().all()
+    build_jobs = db.scalars(
+        select(BuildJob).where(BuildJob.project_id == project.id).order_by(BuildJob.created_at.desc()).limit(12)
+    ).all()
+    templates_list = db.scalars(
+        select(BuildTemplate).where(BuildTemplate.is_active.is_(True)).order_by(BuildTemplate.is_builtin.desc(), BuildTemplate.name.asc())
+    ).all()
+    template_priority = {
+        "manifest_script_v1": 0,
+        "manifest_upload_v1": 10,
+    }
+    templates_list = sorted(
+        templates_list,
+        key=lambda item: (template_priority.get(item.slug, 50), item.name),
+    )
+    starter_environment_id = request.query_params.get("starter_environment_id", "").strip()
+    selected_environment = None
+    if starter_environment_id.isdigit():
+        selected_environment = next((env for env in project.environments if env.id == int(starter_environment_id)), None)
+    if not selected_environment and project.environments:
+        selected_environment = project.environments[0]
+    starter_bundle = build_starter_bundle(
+        project=project,
+        build_config=build_config,
+        components=project_components,
+        environment=selected_environment,
+    )
+    compose_analysis = None
+    compose_analysis_error = None
+    resolved_workspace = resolve_project_workspace(project)
+    try:
+        compose_file = (resolved_workspace / compose_path_hint).resolve()
+        if compose_file.exists():
+            compose_analysis = analyze_compose_release_readiness(project, project_components, compose_file)
+    except Exception as exc:
+        compose_analysis_error = str(exc)
+    active_tab = request.query_params.get("tab", "builds").strip().lower()
+    if active_tab not in {"onboarding", "builds", "advanced"}:
+        active_tab = "builds"
+    return render(
+        request,
+        "project_detail.html",
+        title=f"{project.name} - 项目详情",
+        current_user=current_user,
+        project=project,
+        build_config=build_config,
+        build_jobs=build_jobs,
+        deployments=deployments,
+        templates_list=templates_list,
+        starter_bundle=starter_bundle,
+        starter_environment=selected_environment,
+        project_components=project_components,
+        resolved_workspace_path=str(resolved_workspace),
+        compose_path_hint=compose_path_hint,
+        compose_analysis=compose_analysis,
+        compose_analysis_error=compose_analysis_error,
+        compose_refresh=request.query_params.get("compose_refresh") == "1",
+        active_tab=active_tab,
+        notice=request.query_params.get("notice"),
+        error=request.query_params.get("error"),
+        oss_enabled=get_settings().use_oss,
+    )
+
+
+@router.post("/console/projects/{project_id}/build-config")
+def update_build_config_form(
+    project_id: int,
+    template_id: int = Form(),
+    config_override_json: str = Form(default=""),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    try:
+        override = normalize_build_config_override(config_override_json)
+        save_project_build_config(
+            db,
+            project=project,
+            template_id=template_id,
+            config_override_json=json.dumps(override, ensure_ascii=True) if override else "",
+        )
+        return success_redirect(f"/console/projects/{project_id}", "接入配置已更新")
+    except Exception as exc:
+        return error_redirect(f"/console/projects/{project_id}", str(exc))
+
+
+@router.post("/console/projects/{project_id}/components")
+def save_project_component_form(
+    project_id: int,
+    component_id: int | None = Form(default=None),
+    compose_path: str = Form(default="docker-compose.yml"),
+    name: str = Form(),
+    service_name: str = Form(),
+    image: str = Form(),
+    dockerfile: str = Form(default="./Dockerfile"),
+    context_path: str = Form(default="."),
+    tar_name_pattern: str = Form(default=""),
+    build_enabled: str | None = Form(default=None),
+    enabled: str | None = Form(default=None),
+    default_selected: str | None = Form(default=None),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    try:
+        save_project_component(
+            db,
+            project=project,
+            component_id=component_id,
+            name=name,
+            service_name=service_name,
+            image=image,
+            dockerfile=dockerfile,
+            context_path=context_path,
+            tar_name_pattern=tar_name_pattern,
+            build_enabled=build_enabled is not None,
+            enabled=enabled is not None,
+            default_selected=default_selected is not None,
+        )
+        compose_query = quote_plus(compose_path.strip() or "docker-compose.yml")
+        return success_redirect(
+            f"/console/projects/{project_id}?tab=onboarding&compose_path={compose_query}&compose_refresh=1",
+            "组件配置已保存",
+        )
+    except Exception as exc:
+        compose_query = quote_plus(compose_path.strip() or "docker-compose.yml")
+        return error_redirect(
+            f"/console/projects/{project_id}?tab=onboarding&compose_path={compose_query}",
+            str(exc),
+        )
+
+
+@router.post("/console/projects/{project_id}/components/{component_id}/delete")
+def delete_project_component_form(
+    project_id: int,
+    component_id: int,
+    compose_path: str = Form(default="docker-compose.yml"),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    try:
+        delete_project_component(db, project=project, component_id=component_id)
+        compose_query = quote_plus(compose_path.strip() or "docker-compose.yml")
+        return success_redirect(
+            f"/console/projects/{project_id}?tab=onboarding&compose_path={compose_query}&compose_refresh=1",
+            "组件已删除",
+        )
+    except Exception as exc:
+        compose_query = quote_plus(compose_path.strip() or "docker-compose.yml")
+        return error_redirect(
+            f"/console/projects/{project_id}?tab=onboarding&compose_path={compose_query}",
+            str(exc),
+        )
+
+
+@router.post("/console/projects/{project_id}/components/import-compose")
+def import_project_components_form(
+    project_id: int,
+    compose_path: str = Form(default="docker-compose.yml"),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    try:
+        compose_file, imported = import_project_components_from_compose(
+            db,
+            project=project,
+            compose_relative_path=compose_path,
+        )
+        return success_redirect(
+            f"/console/projects/{project_id}?tab=onboarding&compose_path={quote_plus(compose_path.strip() or 'docker-compose.yml')}",
+            f"已从 {compose_file.name} 导入或更新 {len(imported)} 个组件",
+        )
+    except Exception as exc:
+        return error_redirect(
+            f"/console/projects/{project_id}?tab=onboarding&compose_path={quote_plus(compose_path.strip() or 'docker-compose.yml')}",
+            str(exc),
+        )
+
+
+@router.get("/console/projects/{project_id}/compose/recommended", response_class=PlainTextResponse)
+def download_recommended_compose(
+    project_id: int,
+    compose_path: str = "docker-compose.yml",
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return PlainTextResponse("project not found", status_code=status.HTTP_404_NOT_FOUND)
+    project_components = list_project_components(db, project)
+    resolved_workspace = resolve_project_workspace(project)
+    compose_file = (resolved_workspace / (compose_path.strip() or "docker-compose.yml")).resolve()
+    if not compose_file.exists():
+        return PlainTextResponse(f"compose file not found: {compose_file}", status_code=status.HTTP_404_NOT_FOUND)
+    analysis = analyze_compose_release_readiness(project, project_components, compose_file)
+    filename = f"{project.slug}.recommended.compose.yml"
+    return PlainTextResponse(
+        analysis["recommended_compose"],
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/console/projects/{project_id}/environments")
+def create_environment_form(
+    project_id: int,
+    name: str = Form(),
+    base_url: str = Form(default=""),
+    webhook_url: str = Form(),
+    status_url: str = Form(),
+    shared_secret: str = Form(),
+    default_environment_name: str = Form(default="prod"),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    environment = Environment(
+        project_id=project_id,
+        name=name.strip(),
+        base_url=base_url.strip() or None,
+        webhook_url=webhook_url.strip(),
+        status_url=status_url.strip(),
+        shared_secret=shared_secret.strip(),
+        default_environment_name=default_environment_name.strip() or "prod",
+    )
+    db.add(environment)
+    db.commit()
+    return success_redirect(f"/console/projects/{project_id}", "环境已保存")
+
+
+@router.post("/console/projects/{project_id}/environments/{environment_id}/update")
+def update_environment_form(
+    project_id: int,
+    environment_id: int,
+    name: str = Form(),
+    base_url: str = Form(default=""),
+    webhook_url: str = Form(),
+    status_url: str = Form(),
+    shared_secret: str = Form(),
+    default_environment_name: str = Form(default="prod"),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    environment = db.get(Environment, environment_id)
+    if not environment or environment.project_id != project_id:
+        return RedirectResponse(url=f"/console/projects/{project_id}", status_code=status.HTTP_303_SEE_OTHER)
+    environment.name = name.strip()
+    environment.base_url = base_url.strip() or None
+    environment.webhook_url = webhook_url.strip()
+    environment.status_url = status_url.strip()
+    environment.shared_secret = shared_secret.strip()
+    environment.default_environment_name = default_environment_name.strip() or "prod"
+    db.add(environment)
+    db.commit()
+    return success_redirect(f"/console/projects/{project_id}", "环境已更新")
+
+
+@router.post("/console/projects/{project_id}/environments/{environment_id}/delete")
+def delete_environment_form(
+    project_id: int,
+    environment_id: int,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    environment = db.get(Environment, environment_id)
+    if environment and environment.project_id == project_id:
+        if environment.deployments:
+            return error_redirect(f"/console/projects/{project_id}", "该环境已有部署记录，不能直接删除")
+        db.delete(environment)
+        db.commit()
+    return success_redirect(f"/console/projects/{project_id}", "环境已删除")
+
+
+@router.post("/console/projects/{project_id}/releases")
+def create_release_form(
+    project_id: int,
+    version: str = Form(),
+    manifest_url: str = Form(),
+    commit: str = Form(default=""),
+    payload_json: str = Form(default=""),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    release = Release(
+        project_id=project_id,
+        version=version.strip(),
+        manifest_url=manifest_url.strip(),
+        commit=commit.strip() or None,
+        payload_json=payload_json.strip() or None,
+        created_by=current_user.username,
+        source_type="manual",
+        storage_mode="manual",
+    )
+    db.add(release)
+    db.commit()
+    db.refresh(release)
+    sync_release_manifest(db, release)
+    return success_redirect(f"/console/projects/{project_id}", f"Release {release.version} 已登记")
+
+
+@router.post("/console/projects/{project_id}/releases/upload")
+def upload_release_form(
+    request: Request,
+    project_id: int,
+    version: str = Form(),
+    commit: str = Form(default=""),
+    payload_json: str = Form(default=""),
+    artifact_mode: str = Form(default="auto"),
+    manifest_file: UploadFile = File(),
+    artifact_files: list[UploadFile] = File(),
+    sha256_file: UploadFile | None = File(default=None),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+
+    try:
+        settings = get_settings()
+        use_oss = settings.use_oss
+        mode = (artifact_mode or "auto").strip().lower()
+        if mode == "oss":
+            use_oss = True
+        elif mode == "local":
+            use_oss = False
+        elif mode != "auto":
+            raise ValueError("artifact_mode 只能是 auto、local 或 oss")
+
+        manifest_bytes = manifest_file.file.read()
+        manifest_payload = json.loads(manifest_bytes.decode("utf-8"))
+        manifest_version = str(manifest_payload.get("version") or "").strip()
+        version = version.strip() or manifest_version
+        if not version:
+            raise ValueError("版本号不能为空，且 manifest 中未包含 version")
+        if manifest_version and manifest_version != version:
+            raise ValueError("表单版本号与 manifest 中的 version 不一致")
+
+        components = manifest_payload.get("components")
+        if not isinstance(components, list) or not components:
+            raise ValueError("manifest 中缺少有效 components")
+
+        uploaded_artifacts: dict[str, bytes] = {}
+        for artifact in artifact_files:
+            artifact_name = Path(artifact.filename or "").name
+            if artifact_name:
+                uploaded_artifacts[artifact_name] = artifact.file.read()
+        if not uploaded_artifacts:
+            raise ValueError("至少需要上传一个组件 tar 文件")
+
+        remote_prefix = f"{project.slug}/releases/{version}"
+        if use_oss:
+            storage = build_artifact_storage(settings)
+            for component in components:
+                image_tar_url = str(component.get("image_tar_url") or "").strip()
+                artifact_name = Path(image_tar_url).name
+                artifact_bytes = uploaded_artifacts.get(artifact_name)
+                if not artifact_name or artifact_bytes is None:
+                    raise ValueError(f"缺少组件文件: {artifact_name or '-'}")
+                component["image_tar_url"] = storage.upload_bytes(
+                    data=artifact_bytes,
+                    remote_path=f"{remote_prefix}/{artifact_name}",
+                    content_type="application/x-tar",
+                )
+            if sha256_file and sha256_file.filename:
+                storage.upload_bytes(
+                    data=sha256_file.file.read(),
+                    remote_path=f"{remote_prefix}/sha256sum.txt",
+                    content_type="text/plain; charset=utf-8",
+                )
+            manifest_url = storage.upload_bytes(
+                data=json.dumps(manifest_payload, ensure_ascii=True, indent=2).encode("utf-8"),
+                remote_path=f"{remote_prefix}/manifest.json",
+                content_type="application/json; charset=utf-8",
+            )
+            storage_mode = "oss"
+        else:
+            release_root = Path(settings.local_artifacts_path).resolve() / version
+            release_root.mkdir(parents=True, exist_ok=True)
+            public_base = (settings.package_artifact_public_base_url or settings.package_artifact_base_url).rstrip("/")
+            for artifact_name, artifact_bytes in uploaded_artifacts.items():
+                (release_root / artifact_name).write_bytes(artifact_bytes)
+            for component in components:
+                image_tar_url = str(component.get("image_tar_url") or "").strip()
+                artifact_name = Path(image_tar_url).name
+                if not artifact_name or artifact_name not in uploaded_artifacts:
+                    raise ValueError(f"缺少组件文件: {artifact_name or '-'}")
+                component["image_tar_url"] = f"{public_base}/{version}/{artifact_name}"
+            if sha256_file and sha256_file.filename:
+                (release_root / "sha256sum.txt").write_bytes(sha256_file.file.read())
+            (release_root / "manifest.json").write_text(
+                json.dumps(manifest_payload, ensure_ascii=True, indent=2),
+                encoding="utf-8",
+            )
+            manifest_url = f"{public_base}/{version}/manifest.json"
+            storage_mode = "local"
+
+        release = Release(
+            project_id=project_id,
+            version=version,
+            manifest_url=manifest_url,
+            commit=commit.strip() or None,
+            payload_json=payload_json.strip() or None,
+            created_by=current_user.username,
+            source_type="uploaded",
+            storage_mode=storage_mode,
+        )
+        db.add(release)
+        db.commit()
+        db.refresh(release)
+        sync_release_manifest_payload(db, release, manifest_payload)
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JSONResponse({"ok": True, "redirect_url": f"/console/projects/{project_id}?notice={quote_plus(f'Release {version} 已上传并登记')}"} )
+        return success_redirect(f"/console/projects/{project_id}", f"Release {version} 已上传并登记")
+    except Exception as exc:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
+        return error_redirect(f"/console/projects/{project_id}", str(exc))
+
+
+@router.post("/console/projects/{project_id}/builds")
+def create_build_job_form(
+    project_id: int,
+    payload_json: str = Form(default=""),
+    artifact_mode: str = Form(default="auto"),
+    environment_id: int | None = Form(default=None),
+    selected_component_ids: list[int] = Form(default=[]),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    if environment_id is not None:
+        environment = db.get(Environment, environment_id)
+        if not environment or environment.project_id != project.id:
+            return error_redirect(f"/console/projects/{project_id}", "环境不存在或不属于当前项目")
+    try:
+        job = create_build_job(
+            db,
+            project=project,
+            triggered_by=current_user.username,
+            payload_json=payload_json,
+            artifact_mode=artifact_mode,
+            environment_id=environment_id,
+            selected_component_ids=selected_component_ids,
+        )
+        return RedirectResponse(url=f"/console/build-jobs/{job.id}", status_code=status.HTTP_303_SEE_OTHER)
+    except Exception as exc:
+        return error_redirect(f"/console/projects/{project_id}", str(exc))
+
+
+@router.get("/console/projects/{project_id}/starter/download")
+def download_starter_bundle(
+    project_id: int,
+    environment_id: int | None = None,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.execute(
+        select(Project)
+        .options(
+            joinedload(Project.environments),
+            joinedload(Project.build_config).joinedload(ProjectBuildConfig.template),
+            joinedload(Project.components),
+        )
+        .where(Project.id == project_id)
+    ).unique().scalar_one_or_none()
+    if not project:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    build_config = ensure_project_build_config(db, project)
+    selected_environment = None
+    if environment_id is not None:
+        selected_environment = next((env for env in project.environments if env.id == environment_id), None)
+    if not selected_environment and project.environments:
+        selected_environment = project.environments[0]
+    bundle = build_starter_bundle(
+        project=project,
+        build_config=build_config,
+        components=list_project_components(db, project),
+        environment=selected_environment,
+    )
+    content = build_starter_archive(bundle)
+    return Response(
+        content=content,
+        media_type="application/gzip",
+        headers={
+            "Content-Disposition": f'attachment; filename="{project.slug}-starter.tar.gz"'
+        },
+    )
+
+
+@router.post("/console/projects/{project_id}/deploy")
+def create_deployment_form(
+    project_id: int,
+    environment_id: int = Form(),
+    release_id: int = Form(),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    project = db.get(Project, project_id)
+    environment = db.get(Environment, environment_id)
+    release = db.get(Release, release_id)
+    if not project or not environment or not release:
+        return RedirectResponse(url=f"/console/projects/{project_id}", status_code=status.HTTP_303_SEE_OTHER)
+    if environment.project_id != project.id or release.project_id != project.id:
+        return RedirectResponse(url=f"/console/projects/{project_id}", status_code=status.HTTP_303_SEE_OTHER)
+    deployment = run_deployment(
+        db,
+        project=project,
+        environment=environment,
+        release=release,
+        triggered_by=current_user.username,
+    )
+    return RedirectResponse(url=f"/console/deployments/{deployment.id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/console/build-jobs/{build_job_id}", response_class=HTMLResponse)
+def build_job_detail_page(
+    build_job_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    build_job = db.execute(
+        select(BuildJob)
+        .options(joinedload(BuildJob.project), joinedload(BuildJob.environment), joinedload(BuildJob.template))
+        .where(BuildJob.id == build_job_id)
+    ).unique().scalar_one_or_none()
+    if not build_job:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    events = db.scalars(
+        select(BuildJobEvent).where(BuildJobEvent.build_job_id == build_job.id).order_by(BuildJobEvent.created_at.asc())
+    ).all()
+    return render(
+        request,
+        "build_job_detail.html",
+        title=f"构建任务 #{build_job.id}",
+        current_user=current_user,
+        build_job=build_job,
+        events=events,
+        parsed_result=try_parse_json(build_job.result_json),
+    )
+
+
+@router.get("/console/deployments", response_class=HTMLResponse)
+def deployments_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    deployments = db.execute(
+        select(Deployment)
+        .options(joinedload(Deployment.project), joinedload(Deployment.environment), joinedload(Deployment.release))
+        .order_by(Deployment.created_at.desc())
+        .limit(100)
+    ).unique().scalars().all()
+    counts = db.execute(select(Deployment.status, func.count(Deployment.id)).group_by(Deployment.status)).all()
+    summary = {status: count for status, count in counts}
+    return render(
+        request,
+        "deployments.html",
+        title="部署任务",
+        current_user=current_user,
+        deployments=deployments,
+        summary=summary,
+    )
+
+
+@router.get("/console/deployments/{deployment_id}", response_class=HTMLResponse)
+def deployment_detail_page(
+    deployment_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    deployment = db.execute(
+        select(Deployment)
+        .options(
+            joinedload(Deployment.project),
+            joinedload(Deployment.environment),
+            joinedload(Deployment.release).joinedload(Release.components),
+        )
+        .where(Deployment.id == deployment_id)
+    ).unique().scalar_one_or_none()
+    if not deployment:
+        return RedirectResponse(url="/console/deployments", status_code=status.HTTP_303_SEE_OTHER)
+    available_releases = db.execute(
+        select(Release)
+        .options(joinedload(Release.components))
+        .where(Release.project_id == deployment.project_id)
+        .order_by(Release.created_at.desc())
+        .limit(20)
+    ).unique().scalars().all()
+    parsed_status = try_parse_json(deployment.last_status_json)
+    parsed_response = try_parse_json(deployment.adapter_response_json)
+    rollback_component_map = {
+        release.id: [component.name for component in sorted(release.components, key=lambda item: item.position)]
+        for release in available_releases
+    }
+    return render(
+        request,
+        "deployment_detail.html",
+        title=f"部署 #{deployment.id}",
+        current_user=current_user,
+        deployment=deployment,
+        available_releases=available_releases,
+        rollback_component_map=rollback_component_map,
+        parsed_status=parsed_status,
+        parsed_response=parsed_response,
+        release_manifest=try_parse_json(deployment.release.manifest_json),
+    )
+
+
+@router.post("/console/deployments/{deployment_id}/refresh")
+def refresh_deployment_form(
+    deployment_id: int,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    deployment = db.execute(
+        select(Deployment)
+        .options(joinedload(Deployment.project), joinedload(Deployment.environment), joinedload(Deployment.release))
+        .where(Deployment.id == deployment_id)
+    ).unique().scalar_one_or_none()
+    if not deployment:
+        return RedirectResponse(url="/console/deployments", status_code=status.HTTP_303_SEE_OTHER)
+    try:
+        refresh_deployment_status(deployment, db)
+        return success_redirect(f"/console/deployments/{deployment_id}", "目标状态已刷新")
+    except Exception as exc:
+        return error_redirect(f"/console/deployments/{deployment_id}", str(exc))
+
+
+@router.post("/console/deployments/{deployment_id}/rollback")
+def rollback_deployment_form(
+    deployment_id: int,
+    release_id: int = Form(),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    deployment = db.execute(
+        select(Deployment)
+        .options(joinedload(Deployment.project), joinedload(Deployment.environment))
+        .where(Deployment.id == deployment_id)
+    ).unique().scalar_one_or_none()
+    release = db.get(Release, release_id)
+    if not deployment or not release:
+        return RedirectResponse(url="/console/deployments", status_code=status.HTTP_303_SEE_OTHER)
+    if release.project_id != deployment.project_id:
+        return RedirectResponse(url=f"/console/deployments/{deployment_id}", status_code=status.HTTP_303_SEE_OTHER)
+    rollback = run_deployment(
+        db,
+        project=deployment.project,
+        environment=deployment.environment,
+        release=release,
+        triggered_by=f"{current_user.username} (rollback)",
+    )
+    return RedirectResponse(url=f"/console/deployments/{rollback.id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/console/releases/{release_id}/sync-manifest")
+def sync_manifest_form(
+    release_id: int,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    release = db.execute(
+        select(Release).options(joinedload(Release.components)).where(Release.id == release_id)
+    ).unique().scalar_one_or_none()
+    if not release:
+        return RedirectResponse(url="/console/projects", status_code=status.HTTP_303_SEE_OTHER)
+    sync_release_manifest(db, release)
+    return success_redirect(f"/console/projects/{release.project_id}", "Manifest 已重新同步")

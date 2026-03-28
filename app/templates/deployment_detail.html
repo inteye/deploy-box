@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>部署 #{{ deployment.id }}</h1>
+  <p>{{ deployment.project.name }} / {{ deployment.environment.name }} / {{ deployment.release.version }}</p>
+</section>
+
+<section class="stats">
+  <article class="card stat"><strong id="deployment-status">{{ deployment.status }}</strong><span>当前状态</span></article>
+  <article class="card stat"><strong>{{ deployment.triggered_by or '-' }}</strong><span>触发人</span></article>
+  <article class="card stat"><strong id="deployment-progress">{{ deployment.progress_percent or 0 }}%</strong><span>进度</span></article>
+  <article class="card stat"><strong id="deployment-finished-at">{{ deployment.finished_at.strftime('%Y-%m-%d %H:%M:%S') if deployment.finished_at else '-' }}</strong><span>完成时间</span></article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2>执行进度</h2>
+      <p id="deployment-reason">{{ deployment.status_reason or '等待状态更新' }}</p>
+    </div>
+    <div class="actions">
+      <form method="post" action="/console/deployments/{{ deployment.id }}/refresh" class="inline">
+        <button type="submit" class="secondary">手动刷新状态</button>
+      </form>
+    </div>
+  </div>
+  <div class="progress-shell">
+    <div id="deployment-progress-bar" class="progress-bar" style="width:{{ deployment.progress_percent or 0 }}%;"></div>
+  </div>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>基本信息</h2>
+      </div>
+    </div>
+    <table>
+      <tbody>
+        <tr><th>项目</th><td>{{ deployment.project.name }}</td></tr>
+        <tr><th>环境</th><td>{{ deployment.environment.name }}</td></tr>
+        <tr><th>版本</th><td>{{ deployment.release.version }}</td></tr>
+        <tr><th>Manifest</th><td style="word-break:break-all;">{{ deployment.release.manifest_url }}</td></tr>
+        <tr><th>状态</th><td id="deployment-status-inline">{{ deployment.status }}</td></tr>
+        <tr><th>提交时间</th><td id="deployment-submitted-at">{{ deployment.submitted_at.strftime('%Y-%m-%d %H:%M:%S') if deployment.submitted_at else '-' }}</td></tr>
+        <tr><th>最近轮询</th><td id="deployment-last-polled-at">{{ deployment.last_polled_at.strftime('%Y-%m-%d %H:%M:%S') if deployment.last_polled_at else '-' }}</td></tr>
+      </tbody>
+    </table>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>回滚</h2>
+        <p>这里回滚的是“所选 Release 中记录的组件版本”，不是整套项目的全量时间倒流。</p>
+      </div>
+    </div>
+    <form method="post" action="/console/deployments/{{ deployment.id }}/rollback" class="grid" id="rollback-form">
+      <label>回滚目标版本
+        <select name="release_id" id="rollback-release-select">
+          {% for release in available_releases %}
+          <option value="{{ release.id }}" {% if release.id == deployment.release_id %}selected{% endif %}>{{ release.version }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">将影响的组件</span>
+        </div>
+        <p id="rollback-components" class="muted small" style="margin:0;">-</p>
+      </article>
+      <div class="actions">
+        <button type="submit" id="rollback-submit-button">按所选 Release 的组件版本重新发布</button>
+      </div>
+    </form>
+  </article>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>Release 组件</h2>
+      </div>
+    </div>
+    <div class="list-stack">
+      {% for component in deployment.release.components|sort(attribute='position') %}
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">{{ component.name }}</span>
+        </div>
+        <div><strong>{{ component.image }}</strong></div>
+        {% if component.image_tar_url %}
+        <div class="muted small" style="word-break:break-all;">{{ component.image_tar_url }}</div>
+        {% endif %}
+      </article>
+      {% else %}
+      <div class="muted">当前 release 没有已解析组件。</div>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>Manifest 原文</h2>
+      </div>
+    </div>
+    <pre style="white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; max-width:100%; overflow:auto;">{{ release_manifest | tojson(indent=2) if release_manifest else (deployment.release.manifest_json or '暂无 manifest 数据') }}</pre>
+  </article>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>适配器返回</h2>
+      </div>
+    </div>
+    <pre id="adapter-response" style="white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; max-width:100%; overflow:auto;">{{ parsed_response | tojson(indent=2) if parsed_response else (deployment.adapter_response_json or '暂无数据') }}</pre>
+  </article>
+
+  <article class="card">
+    <div class="section-head">
+      <div>
+        <h2>目标状态</h2>
+      </div>
+    </div>
+    <pre id="target-status" style="white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; max-width:100%; overflow:auto;">{{ parsed_status | tojson(indent=2) if parsed_status else (deployment.last_status_json or '暂无数据') }}</pre>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2>日志摘要</h2>
+    </div>
+  </div>
+  <pre id="log-excerpt" style="white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; max-width:100%; overflow:auto;">{{ deployment.log_excerpt or '暂无日志摘要' }}</pre>
+</section>
+
+<script>
+  (() => {
+    const rollbackComponentMap = {{ rollback_component_map | tojson }};
+    const rollbackSelect = document.getElementById("rollback-release-select");
+    const rollbackComponentsNode = document.getElementById("rollback-components");
+    const rollbackForm = document.getElementById("rollback-form");
+
+    function updateRollbackPreview() {
+      if (!rollbackSelect || !rollbackComponentsNode) return;
+      const selectedId = rollbackSelect.value;
+      const components = rollbackComponentMap[selectedId] || [];
+      rollbackComponentsNode.textContent = components.length ? components.join(" / ") : "该 Release 未解析出组件";
+    }
+
+    if (rollbackSelect) {
+      rollbackSelect.addEventListener("change", updateRollbackPreview);
+      updateRollbackPreview();
+    }
+
+    if (rollbackForm && rollbackSelect) {
+      rollbackForm.addEventListener("submit", (event) => {
+        const selectedOption = rollbackSelect.options[rollbackSelect.selectedIndex];
+        const version = selectedOption ? selectedOption.textContent : rollbackSelect.value;
+        const components = rollbackComponentMap[rollbackSelect.value] || [];
+        const detail = components.length ? `影响组件：${components.join(" / ")}` : "该 Release 未解析出组件";
+        if (!window.confirm(`确认按 Release ${version} 中记录的组件版本重新发布？\n${detail}`)) {
+          event.preventDefault();
+        }
+      });
+    }
+
+    const deploymentId = {{ deployment.id }};
+    const statusNode = document.getElementById("deployment-status");
+    const statusInlineNode = document.getElementById("deployment-status-inline");
+    const progressNode = document.getElementById("deployment-progress");
+    const progressBarNode = document.getElementById("deployment-progress-bar");
+    const finishedAtNode = document.getElementById("deployment-finished-at");
+    const submittedAtNode = document.getElementById("deployment-submitted-at");
+    const lastPolledAtNode = document.getElementById("deployment-last-polled-at");
+    const reasonNode = document.getElementById("deployment-reason");
+    const targetStatusNode = document.getElementById("target-status");
+    const adapterResponseNode = document.getElementById("adapter-response");
+    const logExcerptNode = document.getElementById("log-excerpt");
+
+    function shouldKeepPolling(status) {
+      return ["queued", "submitted", "running", "timed_out_but_running"].includes(status);
+    }
+
+    async function poll() {
+      try {
+        const response = await fetch(`/api/deployments/${deploymentId}`, { credentials: "same-origin" });
+        if (!response.ok) return false;
+        const payload = await response.json();
+        statusNode.textContent = payload.status;
+        statusInlineNode.textContent = payload.status;
+        progressNode.textContent = `${payload.progress_percent || 0}%`;
+        progressBarNode.style.width = `${payload.progress_percent || 0}%`;
+        finishedAtNode.textContent = payload.finished_at || "-";
+        submittedAtNode.textContent = payload.submitted_at || "-";
+        lastPolledAtNode.textContent = payload.last_polled_at || "-";
+        reasonNode.textContent = payload.status_reason || "等待状态更新";
+        adapterResponseNode.textContent = payload.adapter_response_json || "暂无数据";
+        targetStatusNode.textContent = payload.last_status_json || "暂无数据";
+        logExcerptNode.textContent = payload.log_excerpt || "暂无日志摘要";
+        return shouldKeepPolling(payload.status);
+      } catch (_error) {
+        return true;
+      }
+    }
+
+    let timer = null;
+    async function tick() {
+      const keep = await poll();
+      if (!keep && timer) {
+        clearInterval(timer);
+      }
+    }
+    tick();
+    timer = setInterval(tick, 5000);
+  })();
+</script>
+{% endblock %}

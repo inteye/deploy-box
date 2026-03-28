@@ -1,0 +1,45 @@
+name: deploy-console
+
+services:
+  artifacts:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./dist/releases:/usr/share/nginx/html/releases:ro
+    ports:
+      - "127.0.0.1:${DEPLOY_CONSOLE_ARTIFACTS_PORT:-18081}:80"
+
+  deploy-console:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    environment:
+      DEPLOY_CONSOLE_DATABASE_URL: ${DEPLOY_CONSOLE_DATABASE_URL:-sqlite:////app/data/deploy-console.db}
+      DEPLOY_CONSOLE_REQUEST_TIMEOUT_SECONDS: ${DEPLOY_CONSOLE_REQUEST_TIMEOUT_SECONDS:-30}
+      DEPLOY_CONSOLE_DEPLOYMENT_POLL_INTERVAL_SECONDS: ${DEPLOY_CONSOLE_DEPLOYMENT_POLL_INTERVAL_SECONDS:-5}
+      DEPLOY_CONSOLE_DEPLOYMENT_WATCH_TIMEOUT_SECONDS: ${DEPLOY_CONSOLE_DEPLOYMENT_WATCH_TIMEOUT_SECONDS:-1800}
+      DEPLOY_CONSOLE_SECRET_KEY: ${DEPLOY_CONSOLE_SECRET_KEY:-replace-me-in-production}
+      DEPLOY_CONSOLE_ADMIN_USERNAME: ${DEPLOY_CONSOLE_ADMIN_USERNAME:-admin}
+      DEPLOY_CONSOLE_ADMIN_PASSWORD: ${DEPLOY_CONSOLE_ADMIN_PASSWORD:-change-me-now}
+      DEPLOY_CONSOLE_WORKSPACE_PATH: ${DEPLOY_CONSOLE_WORKSPACE_PATH:-/workspace}
+      DEPLOY_CONSOLE_PACKAGE_SCRIPT: ${DEPLOY_CONSOLE_PACKAGE_SCRIPT:-scripts/package_release.sh}
+      DEPLOY_CONSOLE_PACKAGE_ARTIFACT_BASE_URL: ${DEPLOY_CONSOLE_PACKAGE_ARTIFACT_BASE_URL:-http://artifacts/releases}
+      DEPLOY_CONSOLE_PACKAGE_ARTIFACT_PUBLIC_BASE_URL: ${DEPLOY_CONSOLE_PACKAGE_ARTIFACT_PUBLIC_BASE_URL:-http://host.docker.internal:${DEPLOY_CONSOLE_ARTIFACTS_PORT:-18081}/releases}
+      DEPLOY_CONSOLE_LOCAL_ARTIFACTS_PATH: ${DEPLOY_CONSOLE_LOCAL_ARTIFACTS_PATH:-/artifacts/releases}
+      USE_OSS: ${USE_OSS:-false}
+      OSS_ACCESS_KEY_ID: ${OSS_ACCESS_KEY_ID:-}
+      OSS_ACCESS_KEY_SECRET: ${OSS_ACCESS_KEY_SECRET:-}
+      OSS_BUCKET_NAME: ${OSS_BUCKET_NAME:-}
+      OSS_REGION: ${OSS_REGION:-}
+      OSS_ENDPOINT: ${OSS_ENDPOINT:-}
+      OSS_CUSTOM_DOMAIN: ${OSS_CUSTOM_DOMAIN:-}
+    depends_on:
+      - artifacts
+    volumes:
+      - ./data:/app/data
+      - ${DEPLOY_CONSOLE_WORKSPACE_HOST_PATH:-./workspace}:/workspace
+      - ./dist/releases:/artifacts/releases
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "${DEPLOY_CONSOLE_PORT:-18101}:8100"
