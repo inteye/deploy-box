@@ -391,6 +391,7 @@ def project_detail_page(
         build_config=build_config,
         components=project_components,
         environment=selected_environment,
+        lang=get_locale(request, current_user),
     )
     compose_analysis = None
     compose_analysis_error = None
@@ -834,6 +835,7 @@ def create_build_job_form(
 @router.get("/console/projects/{project_id}/starter/download")
 def download_starter_bundle(
     project_id: int,
+    request: Request,
     environment_id: int | None = None,
     db: Session = Depends(get_db),
     current_user: OperatorUser = Depends(get_current_user),
@@ -860,6 +862,7 @@ def download_starter_bundle(
         build_config=build_config,
         components=list_project_components(db, project),
         environment=selected_environment,
+        lang=get_locale(request, current_user),
     )
     content = build_starter_archive(bundle)
     return Response(
@@ -950,7 +953,7 @@ def deployments_page(
     return render(
         request,
         "deployments.html",
-        title="部署任务",
+        title=tr(request, current_user, "部署任务"),
         current_user=current_user,
         deployments=deployments,
         summary=summary,
@@ -991,7 +994,7 @@ def deployment_detail_page(
     return render(
         request,
         "deployment_detail.html",
-        title=f"部署 #{deployment.id}",
+        title=f"{tr(request, current_user, '部署')} #{deployment.id}",
         current_user=current_user,
         deployment=deployment,
         available_releases=available_releases,

@@ -34,7 +34,7 @@
     <table>
       <tbody>
         <tr><th>{{ _('项目') }}</th><td>{{ build_job.project.name }}</td></tr>
-        <tr><th>{{ _('模板') }}</th><td>{{ build_job.template.name if build_job.template else '-' }}</td></tr>
+        <tr><th>{{ _('模板') }}</th><td>{{ _(build_job.template.name) if build_job.template else '-' }}</td></tr>
         <tr><th>{{ _('触发人') }}</th><td>{{ build_job.triggered_by or '-' }}</td></tr>
         <tr><th>Manifest</th><td id="build-manifest-url" style="word-break:break-word;overflow-wrap:anywhere;">{{ build_job.manifest_url or '-' }}</td></tr>
         <tr><th>{{ _('开始时间') }}</th><td id="build-started-at">{{ build_job.started_at.strftime('%Y-%m-%d %H:%M:%S') if build_job.started_at else '-' }}</td></tr>

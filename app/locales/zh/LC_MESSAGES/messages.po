@@ -217,6 +217,39 @@ msgstr "使用本地制品站登记 release"
 msgid "登记 release 并同步组件"
 msgstr "登记 release 并同步组件"
 
+msgid "可选，保存本次构建说明或附加信息"
+msgstr "可选，保存本次构建说明或附加信息"
+
+msgid "在远端 Docker 主机准备 deploy-agent 目录，保存 compose 文件和 env 文件。"
+msgstr "在远端 Docker 主机准备 deploy-agent 目录，保存 compose 文件和 env 文件。"
+
+msgid "把 deploy-agent 服务启动起来，并确认 9000 端口可访问。"
+msgstr "把 deploy-agent 服务启动起来，并确认 9000 端口可访问。"
+
+msgid "用浏览器或 curl 访问 /deploy/status，确认返回 JSON。"
+msgstr "用浏览器或 curl 访问 /deploy/status，确认返回 JSON。"
+
+msgid "把 webhook_url、status_url、shared_secret 填回本平台的环境配置。"
+msgstr "把 webhook_url、status_url、shared_secret 填回本平台的环境配置。"
+
+msgid "脚本打包模板"
+msgstr "脚本打包模板"
+
+msgid "执行项目已有打包脚本，产出 manifest 与多组件制品。"
+msgstr "执行项目已有打包脚本，产出 manifest 与多组件制品。"
+
+msgid "上传已有制品模板"
+msgstr "上传已有制品模板"
+
+msgid "适合已有外部构建系统，仅在控制台登记与上传已有 release。"
+msgstr "适合已有外部构建系统，仅在控制台登记与上传已有 release。"
+
+msgid "当前 compose 基本符合发布接入要求"
+msgstr "当前 compose 基本符合发布接入要求"
+
+msgid "仍建议保留固定镜像版本或 DEPLOY_IMAGE_* 注入，以方便追踪实际运行镜像。"
+msgstr "仍建议保留固定镜像版本或 DEPLOY_IMAGE_* 注入，以方便追踪实际运行镜像。"
+
 msgid "查看部署任务"
 msgstr "查看部署任务"
 
@@ -705,6 +738,15 @@ msgstr "没有启用中的组件，先到“接入配置”维护组件。"
 
 msgid "附加 payload"
 msgstr "附加 payload"
+
+msgid "选择文件"
+msgstr "选择文件"
+
+msgid "未选择文件"
+msgstr "未选择文件"
+
+msgid "已选择文件数："
+msgstr "已选择文件数："
 
 msgid "开始构建"
 msgstr "开始构建"

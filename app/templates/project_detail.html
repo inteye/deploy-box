@@ -108,8 +108,8 @@
           <div class="meta-line">
             <span class="badge">{{ issue.severity }}</span>
           </div>
-          <strong>{{ issue.summary }}</strong>
-          <p class="muted small" style="margin:6px 0 0;">{{ issue.detail }}</p>
+          <strong>{{ _(issue.summary) }}</strong>
+          <p class="muted small" style="margin:6px 0 0;">{{ _(issue.detail) }}</p>
         </article>
         {% endfor %}
       </div>
@@ -203,7 +203,7 @@
     {% endif %}
     <ol class="guide-steps">
       {% for step in starter_bundle.remote_agent.steps %}
-      <li>{{ step }}</li>
+      <li>{{ _(step) }}</li>
       {% endfor %}
     </ol>
     <div class="meta-grid">
@@ -283,11 +283,11 @@
             <option
               value="{{ template.id }}"
               data-template-slug="{{ template.slug }}"
-              data-description="{{ template.description or '' }}"
+              data-description="{{ _(template.description) if template.description else '' }}"
               data-config-json="{{ template.config_json or '{}' }}"
               {% if build_config and build_config.template_id == template.id %}selected{% endif %}
             >
-              {{ template.name }}{% if template.slug == 'manifest_script_v1' %}{{ _('（推荐）') }}{% elif template.slug == 'manifest_upload_v1' %}{{ _('（高级）') }}{% endif %} / {{ template.strategy }}
+              {{ _(template.name) }}{% if template.slug == 'manifest_script_v1' %}{{ _('（推荐）') }}{% elif template.slug == 'manifest_upload_v1' %}{{ _('（高级）') }}{% endif %} / {{ template.strategy }}
             </option>
             {% endfor %}
           </select>
@@ -301,7 +301,7 @@
           <span class="badge" id="build-template-mode-badge">{{ _('主路径') }}</span>
           <span id="build-template-slug">{{ build_config.template.slug if build_config and build_config.template else '' }}</span>
         </div>
-        <p class="muted small" id="build-template-description" style="margin:0;">{{ build_config.template.description if build_config and build_config.template and build_config.template.description else _('优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。') }}</p>
+        <p class="muted small" id="build-template-description" style="margin:0;">{{ _(build_config.template.description) if build_config and build_config.template and build_config.template.description else _('优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。') }}</p>
       </article>
       <label>{{ _('配置覆盖(JSON)') }}
         <textarea id="build-config-override" name="config_override_json" placeholder='{"workspace_path":"/workspace","package_script":"deploy/scripts/package_release.sh"}'>{{ build_config.config_override_json if build_config and build_config.config_override_json else '' }}</textarea>
@@ -422,8 +422,8 @@
       </article>
       <article class="list-card">
         <div class="meta-line"><span class="badge">{{ _('构建模板') }}</span></div>
-        <strong>{{ build_config.template.name if build_config and build_config.template else '-' }}</strong>
-        <p class="muted small" style="margin:0;">{{ build_config.template.description if build_config and build_config.template and build_config.template.description else _('尚未配置构建模板说明。') }}</p>
+        <strong>{{ _(build_config.template.name) if build_config and build_config.template else '-' }}</strong>
+        <p class="muted small" style="margin:0;">{{ _(build_config.template.description) if build_config and build_config.template and build_config.template.description else _('尚未配置构建模板说明。') }}</p>
       </article>
       <article class="list-card">
         <div class="meta-line"><span class="badge">{{ _('环境数量') }}</span></div>
@@ -588,7 +588,7 @@
         </div>
         <div>
           <strong>{{ _('构建') }} #{{ build_job.id }}</strong>
-          <p class="muted small" style="margin:6px 0 0;">{{ _('版本：') }}{{ build_job.output_version or _('生成中') }} · 存储：{{ build_job.storage_mode or build_job.artifact_mode }}</p>
+          <p class="muted small" style="margin:6px 0 0;">{{ _('版本：') }}{{ build_job.output_version or _('生成中') }} · {{ _('存储：') }}{{ build_job.storage_mode or build_job.artifact_mode }}</p>
         </div>
         <div class="progress-shell">
           <div class="progress-bar" style="width:{{ build_job.progress_percent or 0 }}%;"></div>
@@ -735,13 +735,25 @@
           </select>
         </label>
         <label>{{ _('Manifest 文件') }}
-          <input type="file" name="manifest_file" accept=".json,application/json" required>
+          <div class="file-picker">
+            <input type="file" id="manifest-file-input" name="manifest_file" accept=".json,application/json" required hidden>
+            <button type="button" class="secondary file-picker-button" data-file-picker-target="manifest-file-input">{{ _('选择文件') }}</button>
+            <span class="muted small file-picker-name" data-file-picker-name>{{ _('未选择文件') }}</span>
+          </div>
         </label>
         <label>{{ _('组件 tar 文件') }}
-          <input type="file" name="artifact_files" accept=".tar,application/x-tar" multiple required>
+          <div class="file-picker">
+            <input type="file" id="artifact-files-input" name="artifact_files" accept=".tar,application/x-tar" multiple required hidden>
+            <button type="button" class="secondary file-picker-button" data-file-picker-target="artifact-files-input">{{ _('选择文件') }}</button>
+            <span class="muted small file-picker-name" data-file-picker-name>{{ _('未选择文件') }}</span>
+          </div>
         </label>
         <label>{{ _('SHA256 文件') }}
-          <input type="file" name="sha256_file" accept=".txt,text/plain">
+          <div class="file-picker">
+            <input type="file" id="sha256-file-input" name="sha256_file" accept=".txt,text/plain" hidden>
+            <button type="button" class="secondary file-picker-button" data-file-picker-target="sha256-file-input">{{ _('选择文件') }}</button>
+            <span class="muted small file-picker-name" data-file-picker-name>{{ _('未选择文件') }}</span>
+          </div>
         </label>
       </div>
       <label>{{ _('附加 payload') }}
@@ -774,6 +786,34 @@
         if (!input) return;
         input.value = generateSharedSecret();
         input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    });
+
+    document.querySelectorAll(".file-picker-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const targetId = button.getAttribute("data-file-picker-target");
+        const input = targetId ? document.getElementById(targetId) : null;
+        if (input) input.click();
+      });
+    });
+
+    document.querySelectorAll(".file-picker input[type='file']").forEach((input) => {
+      const wrapper = input.closest(".file-picker");
+      const nameNode = wrapper ? wrapper.querySelector("[data-file-picker-name]") : null;
+      if (!nameNode) return;
+      const emptyText = "{{ _('未选择文件') }}";
+      const multipleText = "{{ _('已选择文件数：') }}";
+      input.addEventListener("change", () => {
+        const files = Array.from(input.files || []);
+        if (!files.length) {
+          nameNode.textContent = emptyText;
+          return;
+        }
+        if (files.length === 1) {
+          nameNode.textContent = files[0].name;
+          return;
+        }
+        nameNode.textContent = `${multipleText}${files.length}`;
       });
     });
 

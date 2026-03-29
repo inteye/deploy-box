@@ -286,6 +286,7 @@ def build_starter_bundle(
     build_config: ProjectBuildConfig | None,
     components: list[ProjectComponent],
     environment: Environment | None,
+    lang: str = "zh",
 ) -> dict:
     settings = get_settings()
     resolved = _resolve_build_config(settings, build_config) if build_config and build_config.template else {
@@ -329,12 +330,13 @@ def build_starter_bundle(
             environment=environment,
             workspace_hint=workspace_hint,
             package_script_hint=package_script_hint,
+            lang=lang,
         ),
         "deploy/release.config.json": json.dumps(release_config, ensure_ascii=False, indent=2),
         "deploy/scripts/package_release.sh": _render_build_release_script(),
         "deploy/deploy-agent/Dockerfile": _render_deploy_agent_dockerfile(),
         "deploy/deploy-agent/requirements.txt": _render_deploy_agent_requirements(),
-        "deploy/deploy-agent/app.py": _render_deploy_agent_app(),
+        "deploy/deploy-agent/app.py": _render_deploy_agent_app(lang=lang),
         "deploy/deploy-agent/bin/deploy-release.sh": _render_deploy_release_script(),
         "deploy/deploy-agent/deploy-agent.compose.yml": _render_deploy_agent_compose(project_slug),
         "deploy/deploy-agent/deploy-agent.env.example": _render_deploy_agent_env(
@@ -343,6 +345,7 @@ def build_starter_bundle(
             shared_secret=shared_secret,
             deploy_environment=deploy_env,
             remote_prefix=remote_prefix,
+            lang=lang,
         ),
     }
     remote_agent = {
@@ -357,17 +360,12 @@ def build_starter_bundle(
             "hook_payload": {
                 "version": "20260327-1200-abcd123",
                 "manifest_url": f"{artifact_public_base_url}/20260327-1200-abcd123/manifest.json",
-                "triggered_by": "deploy-console",
+                "triggered_by": "deploybox",
                 "commit": "abcd123",
                 "environment": deploy_env,
             },
         },
-        "steps": [
-            "在远端 Docker 主机准备 deploy-agent 目录，保存 compose 文件和 env 文件。",
-            "把 deploy-agent 服务启动起来，并确认 9000 端口可访问。",
-            "用浏览器或 curl 访问 /deploy/status，确认返回 JSON。",
-            "把 webhook_url、status_url、shared_secret 填回本平台的环境配置。",
-        ],
+        "steps": _starter_remote_agent_steps(lang),
     }
     return {
         "files": files,
@@ -1528,10 +1526,122 @@ def _render_starter_readme(
     environment: Environment | None,
     workspace_hint: str,
     package_script_hint: str,
+    lang: str = "zh",
 ) -> str:
     environment_name = environment.name if environment else "prod"
     webhook_url = environment.webhook_url if environment else "https://deploy-agent.example.com/deploy/hook"
     status_url = environment.status_url if environment else "https://deploy-agent.example.com/deploy/status"
+    if lang == "en":
+        component_lines = "\n".join(
+            f"- `{component.name}` -> service=`{component.service_name}` image=`{component.image}` mode=`{'docker_build' if component.build_enabled else 'external_image'}`"
+            for component in components
+            if component.enabled
+        ) or "- No enabled components yet. Maintain the component list in DeployBox first."
+        return dedent(
+            f"""\
+            # {project.name} Starter Kit
+
+            This starter package helps a Docker / Docker Compose project onboard into DeployBox. Define which components are deployable first, then complete the flow from release generation to remote deploy-agent rollout.
+
+            ## Component Model
+
+            __COMPONENT_LINES__
+            - Workspace hint: {workspace_hint}
+            - Default package script hint: {package_script_hint}
+
+            ## Values Generated From Current Project Config
+
+            The following values come directly from the current project config in DeployBox:
+
+            - Project name: {project.name}
+            - Project slug: {project.slug}
+            - Workspace hint: {workspace_hint}
+            - Component list, service names, image names, Dockerfile, context, and build mode
+            - Webhook URL: {webhook_url}
+            - Status URL: {status_url}
+            - Logical environment name: {environment.default_environment_name if environment else 'prod'}
+
+            If any of these values do not match your project, go back to DeployBox, fix the project config, and download the starter again.
+
+            ## Platform Defaults
+
+            - Version strategy: `date-shortsha`
+            - Artifact output directory: `dist/releases/<version>`
+            - Default deploy-agent port: `9000`
+            - Minimal deploy-agent implementation and compose example
+
+            ## Starter Layout
+
+            - `README.md`
+            - `deploy/release.config.json`
+            - `deploy/scripts/package_release.sh`
+            - `deploy/deploy-agent/Dockerfile`
+            - `deploy/deploy-agent/requirements.txt`
+            - `deploy/deploy-agent/app.py`
+            - `deploy/deploy-agent/bin/deploy-release.sh`
+            - `deploy/deploy-agent/deploy-agent.compose.yml`
+            - `deploy/deploy-agent/deploy-agent.env.example`
+
+            ## Next Steps
+
+            1. Copy the whole `deploy/` directory into your project repository.
+            2. Adjust `deploy/release.config.json` to match your Dockerfile, image names, and component list.
+            3. Run locally:
+               ```bash
+               bash deploy/scripts/package_release.sh
+               ```
+            4. Verify these files are generated:
+               - `dist/releases/<version>/manifest.json`
+               - `dist/releases/<version>/*.tar`
+               - `dist/releases/<version>/sha256sum.txt`
+            5. In DeployBox, bind the build template to `manifest_script_v1`.
+            6. Maintain the deployable services in the component list.
+            7. Deploy a compatible deploy-agent on the target host and configure:
+               - webhook URL: {webhook_url}
+               - status URL: {status_url}
+               - shared secret: keep it consistent with `DEPLOY_SHARED_SECRET`
+
+            ## deploy-agent Quick Start
+
+            1. Prepare a directory on the target host:
+               ```bash
+               mkdir -p /srv/deploy-agent
+               cd /srv/deploy-agent
+               ```
+            2. Copy these files from the starter package:
+               - `deploy/deploy-agent/Dockerfile`
+               - `deploy/deploy-agent/requirements.txt`
+               - `deploy/deploy-agent/app.py`
+               - `deploy/deploy-agent/bin/deploy-release.sh`
+               - `deploy/deploy-agent/deploy-agent.compose.yml`
+               - `deploy/deploy-agent/deploy-agent.env.example`
+            3. Copy the env file and edit it:
+               ```bash
+               cp deploy-agent.env.example deploy-agent.env
+               ```
+            4. Start deploy-agent:
+               ```bash
+               docker compose -f deploy-agent.compose.yml up -d --build
+               ```
+            5. Check the status endpoint:
+               ```bash
+               curl http://127.0.0.1:9000/deploy/status
+               ```
+            6. After the endpoint is reachable, fill webhook URL, status URL, and shared secret back into DeployBox.
+
+            ## Minimal Hook Payload
+
+            ```json
+            {{
+              "version": "20260327-1200-abcd123",
+              "manifest_url": "https://example.com/releases/20260327-1200-abcd123/manifest.json",
+              "triggered_by": "deploybox",
+              "commit": "abcd123",
+              "environment": "{environment.default_environment_name if environment else 'prod'}"
+            }}
+            ```
+            """
+        ).replace("__COMPONENT_LINES__", component_lines)
     component_lines = "\n".join(
         f"- `{component.name}` -> service=`{component.service_name}` image=`{component.image}` mode=`{'docker_build' if component.build_enabled else 'external_image'}`"
         for component in components
@@ -1541,17 +1651,17 @@ def _render_starter_readme(
         f"""\
         # {project.name} Starter Kit
 
-        这是一份给 Docker / Docker Compose 项目接入 Deploy Console 的起步包，目标是把“项目里有哪些可发布组件”先定义清楚，再完成“生成 release -> 发布到远端 deploy-agent”。
+        这是一份给 Docker / Docker Compose 项目接入 DeployBox 的起步包，目标是把“项目里有哪些可发布组件”先定义清楚，再完成“生成 release -> 发布到远端 deploy-agent”。
 
         ## 当前组件模型
 
-        {component_lines}
+        __COMPONENT_LINES__
         - 默认工作目录提示：{workspace_hint}
         - 当前平台默认脚本路径提示：{package_script_hint}
 
         ## 当前包里哪些内容来自项目配置
 
-        以下内容是根据你在 Deploy Console 中当前项目的配置实时生成的：
+        以下内容是根据你在 DeployBox 中当前项目的配置实时生成的：
 
         - 项目名：{project.name}
         - 项目标识：{project.slug}
@@ -1561,7 +1671,7 @@ def _render_starter_readme(
         - 目标环境对应的 status URL：{status_url}
         - 目标环境对应的逻辑环境名：{environment.default_environment_name if environment else 'prod'}
 
-        如果上面这些信息和你的项目实际情况不一致，应该先回到 Deploy Console 修改项目配置，再重新下载 starter。
+        如果上面这些信息和你的项目实际情况不一致，应该先回到 DeployBox 修改项目配置，再重新下载 starter。
 
         ## 当前包里哪些内容是平台默认值
 
@@ -1599,7 +1709,7 @@ def _render_starter_readme(
            - `dist/releases/<version>/manifest.json`
            - `dist/releases/<version>/*.tar`
            - `dist/releases/<version>/sha256sum.txt`
-        5. 在 Deploy Console 的“接入配置”里，把构建模板绑定到 `manifest_script_v1`，并保存覆盖配置。
+        5. 在 DeployBox 的“接入配置”里，把构建模板绑定到 `manifest_script_v1`，并保存覆盖配置。
         6. 在项目组件配置里维护哪些 service 可发布，并设置默认勾选项。
         7. 发版时只勾选本次要更新的组件，例如通常只勾选 `api`。
         8. 远端目标机部署兼容的 deploy-agent，并在环境里填写：
@@ -1639,7 +1749,7 @@ def _render_starter_readme(
            ```bash
            curl http://127.0.0.1:9000/deploy/status
            ```
-        7. 确认接口可达后，把 webhook URL、status URL、shared secret 填回 Deploy Console 环境配置。
+        7. 确认接口可达后，把 webhook URL、status URL、shared secret 填回 DeployBox 环境配置。
 
         说明：
 
@@ -1673,7 +1783,7 @@ def _render_starter_readme(
 
         - 每个项目维护一份独立的 deploy-agent 目录和 `deploy-agent.env`
         - 每份 env 的 `DEPLOY_PROJECT_WORKSPACE_HOST_PATH` 指向各自项目
-        - Deploy Console 中每个环境对应一个具体项目的 deploy-agent 地址
+        - DeployBox 中每个环境对应一个具体项目的 deploy-agent 地址
 
         不建议把多个项目共用同一个 deploy-agent 工作目录，否则路径、状态和回滚语义都容易混在一起。
 
@@ -1690,7 +1800,7 @@ def _render_starter_readme(
         {{
           "version": "20260327-1200-abcd123",
           "manifest_url": "https://example.com/releases/20260327-1200-abcd123/manifest.json",
-          "triggered_by": "deploy-console",
+          "triggered_by": "deploybox",
           "commit": "abcd123",
           "environment": "{environment.default_environment_name if environment else 'prod'}"
         }}
@@ -1704,7 +1814,23 @@ def _render_starter_readme(
         - 如果你已有 CI：也可以只复用本平台的“上传已有制品”与“发版”部分
         - Compose 文件更适合做“组件候选发现”，最终以控制台中确认后的组件配置为准
         """
-    )
+    ).replace("__COMPONENT_LINES__", component_lines)
+
+
+def _starter_remote_agent_steps(lang: str) -> list[str]:
+    if lang == "en":
+        return [
+            "Prepare a deploy-agent directory on the remote Docker host and place the compose and env files there.",
+            "Start the deploy-agent service and confirm port 9000 is reachable.",
+            "Use a browser or curl to access /deploy/status and confirm it returns JSON.",
+            "Fill webhook_url, status_url, and shared_secret back into the environment settings in DeployBox.",
+        ]
+    return [
+        "在远端 Docker 主机准备 deploy-agent 目录，保存 compose 文件和 env 文件。",
+        "把 deploy-agent 服务启动起来，并确认 9000 端口可访问。",
+        "用浏览器或 curl 访问 /deploy/status，确认返回 JSON。",
+        "把 webhook_url、status_url、shared_secret 填回本平台的环境配置。",
+    ]
 
 
 def _render_deploy_agent_compose(project_slug: str) -> str:
@@ -1778,7 +1904,10 @@ def _render_deploy_agent_requirements() -> str:
     )
 
 
-def _render_deploy_agent_app() -> str:
+def _render_deploy_agent_app(lang: str = "zh") -> str:
+    manifest_detail = "Downloading manifest" if lang == "en" else "正在下载 manifest"
+    failed_detail = "Deploy script failed" if lang == "en" else "部署脚本执行失败"
+    success_detail = "Deployment completed" if lang == "en" else "部署完成"
     return dedent(
         """\
         import hashlib
@@ -1806,11 +1935,11 @@ def _render_deploy_agent_app() -> str:
         def load_status() -> dict:
             if STATUS_FILE.exists():
                 return json.loads(STATUS_FILE.read_text(encoding="utf-8"))
-            return {
+            return {{
                 "status": "idle",
                 "version": "",
                 "updated_at": utcnow(),
-            }
+            }}
 
 
         def save_status(payload: dict) -> None:
@@ -1850,12 +1979,12 @@ def _render_deploy_agent_app() -> str:
             manifest_path = release_dir / "manifest.json"
 
             save_status(
-                {
+                {{
                     "status": "running",
                     "version": version,
                     "manifest_url": manifest_url,
-                    "detail": "正在下载 manifest",
-                }
+                    "detail": "{manifest_detail}",
+                }}
             )
 
             async with httpx.AsyncClient(timeout=60) as client:
@@ -1867,7 +1996,7 @@ def _render_deploy_agent_app() -> str:
             env["DEPLOY_VERSION"] = version
             env["DEPLOY_MANIFEST_URL"] = manifest_url
             env["DEPLOY_MANIFEST_PATH"] = str(manifest_path)
-            env["DEPLOY_TRIGGERED_BY"] = str(payload.get("triggered_by") or "deploy-console")
+            env["DEPLOY_TRIGGERED_BY"] = str(payload.get("triggered_by") or "deploybox")
             env["DEPLOY_COMMIT"] = str(payload.get("commit") or "")
             env["DEPLOY_ENVIRONMENT"] = str(payload.get("environment") or env.get("DEPLOY_ENVIRONMENT", "prod"))
 
@@ -1882,39 +2011,43 @@ def _render_deploy_agent_app() -> str:
             stderr = (process.stderr or "").strip()
             if process.returncode != 0:
                 save_status(
-                    {
+                    {{
                         "status": "failed",
                         "version": version,
                         "manifest_url": manifest_url,
                         "stdout": stdout[-4000:],
                         "stderr": stderr[-4000:],
-                        "detail": "部署脚本执行失败",
-                    }
+                        "detail": "{failed_detail}",
+                    }}
                 )
-                return {
+                return {{
                     "status": "failed",
                     "version": version,
                     "stdout": stdout[-4000:],
                     "stderr": stderr[-4000:],
-                }
+                }}
 
             save_status(
-                {
+                {{
                     "status": "success",
                     "version": version,
                     "manifest_url": manifest_url,
                     "stdout": stdout[-4000:],
                     "stderr": stderr[-4000:],
-                    "detail": "部署完成",
-                }
+                    "detail": "{success_detail}",
+                }}
             )
-            return {
+            return {{
                 "status": "success",
                 "version": version,
                 "stdout": stdout[-4000:],
                 "stderr": stderr[-4000:],
-            }
+            }}
         """
+    ).format(
+        manifest_detail=manifest_detail,
+        failed_detail=failed_detail,
+        success_detail=success_detail,
     )
 
 
@@ -2026,7 +2159,37 @@ def _render_deploy_agent_env(
     shared_secret: str,
     deploy_environment: str,
     remote_prefix: str,
+    lang: str = "zh",
 ) -> str:
+    if lang == "en":
+        return dedent(
+            f"""\
+            # Copy this file to deploy-agent.env and update it for your environment
+            DEPLOY_SHARED_SECRET={shared_secret}
+            DEPLOY_PORT=9000
+            DEPLOY_BIND=0.0.0.0
+            DEPLOY_STATE_DIR=/deploy/state
+            DEPLOY_SCRIPT=/opt/deploy/bin/deploy-release.sh
+            DEPLOY_ENVIRONMENT={deploy_environment}
+            DEPLOY_PROJECT_ROOT=/workspace
+
+            # This must be the real project path on the target host.
+            # It is used for:
+            # 1. mounting the project into /workspace
+            # 2. docker compose --project-directory
+            # This keeps bind mounts and relative paths resolved from the host path.
+            #
+            # macOS example: /Users/inteye/TXCL/workstation/demo
+            # Linux example: /srv/apps/{remote_prefix.split('/')[0]}
+            # On Docker Desktop, add this path to File Sharing first.
+            DEPLOY_PROJECT_WORKSPACE_HOST_PATH=/srv/apps/{remote_prefix.split('/')[0]}
+
+            # Reference values for DeployBox onboarding. These are not read directly by deploy-agent.
+            # webhook_url={webhook_url}
+            # status_url={status_url}
+            # artifact_prefix={remote_prefix}
+            """
+        )
     return dedent(
         f"""\
         # 复制为 deploy-agent.env 后按实际情况修改

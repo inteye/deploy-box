@@ -216,6 +216,39 @@ msgstr "Registering release with local artifact server"
 msgid "登记 release 并同步组件"
 msgstr "Registering release and syncing components"
 
+msgid "可选，保存本次构建说明或附加信息"
+msgstr "Optional. Save notes or extra metadata for this build"
+
+msgid "在远端 Docker 主机准备 deploy-agent 目录，保存 compose 文件和 env 文件。"
+msgstr "Prepare a deploy-agent directory on the remote Docker host and place the compose and env files there."
+
+msgid "把 deploy-agent 服务启动起来，并确认 9000 端口可访问。"
+msgstr "Start the deploy-agent service and confirm port 9000 is reachable."
+
+msgid "用浏览器或 curl 访问 /deploy/status，确认返回 JSON。"
+msgstr "Use a browser or curl to access /deploy/status and confirm it returns JSON."
+
+msgid "把 webhook_url、status_url、shared_secret 填回本平台的环境配置。"
+msgstr "Fill webhook_url, status_url, and shared_secret back into the environment settings in this platform."
+
+msgid "脚本打包模板"
+msgstr "Script Packaging Template"
+
+msgid "执行项目已有打包脚本，产出 manifest 与多组件制品。"
+msgstr "Run the project's existing packaging script to produce a manifest and multi-component artifacts."
+
+msgid "上传已有制品模板"
+msgstr "Upload Existing Artifacts Template"
+
+msgid "适合已有外部构建系统，仅在控制台登记与上传已有 release。"
+msgstr "For projects that already use an external build system and only need to register and upload an existing release in the console."
+
+msgid "当前 compose 基本符合发布接入要求"
+msgstr "The current compose file is basically ready for release onboarding"
+
+msgid "仍建议保留固定镜像版本或 DEPLOY_IMAGE_* 注入，以方便追踪实际运行镜像。"
+msgstr "It is still recommended to keep fixed image versions or use DEPLOY_IMAGE_* injection so the actual running image remains traceable."
+
 msgid "查看部署任务"
 msgstr "View Deployments"
 
@@ -328,10 +361,10 @@ msgid "影响组件："
 msgstr "Affected components: "
 
 msgid "确认按 Release"
-msgstr ""
+msgstr "Confirm redeploy with Release"
 
 msgid "中记录的组件版本重新发布？"
-msgstr ""
+msgstr "recorded component versions?"
 
 msgid "发布过程默认异步执行"
 msgstr "Deployments Run Asynchronously"
@@ -397,7 +430,7 @@ msgid "先配模板与环境"
 msgstr "Configure Templates & Environments"
 
 msgid "把项目工作目录、打包脚本、目标环境 webhook 和状态接口在线配置好，后面就不需要再手工拼参数。"
-msgstr ""
+msgstr "Configure the workspace, package script, and target environment webhook/status endpoints once so you do not need to assemble parameters manually later."
 
 msgid "生成"
 msgstr "Build"
@@ -454,7 +487,7 @@ msgid "推荐文件已更新"
 msgstr "Recommended file updated"
 
 msgid "组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。"
-msgstr ""
+msgstr "Component settings have changed. The recommended `docker-compose.yml` has been recalculated from the current component config. Download and merge it again."
 
 msgid "Compose 规范检查"
 msgstr "Compose Lint"
@@ -517,13 +550,13 @@ msgid "远端 deploy-agent 接入"
 msgstr "Remote deploy-agent Setup"
 
 msgid "这部分就是给目标 Docker 主机的。最少只需要一个兼容 `/deploy/hook` 和 `/deploy/status` 的轻量服务。"
-msgstr ""
+msgstr "This section is for the target Docker host. At minimum you only need a lightweight service compatible with `/deploy/hook` and `/deploy/status`."
 
 msgid "用于生成示例的目标环境"
-msgstr ""
+msgstr "Target environment for generated examples"
 
 msgid "还没有环境配置。当前展示的是通用 deploy-agent 示例，等你先创建环境后这里会自动带入 webhook 和 status 地址。"
-msgstr ""
+msgstr "No environment is configured yet. A generic deploy-agent example is shown for now. After you create an environment, the webhook and status URLs will be filled in automatically."
 
 msgid "查看最小协议请求体"
 msgstr "View minimal hook payload"
@@ -553,7 +586,7 @@ msgid "新手接入说明"
 msgstr "Onboarding guide"
 
 msgid "这里决定“项目怎么生成 release”。组件列表负责描述可发布镜像，这里只保留构建模板和覆盖配置。"
-msgstr ""
+msgstr "This section decides how the project generates releases. Components describe deployable images; this area only keeps the build template and override settings."
 
 msgid "构建模板"
 msgstr "Build Template"
@@ -574,7 +607,7 @@ msgid "主路径"
 msgstr "Main path"
 
 msgid "优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。"
-msgstr ""
+msgstr "Prefer the script-based packaging template. Use the upload-existing-artifacts template only when your external system has already produced a full manifest and component artifacts."
 
 msgid "保存接入配置"
 msgstr "Save Build Config"
@@ -592,7 +625,7 @@ msgid "环境管理"
 msgstr "Environment Management"
 
 msgid "这里决定“生成好的 release 发到哪里”。建议至少配置一个正式环境和一个测试环境。"
-msgstr ""
+msgstr "This section decides where generated releases are sent. It is recommended to configure at least one production environment and one testing environment."
 
 msgid "环境名"
 msgstr "Environment Name"
@@ -622,13 +655,13 @@ msgid "当前接入摘要"
 msgstr "Onboarding Summary"
 
 msgid "用最少的信息确认这个项目现在能不能直接一键生成和一键发布。"
-msgstr ""
+msgstr "Use the minimum information here to confirm whether this project is ready for one-click build and one-click deploy."
 
 msgid "执行适配器"
 msgstr "Adapter"
 
 msgid "负责把 release 的 `manifest_url` 发给兼容的 deploy-agent。当前只有这一种协议，新用户按默认方式接入即可。"
-msgstr ""
+msgstr "This sends the release `manifest_url` to a compatible deploy-agent. It is the only supported protocol for now, and the default setup is enough for new users."
 
 msgid "项目目录"
 msgstr "Project Directory"
@@ -643,7 +676,7 @@ msgid "镜像仓库前缀"
 msgstr "Registry Prefix"
 
 msgid "compose 未声明 `image:` 时，会按此前缀自动生成镜像地址；未设置时只生成本地镜像名。"
-msgstr ""
+msgstr "When `image:` is not declared in compose, the image address is generated from this prefix automatically. If left empty, only a local image name is generated."
 
 msgid "尚未配置构建模板说明。"
 msgstr "No template description configured."
@@ -652,7 +685,7 @@ msgid "环境数量"
 msgstr "Environments"
 
 msgid "个"
-msgstr ""
+msgstr "items"
 
 msgid "建议至少配置一个测试环境和一个正式环境。"
 msgstr "Configure at least one staging and one production environment."
@@ -688,7 +721,7 @@ msgid "主操作"
 msgstr "Main Actions"
 
 msgid "如果你只想完成一次正常发布，只需要在这里二选一。其它人工处理入口都已经折叠到高级操作。"
-msgstr ""
+msgstr "If you only want to finish a normal release, choose one of the two main actions here. Other manual paths have been folded into Advanced."
 
 msgid "一键生成制品"
 msgstr "Build Artifacts"
@@ -700,10 +733,22 @@ msgid "本地制品站"
 msgstr "Local"
 
 msgid "没有启用中的组件，先到“接入配置”维护组件。"
-msgstr ""
+msgstr "There are no enabled components. Go to Onboarding Config first and maintain the component list."
 
 msgid "附加 payload"
 msgstr "Extra payload"
+
+msgid "选择文件"
+msgstr "Choose file"
+
+msgid "未选择文件"
+msgstr "No file selected"
+
+msgid "已选择文件数："
+msgstr "Files selected: "
+
+msgid "可选，保存本次构建与发布说明"
+msgstr "Optional. Save notes for this build and deployment."
 
 msgid "开始构建"
 msgstr "Start Build"
@@ -723,6 +768,9 @@ msgstr "Build jobs track stage progress, artifact URLs and auto-deploy."
 msgid "版本："
 msgstr "Version: "
 
+msgid "存储："
+msgstr "Storage: "
+
 msgid "还没有构建任务。"
 msgstr "No build jobs yet."
 
@@ -736,7 +784,7 @@ msgid "可发布 Release"
 msgstr "Releasable Versions"
 
 msgid "这里只保留最近的可发布版本，强调“选版本发版”，而不是把所有信息糅在一个列表里。"
-msgstr ""
+msgstr "Only recent releasable versions are kept here. The focus is on deploying a selected version instead of mixing everything into one list."
 
 msgid "个组件"
 msgstr "components"
@@ -829,7 +877,7 @@ msgid "打包脚本"
 msgstr "Package script"
 
 msgid "正在上传制品："
-msgstr ""
+msgstr "Uploading artifacts: "
 
 msgid "上传完成，正在跳转。"
 msgstr "Upload complete, redirecting."
