@@ -68,7 +68,7 @@
         <span>{{ event.stage or '-' }}</span>
         <span>{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
       </div>
-      <strong>{{ event.message }}</strong>
+      <strong>{{ _(event.message) }}</strong>
       {% if event.progress_percent is not none %}
       <span class="muted small">{{ _('进度') }} {{ event.progress_percent }}%</span>
       {% endif %}

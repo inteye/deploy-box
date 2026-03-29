@@ -41,7 +41,7 @@
   <div class="section-head">
     <div>
       <h2>{{ _('工作台标签') }}</h2>
-      <p>先选你当前要处理的阶段。默认打开“构建发布”，避免一进来被所有表单和列表淹没。</p>
+      <p>{{ _('先选你当前要处理的阶段。默认打开“构建发布”，避免一进来被所有表单和列表淹没。') }}</p>
     </div>
   </div>
   <div class="tabs">
@@ -57,7 +57,7 @@
     <div class="section-head">
       <div>
         <h2>{{ _('Starter 模板中心') }}</h2>
-        <p>_('这里不再要求你先选固定模式。先把项目里的可发布组件定义清楚，再预览脚本、配置和接入说明。')</p>
+        <p>{{ _('这里不再要求你先选固定模式。先把项目里的可发布组件定义清楚，再预览脚本、配置和接入说明。') }}</p>
       </div>
     </div>
     <form method="post" action="/console/projects/{{ project.id }}/components/import-compose" class="grid">
@@ -80,7 +80,7 @@
       <div class="meta-line">
         <span class="badge">{{ _('推荐文件已更新') }}</span>
       </div>
-      <p class="muted small" style="margin:0;">_('组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。')</p>
+      <p class="muted small" style="margin:0;">{{ _('组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。') }}</p>
     </article>
     {% endif %}
     {% if compose_analysis or compose_analysis_error %}
@@ -175,7 +175,7 @@
         </details>
       </article>
       {% else %}
-      <div class="muted">_('还没有组件，先手工新增一个，或者从 compose 文件导入。')</div>
+      <div class="muted">{{ _('还没有组件，先手工新增一个，或者从 compose 文件导入。') }}</div>
       {% endfor %}
     </div>
   </article>
@@ -184,7 +184,7 @@
     <div class="section-head">
       <div>
         <h2>{{ _('远端 deploy-agent 接入') }}</h2>
-        <p>_('这部分就是给目标 Docker 主机的。最少只需要一个兼容 `/deploy/hook` 和 `/deploy/status` 的轻量服务。')</p>
+        <p>{{ _('这部分就是给目标 Docker 主机的。最少只需要一个兼容 `/deploy/hook` 和 `/deploy/status` 的轻量服务。') }}</p>
       </div>
     </div>
     {% if project.environments %}
@@ -199,7 +199,7 @@
       </label>
     </form>
     {% else %}
-    <p class="muted small" style="margin:0;">_('还没有环境配置。当前展示的是通用 deploy-agent 示例，等你先创建环境后这里会自动带入 webhook 和 status 地址。')</p>
+    <p class="muted small" style="margin:0;">{{ _('还没有环境配置。当前展示的是通用 deploy-agent 示例，等你先创建环境后这里会自动带入 webhook 和 status 地址。') }}</p>
     {% endif %}
     <ol class="guide-steps">
       {% for step in starter_bundle.remote_agent.steps %}
@@ -235,7 +235,7 @@
   <div class="section-head">
     <div>
       <h2>{{ _('Starter 预览') }}</h2>
-      <p>_('当前 starter 直接根据项目组件生成。不会写脚本时，下载 starter 包并按 README 调整字段即可。')</p>
+      <p>{{ _('当前 starter 直接根据项目组件生成。不会写脚本时，下载 starter 包并按 README 调整字段即可。') }}</p>
     </div>
     <div class="meta-line">
       <span class="badge">{{ _('当前组件') }}</span>
@@ -272,7 +272,7 @@
     <div class="section-head">
       <div>
         <h2>{{ _('接入配置') }}</h2>
-        <p>_('这里决定“项目怎么生成 release”。组件列表负责描述可发布镜像，这里只保留构建模板和覆盖配置。')</p>
+        <p>{{ _('这里决定“项目怎么生成 release”。组件列表负责描述可发布镜像，这里只保留构建模板和覆盖配置。') }}</p>
       </div>
     </div>
     <form method="post" action="/console/projects/{{ project.id }}/build-config" class="grid">
@@ -301,9 +301,9 @@
           <span class="badge" id="build-template-mode-badge">{{ _('主路径') }}</span>
           <span id="build-template-slug">{{ build_config.template.slug if build_config and build_config.template else '' }}</span>
         </div>
-        <p class="muted small" id="build-template-description" style="margin:0;">{{ build_config.template.description if build_config and build_config.template and build_config.template.description else '_('优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。')' }}</p>
+        <p class="muted small" id="build-template-description" style="margin:0;">{{ build_config.template.description if build_config and build_config.template and build_config.template.description else _('优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。') }}</p>
       </article>
-      <label>配置覆盖(JSON)
+      <label>{{ _('配置覆盖(JSON)') }}
         <textarea id="build-config-override" name="config_override_json" placeholder='{"workspace_path":"/workspace","package_script":"deploy/scripts/package_release.sh"}'>{{ build_config.config_override_json if build_config and build_config.config_override_json else '' }}</textarea>
       </label>
       <div class="actions">
@@ -322,7 +322,7 @@
     <div class="section-head">
       <div>
         <h2>{{ _('手工新增组件') }}</h2>
-        <p>_('适合没有 compose 文件，或只想挑出少数组件纳入发版时使用。')</p>
+        <p>{{ _('适合没有 compose 文件，或只想挑出少数组件纳入发版时使用。') }}</p>
       </div>
     </div>
     <form method="post" action="/console/projects/{{ project.id }}/components" class="grid">
@@ -362,7 +362,7 @@
     <div class="section-head">
       <div>
         <h2>{{ _('环境管理') }}</h2>
-        <p>_('这里决定“生成好的 release 发到哪里”。建议至少配置一个正式环境和一个测试环境。')</p>
+        <p>{{ _('这里决定“生成好的 release 发到哪里”。建议至少配置一个正式环境和一个测试环境。') }}</p>
       </div>
     </div>
     <form method="post" action="/console/projects/{{ project.id }}/environments" class="grid">
@@ -401,24 +401,24 @@
     <div class="section-head">
       <div>
         <h2>{{ _('当前接入摘要') }}</h2>
-        <p>_('用最少的信息确认这个项目现在能不能直接一键生成和一键发布。')</p>
+        <p>{{ _('用最少的信息确认这个项目现在能不能直接一键生成和一键发布。') }}</p>
       </div>
     </div>
     <div class="list-stack">
       <article class="list-card">
         <div class="meta-line"><span class="badge">{{ _('执行适配器') }}</span></div>
         <strong>Webhook Manifest v1</strong>
-        <p class="muted small" style="margin:0;">_('负责把 release 的 `manifest_url` 发给兼容的 deploy-agent。当前只有这一种协议，新用户按默认方式接入即可。')</p>
+        <p class="muted small" style="margin:0;">{{ _('负责把 release 的 `manifest_url` 发给兼容的 deploy-agent。当前只有这一种协议，新用户按默认方式接入即可。') }}</p>
       </article>
       <article class="list-card">
         <div class="meta-line"><span class="badge">{{ _('项目目录') }}</span></div>
         <strong>{{ project.workspace_path or _('未设置') }}</strong>
-        <p class="muted small" style="margin:0;">_('用于 compose 导入、starter 预览和构建脚本执行。相对路径会基于全局工作目录解析。')</p>
+        <p class="muted small" style="margin:0;">{{ _('用于 compose 导入、starter 预览和构建脚本执行。相对路径会基于全局工作目录解析。') }}</p>
       </article>
       <article class="list-card">
         <div class="meta-line"><span class="badge">{{ _('镜像仓库前缀') }}</span></div>
         <strong>{{ project.image_registry_prefix or _('未设置') }}</strong>
-        <p class="muted small" style="margin:0;">_('compose 未声明 `image:` 时，会按此前缀自动生成镜像地址；未设置时只生成本地镜像名。')</p>
+        <p class="muted small" style="margin:0;">{{ _('compose 未声明 `image:` 时，会按此前缀自动生成镜像地址；未设置时只生成本地镜像名。') }}</p>
       </article>
       <article class="list-card">
         <div class="meta-line"><span class="badge">{{ _('构建模板') }}</span></div>
@@ -428,7 +428,7 @@
       <article class="list-card">
         <div class="meta-line"><span class="badge">{{ _('环境数量') }}</span></div>
         <strong>{{ project.environments|length }} {{ _('个') }}</strong>
-        <p class="muted small" style="margin:0;">_('建议至少配置一个测试环境和一个正式环境。')</p>
+        <p class="muted small" style="margin:0;">{{ _('建议至少配置一个测试环境和一个正式环境。') }}</p>
       </article>
     </div>
   </article>
@@ -437,7 +437,7 @@
     <div class="section-head">
       <div>
         <h2>{{ _('环境列表') }}</h2>
-        <p>_('环境编辑和删除放在这里，不再混进主发布流程。')</p>
+        <p>{{ _('环境编辑和删除放在这里，不再混进主发布流程。') }}</p>
       </div>
     </div>
     <div class="list-stack">
@@ -499,7 +499,7 @@
   <div class="section-head">
     <div>
       <h2>{{ _('主操作') }}</h2>
-      <p>_('如果你只想完成一次正常发布，只需要在这里二选一。其它人工处理入口都已经折叠到高级操作。')</p>
+      <p>{{ _('如果你只想完成一次正常发布，只需要在这里二选一。其它人工处理入口都已经折叠到高级操作。') }}</p>
     </div>
   </div>
   <div class="primary-actions">
@@ -521,7 +521,7 @@
           <span class="muted small">{{ component.service_name }} · {{ component.image }} · {{ _('构建') if component.build_enabled else _('外部镜像') }}</span>
         </label>
         {% else %}
-        <div class="muted">_('没有启用中的组件，先到“接入配置”维护组件。')</div>
+        <div class="muted">{{ _('没有启用中的组件，先到“接入配置”维护组件。') }}</div>
         {% endfor %}
       </div>
       <label>{{ _('附加 payload') }}
@@ -557,7 +557,7 @@
           <span class="muted small">{{ component.service_name }} · {{ component.image }} · {{ _('构建') if component.build_enabled else _('外部镜像') }}</span>
         </label>
         {% else %}
-        <div class="muted">_('没有启用中的组件，先到“接入配置”维护组件。')</div>
+        <div class="muted">{{ _('没有启用中的组件，先到“接入配置”维护组件。') }}</div>
         {% endfor %}
       </div>
       <label>{{ _('附加 payload') }}
@@ -575,7 +575,7 @@
     <div class="section-head">
       <div>
         <h2>{{ _('最近构建任务') }}</h2>
-        <p>_('构建任务支持阶段进度、最终 release 地址和自动发布联动。')</p>
+        <p>{{ _('构建任务支持阶段进度、最终 release 地址和自动发布联动。') }}</p>
       </div>
     </div>
     <div class="list-stack">
@@ -607,7 +607,7 @@
     <div class="section-head">
       <div>
         <h2>{{ _('最近部署任务') }}</h2>
-        <p>_('大制品场景下部署会以异步任务方式轮询收敛状态，不再要求页面一直等待。')</p>
+        <p>{{ _('大制品场景下部署会以异步任务方式轮询收敛状态，不再要求页面一直等待。') }}</p>
       </div>
     </div>
     <div class="list-stack">
@@ -636,7 +636,7 @@
   <div class="section-head">
     <div>
       <h2>{{ _('可发布 Release') }}</h2>
-      <p>_('这里只保留最近的可发布版本，强调“选版本发版”，而不是把所有信息糅在一个列表里。')</p>
+      <p>{{ _('这里只保留最近的可发布版本，强调“选版本发版”，而不是把所有信息糅在一个列表里。') }}</p>
     </div>
   </div>
   <div class="list-stack">
@@ -688,7 +688,7 @@
     <div class="section-head">
       <div>
         <h3>{{ _('手动登记已有 Release') }}</h3>
-        <p>_('兼容已有 manifest_url 流程，建议仅在特殊场景下使用。')</p>
+        <p>{{ _('兼容已有 manifest_url 流程，建议仅在特殊场景下使用。') }}</p>
       </div>
     </div>
     <form method="post" action="/console/projects/{{ project.id }}/releases" class="grid">
@@ -716,7 +716,7 @@
     <div class="section-head">
       <div>
         <h3>{{ _('上传已有制品') }}</h3>
-        <p>_('支持本地制品站或 OSS。页面会显示上传进度，适合外部构建系统产出的 release 包。')</p>
+        <p>{{ _('支持本地制品站或 OSS。页面会显示上传进度，适合外部构建系统产出的 release 包。') }}</p>
       </div>
     </div>
     <form id="artifact-upload-form" method="post" action="/console/projects/{{ project.id }}/releases/upload" class="grid" enctype="multipart/form-data">
@@ -750,7 +750,7 @@
       <div class="progress-shell">
         <div id="artifact-upload-progress" class="progress-bar"></div>
       </div>
-      <div id="artifact-upload-status" class="muted small">尚未开始上传</div>
+      <div id="artifact-upload-status" class="muted small">{{ _('尚未开始上传') }}</div>
       <div class="actions">
         <button type="submit" class="secondary">{{ _('上传并登记') }}</button>
       </div>
@@ -819,14 +819,14 @@
           }
           validationNode.textContent = [
             `{{ _('工作区根') }}: ${payload.workspace_root}`,
-            `{{ _('配置路径') }}: ${payload.configured_path || "(空)"}`,
+            `{{ _('配置路径') }}: ${payload.configured_path || "{{ _('(空)') }}"}`,
             `{{ _('解析路径') }}: ${payload.resolved_path}`,
             `{{ _('真实路径') }}: ${payload.real_path}`,
-            `存在: ${payload.exists ? "{{ _('是') }}" : "{{ _('否') }}"}`,
-            `目录: ${payload.is_dir ? "{{ _('是') }}" : "{{ _('否') }}"}`,
-            `软链接: ${payload.is_symlink ? "{{ _('是') }}" : "{{ _('否') }}"}`,
+            `{{ _('存在') }}: ${payload.exists ? "{{ _('是') }}" : "{{ _('否') }}"}`,
+            `{{ _('目录') }}: ${payload.is_dir ? "{{ _('是') }}" : "{{ _('否') }}"}`,
+            `{{ _('软链接') }}: ${payload.is_symlink ? "{{ _('是') }}" : "{{ _('否') }}"}`,
             `docker-compose.yml: ${payload.docker_compose_exists ? "{{ _('存在') }}" : "{{ _('不存在') }}"}`,
-            `{{ _('打包脚本') }}: ${payload.package_script_exists ? payload.package_script : "不存在"}`,
+            `{{ _('打包脚本') }}: ${payload.package_script_exists ? payload.package_script : "{{ _('不存在') }}"}`,
           ].join("\n");
         } catch (_error) {
           validationNode.textContent = "{{ _('路径校验失败') }}";

@@ -55,12 +55,12 @@
         </label>
         <label>{{ _('项目工作区路径') }}
           <div style="display:flex; gap:8px;">
-            <input type="text" name="workspace_path" placeholder="sample-service 或 services/sample-service" required>
+            <input type="text" name="workspace_path" placeholder="{{ _('sample-service 或 services/sample-service') }}" required>
             <button type="button" class="secondary browse-directory-button" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
           </div>
         </label>
         <label>{{ _('镜像仓库前缀') }}
-          <input type="text" name="image_registry_prefix" placeholder="registry.example.com/team 或留空使用本地镜像名">
+          <input type="text" name="image_registry_prefix" placeholder="{{ _('registry.example.com/team 或留空使用本地镜像名') }}">
         </label>
       </div>
       <article class="list-card">
@@ -126,12 +126,12 @@
               </label>
               <label>{{ _('项目工作区路径') }}
                 <div style="display:flex; gap:8px;">
-                  <input type="text" name="workspace_path" value="{{ project.workspace_path or '' }}" placeholder="sample-service 或 services/sample-service" required>
+                  <input type="text" name="workspace_path" value="{{ project.workspace_path or '' }}" placeholder="{{ _('sample-service 或 services/sample-service') }}" required>
                   <button type="button" class="secondary browse-directory-button" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
                 </div>
               </label>
               <label>{{ _('镜像仓库前缀') }}
-                <input type="text" name="image_registry_prefix" value="{{ project.image_registry_prefix or '' }}" placeholder="registry.example.com/team 或留空使用本地镜像名">
+                <input type="text" name="image_registry_prefix" value="{{ project.image_registry_prefix or '' }}" placeholder="{{ _('registry.example.com/team 或留空使用本地镜像名') }}">
               </label>
             </div>
             <label>{{ _('项目说明') }}
@@ -292,7 +292,7 @@
           }
           output.textContent = [
             `{{ _('工作区根') }}: ${payload.workspace_root}`,
-            `{{ _('配置路径') }}: ${payload.configured_path || "(空)"}`,
+            `{{ _('配置路径') }}: ${payload.configured_path || "{{ _('(空)') }}"}`,
             `{{ _('解析路径') }}: ${payload.resolved_path}`,
             `{{ _('真实路径') }}: ${payload.real_path}`,
             `{{ _('存在') }}: ${payload.exists ? "{{ _('是') }}" : "{{ _('否') }}"}`,

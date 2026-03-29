@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 from ..auth import authenticate_user, get_current_user, get_optional_user
 from ..config import get_settings
 from ..database import get_db
-from ..i18n import get_locale, get_translation
+from ..i18n import get_locale, get_translation, translate_runtime_text
 from ..models import BuildJob, BuildJobEvent, BuildTemplate, Deployment, Environment, OperatorUser, Project, ProjectBuildConfig, Release
 from ..services import (
     analyze_compose_release_readiness,
@@ -48,6 +48,10 @@ def render(request: Request, template_name: str, **context):
     base_context = {"request": request, "current_path": request.url.path, "current_lang": lang}
     base_context.update(context)
     return templates.TemplateResponse(template_name, base_context)
+
+
+def tr(request: Request, current_user: OperatorUser | None, message: str) -> str:
+    return get_translation(get_locale(request, current_user)).gettext(message)
 
 
 def try_parse_json(raw: str | None):
@@ -139,7 +143,7 @@ def root(request: Request, current_user: OperatorUser | None = Depends(get_optio
 def login_page(request: Request, current_user: OperatorUser | None = Depends(get_optional_user)):
     if current_user:
         return RedirectResponse(url="/console/dashboard", status_code=status.HTTP_303_SEE_OTHER)
-    return render(request, "login.html", title="DeployBox 登录", error=None)
+    return render(request, "login.html", title=tr(request, None, "DeployBox 登录"), error=None)
 
 
 @router.post("/login", response_class=HTMLResponse)
@@ -151,7 +155,12 @@ def login_submit(
 ):
     user = authenticate_user(db, username=username.strip(), password=password)
     if not user:
-        return render(request, "login.html", title="DeployBox 登录", error="用户名或密码错误")
+        return render(
+            request,
+            "login.html",
+            title=tr(request, None, "DeployBox 登录"),
+            error=tr(request, None, "用户名或密码错误"),
+        )
     request.session["user_id"] = user.id
     return RedirectResponse(url="/console/dashboard", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -244,7 +253,7 @@ def projects_page(
     return render(
         request,
         "projects.html",
-        title="项目与接入",
+        title=tr(request, current_user, "项目与接入"),
         current_user=current_user,
         projects=projects,
         summary=summary,
@@ -398,7 +407,7 @@ def project_detail_page(
     return render(
         request,
         "project_detail.html",
-        title=f"{project.name} - 项目详情",
+        title=f"{project.name} - {tr(request, current_user, '项目详情')}",
         current_user=current_user,
         project=project,
         build_config=build_config,
@@ -907,10 +916,19 @@ def build_job_detail_page(
     return render(
         request,
         "build_job_detail.html",
-        title=f"构建任务 #{build_job.id}",
+        title=f"{tr(request, current_user, '构建任务')} #{build_job.id}",
         current_user=current_user,
         build_job=build_job,
-        events=events,
+        events=[
+            {
+                "event_type": event.event_type,
+                "stage": event.stage,
+                "created_at": event.created_at,
+                "progress_percent": event.progress_percent,
+                "message": translate_runtime_text(get_translation(get_locale(request, current_user)), event.message) or "",
+            }
+            for event in events
+        ],
         parsed_result=try_parse_json(build_job.result_json),
     )
 

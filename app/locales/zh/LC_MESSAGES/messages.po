@@ -139,6 +139,84 @@ msgstr "如果你正在连续发版，直接回到最近项目的构建发布区
 msgid "异常处理"
 msgstr "异常处理"
 
+msgid "DeployBox 登录"
+msgstr "DeployBox 登录"
+
+msgid "用户名或密码错误"
+msgstr "用户名或密码错误"
+
+msgid "项目与接入"
+msgstr "项目与接入"
+
+msgid "项目详情"
+msgstr "项目详情"
+
+msgid "先选你当前要处理的阶段。默认打开“构建发布”，避免一进来被所有表单和列表淹没。"
+msgstr "先选你当前要处理的阶段。默认打开“构建发布”，避免一进来被所有表单和列表淹没。"
+
+msgid "配置覆盖(JSON)"
+msgstr "配置覆盖(JSON)"
+
+msgid "尚未开始上传"
+msgstr "尚未开始上传"
+
+msgid "(空)"
+msgstr "(空)"
+
+msgid "sample-service 或 services/sample-service"
+msgstr "sample-service 或 services/sample-service"
+
+msgid "registry.example.com/team 或留空使用本地镜像名"
+msgstr "registry.example.com/team 或留空使用本地镜像名"
+
+msgid "构建任务已创建"
+msgstr "构建任务已创建"
+
+msgid "本次将处理组件: {components}"
+msgstr "本次将处理组件: {components}"
+
+msgid "使用模板 {template}"
+msgstr "使用模板 {template}"
+
+msgid "Release {version} 已生成"
+msgstr "Release {version} 已生成"
+
+msgid "开始执行打包脚本"
+msgstr "开始执行打包脚本"
+
+msgid "工作目录不存在: {path}"
+msgstr "工作目录不存在: {path}"
+
+msgid "打包脚本不存在: {path}"
+msgstr "打包脚本不存在: {path}"
+
+msgid "打包脚本输出缺少 Version 或 Release package created at"
+msgstr "打包脚本输出缺少 Version 或 Release package created at"
+
+msgid "未找到 manifest 文件: {path}"
+msgstr "未找到 manifest 文件: {path}"
+
+msgid "正在解析 manifest"
+msgstr "正在解析 manifest"
+
+msgid "开始上传到 OSS"
+msgstr "开始上传到 OSS"
+
+msgid "组件 {component} 为外部镜像，跳过 tar 上传"
+msgstr "组件 {component} 为外部镜像，跳过 tar 上传"
+
+msgid "未找到组件文件: {name}"
+msgstr "未找到组件文件: {name}"
+
+msgid "已上传组件 {current}/{total}: {name}"
+msgstr "已上传组件 {current}/{total}: {name}"
+
+msgid "使用本地制品站登记 release"
+msgstr "使用本地制品站登记 release"
+
+msgid "登记 release 并同步组件"
+msgstr "登记 release 并同步组件"
+
 msgid "查看部署任务"
 msgstr "查看部署任务"
 
@@ -921,4 +999,3 @@ msgstr "目录"
 
 msgid "软链接"
 msgstr "软链接"
-

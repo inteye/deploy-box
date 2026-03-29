@@ -138,6 +138,84 @@ msgstr "Continue building from your most recent project."
 msgid "异常处理"
 msgstr "Troubleshoot"
 
+msgid "DeployBox 登录"
+msgstr "DeployBox Login"
+
+msgid "用户名或密码错误"
+msgstr "Invalid username or password"
+
+msgid "项目与接入"
+msgstr "Projects & Onboarding"
+
+msgid "项目详情"
+msgstr "Project Details"
+
+msgid "先选你当前要处理的阶段。默认打开“构建发布”，避免一进来被所有表单和列表淹没。"
+msgstr "Pick the stage you want to work on first. Build & Deploy is the default tab to avoid overwhelming forms and lists."
+
+msgid "配置覆盖(JSON)"
+msgstr "Config Override (JSON)"
+
+msgid "尚未开始上传"
+msgstr "Upload has not started yet"
+
+msgid "(空)"
+msgstr "(empty)"
+
+msgid "sample-service 或 services/sample-service"
+msgstr "sample-service or services/sample-service"
+
+msgid "registry.example.com/team 或留空使用本地镜像名"
+msgstr "registry.example.com/team or leave empty for local image names"
+
+msgid "构建任务已创建"
+msgstr "Build job created"
+
+msgid "本次将处理组件: {components}"
+msgstr "Components to process: {components}"
+
+msgid "使用模板 {template}"
+msgstr "Using template {template}"
+
+msgid "Release {version} 已生成"
+msgstr "Release {version} created"
+
+msgid "开始执行打包脚本"
+msgstr "Running package script"
+
+msgid "工作目录不存在: {path}"
+msgstr "Workspace does not exist: {path}"
+
+msgid "打包脚本不存在: {path}"
+msgstr "Package script not found: {path}"
+
+msgid "打包脚本输出缺少 Version 或 Release package created at"
+msgstr "Package script output is missing Version or Release package created at"
+
+msgid "未找到 manifest 文件: {path}"
+msgstr "Manifest file not found: {path}"
+
+msgid "正在解析 manifest"
+msgstr "Parsing manifest"
+
+msgid "开始上传到 OSS"
+msgstr "Uploading to OSS"
+
+msgid "组件 {component} 为外部镜像，跳过 tar 上传"
+msgstr "Component {component} is an external image. Skipping tar upload"
+
+msgid "未找到组件文件: {name}"
+msgstr "Component artifact not found: {name}"
+
+msgid "已上传组件 {current}/{total}: {name}"
+msgstr "Uploaded component {current}/{total}: {name}"
+
+msgid "使用本地制品站登记 release"
+msgstr "Registering release with local artifact server"
+
+msgid "登记 release 并同步组件"
+msgstr "Registering release and syncing components"
+
 msgid "查看部署任务"
 msgstr "View Deployments"
 
@@ -214,7 +292,7 @@ msgid "回滚"
 msgstr "Rollback"
 
 msgid "这里回滚的是\"所选 Release 中记录的组件版本\"，不是整套项目的全量时间倒流。"
-msgstr ""
+msgstr "Rollback here means reusing the component versions recorded in the selected release, not rewinding the whole project."
 
 msgid "回滚目标版本"
 msgstr "Rollback to version"
@@ -766,7 +844,7 @@ msgid "把构建与发布收敛成一套可复用的流程"
 msgstr "Standardize Your Build & Release Flow"
 
 msgid "每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。"
-msgstr ""
+msgstr "Define the workspace path, environments, and build template for each project first. The project path is relative to the shared workspace root and can point to a real directory or an admin-managed symlink."
 
 msgid "项目总数"
 msgstr "Total Projects"
@@ -793,7 +871,7 @@ msgid "继续构建与发布"
 msgstr "Continue Building"
 
 msgid "已有项目直接进入工作台，主操作永远是\"一键生成\"或\"一键生成并发布\"。"
-msgstr ""
+msgstr "Existing projects go straight to the workspace. The main actions remain one-click build or one-click build and deploy."
 
 msgid "入口 3"
 msgstr "Entry 3"
@@ -808,7 +886,7 @@ msgid "新增项目"
 msgstr "New Project"
 
 msgid "创建项目时先填工作区路径。它相对于统一工作区根，可以是真目录，也可以是管理员提前放好的软链接目录。"
-msgstr ""
+msgstr "Set the workspace path when creating a project. It is relative to the shared workspace root and can be a real directory or a symlink prepared by an administrator."
 
 msgid "项目名称"
 msgstr "Project Name"
@@ -829,13 +907,13 @@ msgid "统一工作区根"
 msgstr "Unified Workspace Root"
 
 msgid "推荐把所有待发布项目聚合到同一个工作区根下。这里填写的是相对路径；如果你偏向软链接方案，可由管理员先在工作区根下创建软链接，再在这里选择该目录。"
-msgstr ""
+msgstr "It is recommended to gather all deployable projects under one workspace root. Enter a relative path here. If you prefer a symlink-based setup, let an administrator create the symlink under the workspace root first, then select that directory here."
 
 msgid "发布协议"
 msgstr "Deploy Protocol"
 
 msgid "这是当前唯一支持的执行适配器，表示平台会把 `manifest_url` 通过 webhook 发给兼容的 `deploy-agent`。新用户不需要修改，先按默认值使用即可。"
-msgstr ""
+msgstr "This is the only supported execution adapter for now. It sends the `manifest_url` to a compatible `deploy-agent` via webhook. New users can keep the default value."
 
 msgid "项目说明"
 msgstr "Description"
@@ -850,7 +928,7 @@ msgid "已接入项目"
 msgstr "Onboarded Projects"
 
 msgid "进入项目后可配置构建模板、环境、生成策略和一键发布入口。"
-msgstr ""
+msgstr "After entering a project, you can configure build templates, environments, generation strategy, and one-click deploy actions."
 
 msgid "工作区路径："
 msgstr "Workspace: "
@@ -859,7 +937,7 @@ msgid "未设置，默认使用全局工作区根"
 msgstr "Not set, defaults to workspace root"
 
 msgid "镜像仓库前缀："
-msgstr ""
+msgstr "Registry Prefix: "
 
 msgid "未设置，默认不拼接 registry 前缀"
 msgstr "Not set, no registry prefix"
@@ -880,7 +958,16 @@ msgid "保存项目信息"
 msgstr "Save Project"
 
 msgid "确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。"
-msgstr ""
+msgstr "Delete this project? This also deletes its environments, releases, build jobs, and deployment records."
+
+msgid "当前目录下没有子目录。"
+msgstr "No subdirectories in the current directory."
+
+msgid "进入"
+msgstr "Open"
+
+msgid "选择"
+msgstr "Select"
 
 msgid "删除项目"
 msgstr "Delete Project"
@@ -920,4 +1007,3 @@ msgstr "Directory"
 
 msgid "软链接"
 msgstr "Symlink"
-
