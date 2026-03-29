@@ -1,0 +1,923 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "收起或展开侧边栏"
+msgstr "Toggle sidebar"
+
+msgid "独立发布平台 · 移动优先 · 构建与发布一体化"
+msgstr "Release Platform · Mobile-First · Build & Deploy"
+
+msgid "总览与下一步"
+msgstr "Overview & Next Steps"
+
+msgid "项"
+msgstr "P"
+
+msgid "项目与构建"
+msgstr "Projects & Builds"
+
+msgid "接入、生成、上传"
+msgstr "Onboard, Build, Upload"
+
+msgid "发"
+msgstr "D"
+
+msgid "部署任务"
+msgstr "Deployments"
+
+msgid "状态、日志、回滚"
+msgstr "Status, Logs, Rollback"
+
+msgid "当前用户："
+msgstr "Current user: "
+
+msgid "当前系统会保留你的侧栏展开状态。"
+msgstr "Sidebar state is saved locally."
+
+msgid "退出登录"
+msgstr "Logout"
+
+msgid "当前系统：独立部署控制台"
+msgstr "System: Deploy Console"
+
+msgid "主路径：接入 → 生成 → 发布"
+msgstr "Flow: Onboard → Build → Deploy"
+
+msgid "构建"
+msgstr "Build"
+
+msgid "生成后自动发布到"
+msgstr "Auto-deploy to"
+
+msgid "当前状态"
+msgstr "Status"
+
+msgid "进度"
+msgstr "Progress"
+
+msgid "输出版本"
+msgstr "Output Version"
+
+msgid "制品模式"
+msgstr "Artifact Mode"
+
+msgid "构建进度"
+msgstr "Build Progress"
+
+msgid "基本信息"
+msgstr "Details"
+
+msgid "项目"
+msgstr "Project"
+
+msgid "模板"
+msgstr "Template"
+
+msgid "触发人"
+msgstr "Triggered by"
+
+msgid "开始时间"
+msgstr "Started at"
+
+msgid "完成时间"
+msgstr "Finished at"
+
+msgid "结果摘要"
+msgstr "Result Summary"
+
+msgid "暂无结果"
+msgstr "No result"
+
+msgid "阶段事件"
+msgstr "Stage Events"
+
+msgid "页面会自动轮询更新，适合移动端实时查看构建和上传进度。"
+msgstr "Auto-polls for updates. Good for mobile real-time monitoring."
+
+msgid "还没有阶段事件。"
+msgstr "No stage events yet."
+
+msgid "日志摘要"
+msgstr "Log Excerpt"
+
+msgid "暂无日志摘要"
+msgstr "No log excerpt"
+
+msgid "从这里进入你真正要做的下一步"
+msgstr "Start Here"
+
+msgid "先看项目接入是否完成，再决定是生成制品、直接发布，还是进入部署任务排查异常。"
+msgstr "Check onboarding, then build, deploy, or troubleshoot."
+
+msgid "构建任务"
+msgstr "Build Jobs"
+
+msgid "进行中的部署"
+msgstr "Running Deployments"
+
+msgid "推荐入口"
+msgstr "Recommended"
+
+msgid "项目接入与构建"
+msgstr "Projects & Builds"
+
+msgid "新增项目、配置构建模板、查看最近构建，统一从这里开始。"
+msgstr "Add projects, configure templates, and view recent builds."
+
+msgid "快速生成"
+msgstr "Quick Build"
+
+msgid "进入最近项目工作台"
+msgstr "Go to Recent Project"
+
+msgid "如果你正在连续发版，直接回到最近项目的构建发布区继续操作。"
+msgstr "Continue building from your most recent project."
+
+msgid "异常处理"
+msgstr "Troubleshoot"
+
+msgid "查看部署任务"
+msgstr "View Deployments"
+
+msgid "超时、失败、回滚和最终状态收敛都统一在部署任务页处理。"
+msgstr "Handle timeouts, failures, rollbacks and status convergence."
+
+msgid "最近项目"
+msgstr "Recent Projects"
+
+msgid "优先进入项目工作台，不要从杂乱的表单开始。"
+msgstr "Go to the project workspace instead of starting from forms."
+
+msgid "个环境"
+msgstr "environments"
+
+msgid "尚未填写项目说明。"
+msgstr "No description provided."
+
+msgid "接入配置"
+msgstr "Onboarding Config"
+
+msgid "构建发布"
+msgstr "Build & Deploy"
+
+msgid "还没有项目，先去项目页创建一个。"
+msgstr "No projects yet. Create one on the Projects page."
+
+msgid "最近动作"
+msgstr "Recent Activity"
+
+msgid "构建和部署都在这里快速回看，不需要自己猜刚才做到哪一步。"
+msgstr "Review recent builds and deployments at a glance."
+
+msgid "生成中"
+msgstr "Building..."
+
+msgid "查看构建详情"
+msgstr "View Build"
+
+msgid "查看部署详情"
+msgstr "View Deployment"
+
+msgid "还没有构建或部署记录。"
+msgstr "No builds or deployments yet."
+
+msgid "部署"
+msgstr "Deployment"
+
+msgid "执行进度"
+msgstr "Progress"
+
+msgid "等待状态更新"
+msgstr "Waiting for status update"
+
+msgid "手动刷新状态"
+msgstr "Refresh Status"
+
+msgid "环境"
+msgstr "Environment"
+
+msgid "版本"
+msgstr "Version"
+
+msgid "状态"
+msgstr "Status"
+
+msgid "提交时间"
+msgstr "Submitted at"
+
+msgid "最近轮询"
+msgstr "Last polled"
+
+msgid "回滚"
+msgstr "Rollback"
+
+msgid "这里回滚的是\"所选 Release 中记录的组件版本\"，不是整套项目的全量时间倒流。"
+msgstr ""
+
+msgid "回滚目标版本"
+msgstr "Rollback to version"
+
+msgid "将影响的组件"
+msgstr "Affected components"
+
+msgid "按所选 Release 的组件版本重新发布"
+msgstr "Redeploy with selected release versions"
+
+msgid "Release 组件"
+msgstr "Release Components"
+
+msgid "当前 release 没有已解析组件。"
+msgstr "No resolved components in this release."
+
+msgid "暂无 manifest 数据"
+msgstr "No manifest data"
+
+msgid "适配器返回"
+msgstr "Adapter Response"
+
+msgid "暂无数据"
+msgstr "No data"
+
+msgid "目标状态"
+msgstr "Target Status"
+
+msgid "该 Release 未解析出组件"
+msgstr "No components resolved for this release"
+
+msgid "影响组件："
+msgstr "Affected components: "
+
+msgid "确认按 Release"
+msgstr ""
+
+msgid "中记录的组件版本重新发布？"
+msgstr ""
+
+msgid "发布过程默认异步执行"
+msgstr "Deployments Run Asynchronously"
+
+msgid "大制品场景下，控制台不再要求页面一直等待 webhook 返回。提交后进入任务详情页，自动轮询状态并聚合日志摘要。"
+msgstr "For large artifacts, track status automatically after submitting."
+
+msgid "成功"
+msgstr "Succeeded"
+
+msgid "失败"
+msgstr "Failed"
+
+msgid "执行中"
+msgstr "Running"
+
+msgid "最近任务"
+msgstr "Recent Jobs"
+
+msgid "最近部署记录"
+msgstr "Recent Deployments"
+
+msgid "点击详情页可查看状态收敛、目标状态轮询、组件信息和回滚入口。"
+msgstr "Click for status, polling, component info and rollback."
+
+msgid "查看详情"
+msgstr "View Details"
+
+msgid "还没有部署记录。"
+msgstr "No deployments yet."
+
+msgid "登录独立发布控制台"
+msgstr "Sign in to DeployBox"
+
+msgid "统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。"
+msgstr "Manage onboarding, build templates, artifacts, deployments and rollbacks."
+
+msgid "用户名"
+msgstr "Username"
+
+msgid "密码"
+msgstr "Password"
+
+msgid "登录"
+msgstr "Sign In"
+
+msgid "当前项目已接入独立发布平台，可直接配置模板、生成制品并发版。"
+msgstr "This project is onboarded. Configure templates, build and deploy."
+
+msgid "Release"
+msgstr "Releases"
+
+msgid "最近构建任务"
+msgstr "Recent Builds"
+
+msgid "最近部署任务"
+msgstr "Recent Deployments"
+
+msgid "接入"
+msgstr "Onboard"
+
+msgid "先配模板与环境"
+msgstr "Configure Templates & Environments"
+
+msgid "把项目工作目录、打包脚本、目标环境 webhook 和状态接口在线配置好，后面就不需要再手工拼参数。"
+msgstr ""
+
+msgid "生成"
+msgstr "Build"
+
+msgid "默认走一键生成"
+msgstr "One-Click Build"
+
+msgid "构建任务会自动记录阶段、日志和制品地址，适合大文件和移动端查看。"
+msgstr "Build jobs track stages, logs and artifact URLs automatically."
+
+msgid "发布"
+msgstr "Deploy"
+
+msgid "发布改为异步跟踪"
+msgstr "Async Deployment Tracking"
+
+msgid "提交后不再阻塞页面，部署详情页会自动轮询状态并给出回滚入口。"
+msgstr "Submit and track status asynchronously with rollback support."
+
+msgid "工作台标签"
+msgstr "Workspace Tabs"
+
+msgid "高级操作"
+msgstr "Advanced"
+
+msgid "Starter 模板中心"
+msgstr "Starter Templates"
+
+msgid "这里不再要求你先选固定模式。先把项目里的可发布组件定义清楚，再预览脚本、配置和接入说明。"
+msgstr "Define releasable components first, then preview scripts and configs."
+
+msgid "从 Compose 导入"
+msgstr "Import from Compose"
+
+msgid "当前工作区路径："
+msgstr "Workspace path: "
+
+msgid "(空，表示直接使用全局工作区根)"
+msgstr "(empty, uses workspace root)"
+
+msgid "当前解析目录："
+msgstr "Resolved directory: "
+
+msgid "校验路径"
+msgstr "Validate Path"
+
+msgid "从 compose 读取组件候选"
+msgstr "Import component candidates"
+
+msgid "下载当前 starter 包"
+msgstr "Download Starter Bundle"
+
+msgid "推荐文件已更新"
+msgstr "Recommended file updated"
+
+msgid "组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。"
+msgstr ""
+
+msgid "Compose 规范检查"
+msgstr "Compose Lint"
+
+msgid "路径："
+msgstr "Path: "
+
+msgid "解析到的 services："
+msgstr "Parsed services: "
+
+msgid "下载推荐 docker-compose.yml"
+msgstr "Download recommended docker-compose.yml"
+
+msgid "预览推荐 docker-compose.yml"
+msgstr "Preview recommended docker-compose.yml"
+
+msgid "需要构建"
+msgstr "Build required"
+
+msgid "外部镜像"
+msgstr "External image"
+
+msgid "默认勾选"
+msgstr "Selected by default"
+
+msgid "手动勾选"
+msgstr "Manual selection"
+
+msgid "编辑组件"
+msgstr "Edit Component"
+
+msgid "组件名"
+msgstr "Component Name"
+
+msgid "Compose service 名"
+msgstr "Compose service name"
+
+msgid "镜像名"
+msgstr "Image"
+
+msgid "Tar 文件名模板"
+msgstr "Tar filename pattern"
+
+msgid "启用"
+msgstr "Enabled"
+
+msgid "默认参与发版"
+msgstr "Selected by default"
+
+msgid "保存组件"
+msgstr "Save Component"
+
+msgid "删除组件"
+msgstr "Delete Component"
+
+msgid "还没有组件，先手工新增一个，或者从 compose 文件导入。"
+msgstr "No components yet. Add one manually or import from Compose."
+
+msgid "远端 deploy-agent 接入"
+msgstr "Remote deploy-agent Setup"
+
+msgid "这部分就是给目标 Docker 主机的。最少只需要一个兼容 `/deploy/hook` 和 `/deploy/status` 的轻量服务。"
+msgstr ""
+
+msgid "用于生成示例的目标环境"
+msgstr ""
+
+msgid "还没有环境配置。当前展示的是通用 deploy-agent 示例，等你先创建环境后这里会自动带入 webhook 和 status 地址。"
+msgstr ""
+
+msgid "查看最小协议请求体"
+msgstr "View minimal hook payload"
+
+msgid "查看 deploy-agent compose 示例"
+msgstr "View deploy-agent compose example"
+
+msgid "查看 deploy-agent env 示例"
+msgstr "View deploy-agent env example"
+
+msgid "Starter 预览"
+msgstr "Starter Preview"
+
+msgid "当前 starter 直接根据项目组件生成。不会写脚本时，下载 starter 包并按 README 调整字段即可。"
+msgstr "Starter is generated from project components. Download and adjust per README."
+
+msgid "当前组件"
+msgstr "Components"
+
+msgid "暂无启用组件"
+msgstr "No enabled components"
+
+msgid "在线可配置"
+msgstr "Configurable online"
+
+msgid "新手接入说明"
+msgstr "Onboarding guide"
+
+msgid "这里决定“项目怎么生成 release”。组件列表负责描述可发布镜像，这里只保留构建模板和覆盖配置。"
+msgstr ""
+
+msgid "构建模板"
+msgstr "Build Template"
+
+msgid "（推荐）"
+msgstr " (recommended)"
+
+msgid "（高级）"
+msgstr " (advanced)"
+
+msgid "新增组件"
+msgstr "Add Component"
+
+msgid "在左上卡片中手工新增或从 compose 导入"
+msgstr "Add manually or import from Compose"
+
+msgid "主路径"
+msgstr "Main path"
+
+msgid "优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。"
+msgstr ""
+
+msgid "保存接入配置"
+msgstr "Save Build Config"
+
+msgid "查看模板默认配置"
+msgstr "View template defaults"
+
+msgid "手工新增组件"
+msgstr "Add Component Manually"
+
+msgid "适合没有 compose 文件，或只想挑出少数组件纳入发版时使用。"
+msgstr "Use when there is no Compose file or you want specific components."
+
+msgid "环境管理"
+msgstr "Environment Management"
+
+msgid "这里决定“生成好的 release 发到哪里”。建议至少配置一个正式环境和一个测试环境。"
+msgstr ""
+
+msgid "环境名"
+msgstr "Environment Name"
+
+msgid "显示域名"
+msgstr "Display URL"
+
+msgid "逻辑环境名"
+msgstr "Logical env name"
+
+msgid "Webhook URL"
+msgstr "Webhook URL"
+
+msgid "Status URL"
+msgstr "Status URL"
+
+msgid "共享密钥"
+msgstr "Shared Secret"
+
+msgid "生成密钥"
+msgstr "Generate Secret"
+
+msgid "保存环境"
+msgstr "Save Environment"
+
+msgid "当前接入摘要"
+msgstr "Onboarding Summary"
+
+msgid "用最少的信息确认这个项目现在能不能直接一键生成和一键发布。"
+msgstr ""
+
+msgid "执行适配器"
+msgstr "Adapter"
+
+msgid "负责把 release 的 `manifest_url` 发给兼容的 deploy-agent。当前只有这一种协议，新用户按默认方式接入即可。"
+msgstr ""
+
+msgid "项目目录"
+msgstr "Project Directory"
+
+msgid "未设置"
+msgstr "Not set"
+
+msgid "用于 compose 导入、starter 预览和构建脚本执行。相对路径会基于全局工作目录解析。"
+msgstr "Used for Compose import, starter preview and build script execution."
+
+msgid "镜像仓库前缀"
+msgstr "Registry Prefix"
+
+msgid "compose 未声明 `image:` 时，会按此前缀自动生成镜像地址；未设置时只生成本地镜像名。"
+msgstr ""
+
+msgid "尚未配置构建模板说明。"
+msgstr "No template description configured."
+
+msgid "环境数量"
+msgstr "Environments"
+
+msgid "个"
+msgstr ""
+
+msgid "建议至少配置一个测试环境和一个正式环境。"
+msgstr "Configure at least one staging and one production environment."
+
+msgid "环境列表"
+msgstr "Environments"
+
+msgid "环境编辑和删除放在这里，不再混进主发布流程。"
+msgstr "Edit and delete environments here."
+
+msgid "未设置显示域名"
+msgstr "No display URL"
+
+msgid "Webhook："
+msgstr "Webhook: "
+
+msgid "Status："
+msgstr "Status: "
+
+msgid "编辑或删除环境"
+msgstr "Edit / Delete Environment"
+
+msgid "保存修改"
+msgstr "Save Changes"
+
+msgid "删除环境"
+msgstr "Delete Environment"
+
+msgid "还没有环境。"
+msgstr "No environments yet."
+
+msgid "主操作"
+msgstr "Main Actions"
+
+msgid "如果你只想完成一次正常发布，只需要在这里二选一。其它人工处理入口都已经折叠到高级操作。"
+msgstr ""
+
+msgid "一键生成制品"
+msgstr "Build Artifacts"
+
+msgid "自动"
+msgstr "Auto"
+
+msgid "本地制品站"
+msgstr "Local"
+
+msgid "没有启用中的组件，先到“接入配置”维护组件。"
+msgstr ""
+
+msgid "附加 payload"
+msgstr "Extra payload"
+
+msgid "开始构建"
+msgstr "Start Build"
+
+msgid "一键生成并发布"
+msgstr "Build & Deploy"
+
+msgid "目标环境"
+msgstr "Target Environment"
+
+msgid "生成后自动发布"
+msgstr "Build then Deploy"
+
+msgid "构建任务支持阶段进度、最终 release 地址和自动发布联动。"
+msgstr "Build jobs track stage progress, artifact URLs and auto-deploy."
+
+msgid "版本："
+msgstr "Version: "
+
+msgid "还没有构建任务。"
+msgstr "No build jobs yet."
+
+msgid "大制品场景下部署会以异步任务方式轮询收敛状态，不再要求页面一直等待。"
+msgstr "Deployments poll status asynchronously for large artifacts."
+
+msgid "还没有部署任务。"
+msgstr "No deployments yet."
+
+msgid "可发布 Release"
+msgstr "Releasable Versions"
+
+msgid "这里只保留最近的可发布版本，强调“选版本发版”，而不是把所有信息糅在一个列表里。"
+msgstr ""
+
+msgid "个组件"
+msgstr "components"
+
+msgid "组件："
+msgstr "Components: "
+
+msgid "重新同步 manifest"
+msgstr "Re-sync manifest"
+
+msgid "快速发布到"
+msgstr "Quick deploy to"
+
+msgid "还没有 Release。"
+msgstr "No releases yet."
+
+msgid "手动登记已有 Release"
+msgstr "Register Existing Release"
+
+msgid "兼容已有 manifest_url 流程，建议仅在特殊场景下使用。"
+msgstr "For compatibility with existing manifest_url flows."
+
+msgid "版本号"
+msgstr "Version"
+
+msgid "Manifest URL"
+msgstr "Manifest URL"
+
+msgid "登记版本"
+msgstr "Register"
+
+msgid "上传已有制品"
+msgstr "Upload Existing Artifacts"
+
+msgid "支持本地制品站或 OSS。页面会显示上传进度，适合外部构建系统产出的 release 包。"
+msgstr "Supports local artifact server or OSS. Shows upload progress."
+
+msgid "存储模式"
+msgstr "Storage Mode"
+
+msgid "Manifest 文件"
+msgstr "Manifest file"
+
+msgid "组件 tar 文件"
+msgstr "Component tar files"
+
+msgid "SHA256 文件"
+msgstr "SHA256 file"
+
+msgid "上传并登记"
+msgstr "Upload & Register"
+
+msgid "未提供模板说明。"
+msgstr "No template description."
+
+msgid "高级场景"
+msgstr "Advanced"
+
+msgid "正在校验路径..."
+msgstr "Validating path..."
+
+msgid "路径校验失败"
+msgstr "Path validation failed"
+
+msgid "工作区根"
+msgstr "Workspace root"
+
+msgid "配置路径"
+msgstr "Configured path"
+
+msgid "解析路径"
+msgstr "Resolved path"
+
+msgid "真实路径"
+msgstr "Real path"
+
+msgid "是"
+msgstr "Yes"
+
+msgid "否"
+msgstr "No"
+
+msgid "存在"
+msgstr "Exists"
+
+msgid "不存在"
+msgstr "Not found"
+
+msgid "打包脚本"
+msgstr "Package script"
+
+msgid "正在上传制品："
+msgstr ""
+
+msgid "上传完成，正在跳转。"
+msgstr "Upload complete, redirecting."
+
+msgid "上传失败"
+msgstr "Upload failed"
+
+msgid "上传失败，请检查网络或服务器状态。"
+msgstr "Upload failed. Check network or server status."
+
+msgid "把构建与发布收敛成一套可复用的流程"
+msgstr "Standardize Your Build & Release Flow"
+
+msgid "每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。"
+msgstr ""
+
+msgid "项目总数"
+msgstr "Total Projects"
+
+msgid "环境总数"
+msgstr "Total Environments"
+
+msgid "已登记 Release"
+msgstr "Registered Releases"
+
+msgid "入口 1"
+msgstr "Entry 1"
+
+msgid "新项目接入"
+msgstr "New Project"
+
+msgid "适合首次接入。创建项目后，继续在项目工作台里完成模板和环境配置。"
+msgstr "For first-time onboarding. Complete setup in the project workspace."
+
+msgid "入口 2"
+msgstr "Entry 2"
+
+msgid "继续构建与发布"
+msgstr "Continue Building"
+
+msgid "已有项目直接进入工作台，主操作永远是\"一键生成\"或\"一键生成并发布\"。"
+msgstr ""
+
+msgid "入口 3"
+msgstr "Entry 3"
+
+msgid "异常排查"
+msgstr "Troubleshoot"
+
+msgid "部署任务页集中查看超时、失败、回滚和状态轮询，不需要再翻多个页面。"
+msgstr "View all deployment issues in one place."
+
+msgid "新增项目"
+msgstr "New Project"
+
+msgid "创建项目时先填工作区路径。它相对于统一工作区根，可以是真目录，也可以是管理员提前放好的软链接目录。"
+msgstr ""
+
+msgid "项目名称"
+msgstr "Project Name"
+
+msgid "项目标识"
+msgstr "Slug"
+
+msgid "项目工作区路径"
+msgstr "Workspace Path"
+
+msgid "浏览选择"
+msgstr "Browse"
+
+msgid "工作区模型"
+msgstr "Workspace Model"
+
+msgid "统一工作区根"
+msgstr "Unified Workspace Root"
+
+msgid "推荐把所有待发布项目聚合到同一个工作区根下。这里填写的是相对路径；如果你偏向软链接方案，可由管理员先在工作区根下创建软链接，再在这里选择该目录。"
+msgstr ""
+
+msgid "发布协议"
+msgstr "Deploy Protocol"
+
+msgid "这是当前唯一支持的执行适配器，表示平台会把 `manifest_url` 通过 webhook 发给兼容的 `deploy-agent`。新用户不需要修改，先按默认值使用即可。"
+msgstr ""
+
+msgid "项目说明"
+msgstr "Description"
+
+msgid "描述此项目如何接入、部署到哪里、谁负责。"
+msgstr "Describe how this project is onboarded, where it deploys, and who owns it."
+
+msgid "创建并进入接入流程"
+msgstr "Create & Start Onboarding"
+
+msgid "已接入项目"
+msgstr "Onboarded Projects"
+
+msgid "进入项目后可配置构建模板、环境、生成策略和一键发布入口。"
+msgstr ""
+
+msgid "工作区路径："
+msgstr "Workspace: "
+
+msgid "未设置，默认使用全局工作区根"
+msgstr "Not set, defaults to workspace root"
+
+msgid "镜像仓库前缀："
+msgstr ""
+
+msgid "未设置，默认不拼接 registry 前缀"
+msgstr "Not set, no registry prefix"
+
+msgid "个 Release"
+msgstr "releases"
+
+msgid "个构建任务"
+msgstr "builds"
+
+msgid "进入项目工作台"
+msgstr "Open Workspace"
+
+msgid "编辑或删除项目"
+msgstr "Edit / Delete Project"
+
+msgid "保存项目信息"
+msgstr "Save Project"
+
+msgid "确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。"
+msgstr ""
+
+msgid "删除项目"
+msgstr "Delete Project"
+
+msgid "还没有项目，先创建一个项目开始接入。"
+msgstr "No projects yet. Create one to get started."
+
+msgid "选择项目工作区路径"
+msgstr "Select Workspace Path"
+
+msgid "关闭"
+msgstr "Close"
+
+msgid "返回上级"
+msgstr "Go Up"
+
+msgid "使用当前目录"
+msgstr "Use Current Directory"
+
+msgid "正在加载目录..."
+msgstr "Loading..."
+
+msgid "目录加载失败"
+msgstr "Failed to load directory"
+
+msgid "浏览根目录："
+msgstr "Root: "
+
+msgid "当前目录："
+msgstr "Current: "
+
+msgid "选择一个目录，或直接使用当前目录。"
+msgstr "Select a directory or use the current one."
+
+msgid "目录"
+msgstr "Directory"
+
+msgid "软链接"
+msgstr "Symlink"
+

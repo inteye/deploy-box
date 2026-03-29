@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="hero">
-  <h1>发布过程默认异步执行</h1>
-  <p>大制品场景下，控制台不再要求页面一直等待 webhook 返回。提交后进入任务详情页，自动轮询状态并聚合日志摘要。</p>
+  <h1>{{ _('发布过程默认异步执行') }}</h1>
+  <p>{{ _('大制品场景下，控制台不再要求页面一直等待 webhook 返回。提交后进入任务详情页，自动轮询状态并聚合日志摘要。') }}</p>
 </section>
 
 <section class="stats">
-  <article class="card stat"><strong>{{ summary.get('succeeded', 0) }}</strong><span>成功</span></article>
-  <article class="card stat"><strong>{{ summary.get('failed', 0) }}</strong><span>失败</span></article>
-  <article class="card stat"><strong>{{ summary.get('running', 0) + summary.get('submitted', 0) + summary.get('queued', 0) }}</strong><span>执行中</span></article>
-  <article class="card stat"><strong>{{ deployments|length }}</strong><span>最近任务</span></article>
+  <article class="card stat"><strong>{{ summary.get('succeeded', 0) }}</strong><span>{{ _('成功') }}</span></article>
+  <article class="card stat"><strong>{{ summary.get('failed', 0) }}</strong><span>{{ _('失败') }}</span></article>
+  <article class="card stat"><strong>{{ summary.get('running', 0) + summary.get('submitted', 0) + summary.get('queued', 0) }}</strong><span>{{ _('执行中') }}</span></article>
+  <article class="card stat"><strong>{{ deployments|length }}</strong><span>{{ _('最近任务') }}</span></article>
 </section>
 
 <section class="card">
   <div class="section-head">
     <div>
-      <h2>最近部署记录</h2>
-      <p>点击详情页可查看状态收敛、目标状态轮询、组件信息和回滚入口。</p>
+      <h2>{{ _('最近部署记录') }}</h2>
+      <p>{{ _('点击详情页可查看状态收敛、目标状态轮询、组件信息和回滚入口。') }}</p>
     </div>
   </div>
   <div class="list-stack">
@@ -28,21 +28,21 @@
         <span>{{ deployment.environment.name }}</span>
       </div>
       <div>
-        <strong>部署 #{{ deployment.id }} · {{ deployment.release.version }}</strong>
+        <strong>{{ _('部署') }} #{{ deployment.id }} · {{ deployment.release.version }}</strong>
         <p class="muted small" style="margin:6px 0 0;">{{ deployment.triggered_by or '-' }} · {{ deployment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
       </div>
       <div class="progress-shell">
         <div class="progress-bar" style="width:{{ deployment.progress_percent or 0 }}%;"></div>
       </div>
       <div class="meta-line">
-        <span>{{ deployment.status_reason or '等待状态更新' }}</span>
+        <span>{{ deployment.status_reason or _('等待状态更新') }}</span>
       </div>
       <div class="actions">
-        <a class="button secondary" href="/console/deployments/{{ deployment.id }}">查看详情</a>
+        <a class="button secondary" href="/console/deployments/{{ deployment.id }}">{{ _('查看详情') }}</a>
       </div>
     </article>
     {% else %}
-    <div class="muted">还没有部署记录。</div>
+    <div class="muted">{{ _('还没有部署记录。') }}</div>
     {% endfor %}
   </div>
 </section>

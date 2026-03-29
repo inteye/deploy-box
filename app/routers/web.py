@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 from ..auth import authenticate_user, get_current_user, get_optional_user
 from ..config import get_settings
 from ..database import get_db
+from ..i18n import get_locale, get_translation
 from ..models import BuildJob, BuildJobEvent, BuildTemplate, Deployment, Environment, OperatorUser, Project, ProjectBuildConfig, Release
 from ..services import (
     analyze_compose_release_readiness,
@@ -36,10 +37,15 @@ from ..storage import build_artifact_storage
 
 router = APIRouter(tags=["web"])
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
+templates.env.add_extension("jinja2.ext.i18n")
 
 
 def render(request: Request, template_name: str, **context):
-    base_context = {"request": request, "current_path": request.url.path}
+    user = context.get("current_user")
+    lang = get_locale(request, user)
+    translation = get_translation(lang)
+    templates.env.install_gettext_translations(translation, newstyle=True)  # type: ignore[attr-defined]
+    base_context = {"request": request, "current_path": request.url.path, "current_lang": lang}
     base_context.update(context)
     return templates.TemplateResponse(template_name, base_context)
 
@@ -154,6 +160,21 @@ def login_submit(
 def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/console/settings/lang")
+def set_lang(
+    request: Request,
+    lang: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(get_current_user),
+):
+    from ..i18n import SUPPORTED_LANGS
+    if lang in SUPPORTED_LANGS:
+        current_user.preferred_lang = lang
+        db.commit()
+    referer = request.headers.get("referer", "/console/dashboard")
+    return RedirectResponse(url=referer, status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.get("/console/dashboard", response_class=HTMLResponse)

@@ -4,20 +4,20 @@
   <section class="card" style="width:min(100%, 460px);">
     <div class="hero">
       <span class="eyebrow">DeployBox</span>
-      <h1>登录独立发布控制台</h1>
-      <p>统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。</p>
+      <h1>{{ _('登录独立发布控制台') }}</h1>
+      <p>{{ _('统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。') }}</p>
     </div>
     {% if error %}
       <div class="error" style="margin-top:12px;">{{ error }}</div>
     {% endif %}
     <form method="post" action="/login" class="grid" style="margin-top:16px;">
-      <label>用户名
+      <label>{{ _('用户名') }}
         <input type="text" name="username" required>
       </label>
-      <label>密码
+      <label>{{ _('密码') }}
         <input type="password" name="password" required>
       </label>
-      <button type="submit">登录</button>
+      <button type="submit">{{ _('登录') }}</button>
     </form>
   </section>
 </main>

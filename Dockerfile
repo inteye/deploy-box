@@ -31,6 +31,10 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && 
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY app /app/app
+COPY babel.cfg /app/babel.cfg
+
+# Compile .mo translation files
+RUN pybabel compile -d /app/app/locales
 
 EXPOSE 8100
 

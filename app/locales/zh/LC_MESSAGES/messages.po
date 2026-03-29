@@ -1,0 +1,924 @@
+# SOME DESCRIPTIVE TITLE.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "收起或展开侧边栏"
+msgstr "收起或展开侧边栏"
+
+msgid "独立发布平台 · 移动优先 · 构建与发布一体化"
+msgstr "独立发布平台 · 移动优先 · 构建与发布一体化"
+
+msgid "总览与下一步"
+msgstr "总览与下一步"
+
+msgid "项"
+msgstr "项"
+
+msgid "项目与构建"
+msgstr "项目与构建"
+
+msgid "接入、生成、上传"
+msgstr "接入、生成、上传"
+
+msgid "发"
+msgstr "发"
+
+msgid "部署任务"
+msgstr "部署任务"
+
+msgid "状态、日志、回滚"
+msgstr "状态、日志、回滚"
+
+msgid "当前用户："
+msgstr "当前用户："
+
+msgid "当前系统会保留你的侧栏展开状态。"
+msgstr "当前系统会保留你的侧栏展开状态。"
+
+msgid "退出登录"
+msgstr "退出登录"
+
+msgid "当前系统：独立部署控制台"
+msgstr "当前系统：独立部署控制台"
+
+msgid "主路径：接入 → 生成 → 发布"
+msgstr "主路径：接入 → 生成 → 发布"
+
+msgid "构建"
+msgstr "构建"
+
+msgid "生成后自动发布到"
+msgstr "生成后自动发布到"
+
+msgid "当前状态"
+msgstr "当前状态"
+
+msgid "进度"
+msgstr "进度"
+
+msgid "输出版本"
+msgstr "输出版本"
+
+msgid "制品模式"
+msgstr "制品模式"
+
+msgid "构建进度"
+msgstr "构建进度"
+
+msgid "基本信息"
+msgstr "基本信息"
+
+msgid "项目"
+msgstr "项目"
+
+msgid "模板"
+msgstr "模板"
+
+msgid "触发人"
+msgstr "触发人"
+
+msgid "开始时间"
+msgstr "开始时间"
+
+msgid "完成时间"
+msgstr "完成时间"
+
+msgid "结果摘要"
+msgstr "结果摘要"
+
+msgid "暂无结果"
+msgstr "暂无结果"
+
+msgid "阶段事件"
+msgstr "阶段事件"
+
+msgid "页面会自动轮询更新，适合移动端实时查看构建和上传进度。"
+msgstr "页面会自动轮询更新，适合移动端实时查看构建和上传进度。"
+
+msgid "还没有阶段事件。"
+msgstr "还没有阶段事件。"
+
+msgid "日志摘要"
+msgstr "日志摘要"
+
+msgid "暂无日志摘要"
+msgstr "暂无日志摘要"
+
+msgid "从这里进入你真正要做的下一步"
+msgstr "从这里进入你真正要做的下一步"
+
+msgid "先看项目接入是否完成，再决定是生成制品、直接发布，还是进入部署任务排查异常。"
+msgstr "先看项目接入是否完成，再决定是生成制品、直接发布，还是进入部署任务排查异常。"
+
+msgid "构建任务"
+msgstr "构建任务"
+
+msgid "进行中的部署"
+msgstr "进行中的部署"
+
+msgid "推荐入口"
+msgstr "推荐入口"
+
+msgid "项目接入与构建"
+msgstr "项目接入与构建"
+
+msgid "新增项目、配置构建模板、查看最近构建，统一从这里开始。"
+msgstr "新增项目、配置构建模板、查看最近构建，统一从这里开始。"
+
+msgid "快速生成"
+msgstr "快速生成"
+
+msgid "进入最近项目工作台"
+msgstr "进入最近项目工作台"
+
+msgid "如果你正在连续发版，直接回到最近项目的构建发布区继续操作。"
+msgstr "如果你正在连续发版，直接回到最近项目的构建发布区继续操作。"
+
+msgid "异常处理"
+msgstr "异常处理"
+
+msgid "查看部署任务"
+msgstr "查看部署任务"
+
+msgid "超时、失败、回滚和最终状态收敛都统一在部署任务页处理。"
+msgstr "超时、失败、回滚和最终状态收敛都统一在部署任务页处理。"
+
+msgid "最近项目"
+msgstr "最近项目"
+
+msgid "优先进入项目工作台，不要从杂乱的表单开始。"
+msgstr "优先进入项目工作台，不要从杂乱的表单开始。"
+
+msgid "个环境"
+msgstr "个环境"
+
+msgid "尚未填写项目说明。"
+msgstr "尚未填写项目说明。"
+
+msgid "接入配置"
+msgstr "接入配置"
+
+msgid "构建发布"
+msgstr "构建发布"
+
+msgid "还没有项目，先去项目页创建一个。"
+msgstr "还没有项目，先去项目页创建一个。"
+
+msgid "最近动作"
+msgstr "最近动作"
+
+msgid "构建和部署都在这里快速回看，不需要自己猜刚才做到哪一步。"
+msgstr "构建和部署都在这里快速回看，不需要自己猜刚才做到哪一步。"
+
+msgid "生成中"
+msgstr "生成中"
+
+msgid "查看构建详情"
+msgstr "查看构建详情"
+
+msgid "查看部署详情"
+msgstr "查看部署详情"
+
+msgid "还没有构建或部署记录。"
+msgstr "还没有构建或部署记录。"
+
+msgid "部署"
+msgstr "部署"
+
+msgid "执行进度"
+msgstr "执行进度"
+
+msgid "等待状态更新"
+msgstr "等待状态更新"
+
+msgid "手动刷新状态"
+msgstr "手动刷新状态"
+
+msgid "环境"
+msgstr "环境"
+
+msgid "版本"
+msgstr "版本"
+
+msgid "状态"
+msgstr "状态"
+
+msgid "提交时间"
+msgstr "提交时间"
+
+msgid "最近轮询"
+msgstr "最近轮询"
+
+msgid "回滚"
+msgstr "回滚"
+
+msgid "这里回滚的是\"所选 Release 中记录的组件版本\"，不是整套项目的全量时间倒流。"
+msgstr "这里回滚的是\"所选 Release 中记录的组件版本\"，不是整套项目的全量时间倒流。"
+
+msgid "回滚目标版本"
+msgstr "回滚目标版本"
+
+msgid "将影响的组件"
+msgstr "将影响的组件"
+
+msgid "按所选 Release 的组件版本重新发布"
+msgstr "按所选 Release 的组件版本重新发布"
+
+msgid "Release 组件"
+msgstr "Release 组件"
+
+msgid "当前 release 没有已解析组件。"
+msgstr "当前 release 没有已解析组件。"
+
+msgid "暂无 manifest 数据"
+msgstr "暂无 manifest 数据"
+
+msgid "适配器返回"
+msgstr "适配器返回"
+
+msgid "暂无数据"
+msgstr "暂无数据"
+
+msgid "目标状态"
+msgstr "目标状态"
+
+msgid "该 Release 未解析出组件"
+msgstr "该 Release 未解析出组件"
+
+msgid "影响组件："
+msgstr "影响组件："
+
+msgid "确认按 Release"
+msgstr "确认按 Release"
+
+msgid "中记录的组件版本重新发布？"
+msgstr "中记录的组件版本重新发布？"
+
+msgid "发布过程默认异步执行"
+msgstr "发布过程默认异步执行"
+
+msgid "大制品场景下，控制台不再要求页面一直等待 webhook 返回。提交后进入任务详情页，自动轮询状态并聚合日志摘要。"
+msgstr "大制品场景下，控制台不再要求页面一直等待 webhook 返回。提交后进入任务详情页，自动轮询状态并聚合日志摘要。"
+
+msgid "成功"
+msgstr "成功"
+
+msgid "失败"
+msgstr "失败"
+
+msgid "执行中"
+msgstr "执行中"
+
+msgid "最近任务"
+msgstr "最近任务"
+
+msgid "最近部署记录"
+msgstr "最近部署记录"
+
+msgid "点击详情页可查看状态收敛、目标状态轮询、组件信息和回滚入口。"
+msgstr "点击详情页可查看状态收敛、目标状态轮询、组件信息和回滚入口。"
+
+msgid "查看详情"
+msgstr "查看详情"
+
+msgid "还没有部署记录。"
+msgstr "还没有部署记录。"
+
+msgid "登录独立发布控制台"
+msgstr "登录独立发布控制台"
+
+msgid "统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。"
+msgstr "统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。"
+
+msgid "用户名"
+msgstr "用户名"
+
+msgid "密码"
+msgstr "密码"
+
+msgid "登录"
+msgstr "登录"
+
+msgid "当前项目已接入独立发布平台，可直接配置模板、生成制品并发版。"
+msgstr "当前项目已接入独立发布平台，可直接配置模板、生成制品并发版。"
+
+msgid "Release"
+msgstr "Release"
+
+msgid "最近构建任务"
+msgstr "最近构建任务"
+
+msgid "最近部署任务"
+msgstr "最近部署任务"
+
+msgid "接入"
+msgstr "接入"
+
+msgid "先配模板与环境"
+msgstr "先配模板与环境"
+
+msgid "把项目工作目录、打包脚本、目标环境 webhook 和状态接口在线配置好，后面就不需要再手工拼参数。"
+msgstr "把项目工作目录、打包脚本、目标环境 webhook 和状态接口在线配置好，后面就不需要再手工拼参数。"
+
+msgid "生成"
+msgstr "生成"
+
+msgid "默认走一键生成"
+msgstr "默认走一键生成"
+
+msgid "构建任务会自动记录阶段、日志和制品地址，适合大文件和移动端查看。"
+msgstr "构建任务会自动记录阶段、日志和制品地址，适合大文件和移动端查看。"
+
+msgid "发布"
+msgstr "发布"
+
+msgid "发布改为异步跟踪"
+msgstr "发布改为异步跟踪"
+
+msgid "提交后不再阻塞页面，部署详情页会自动轮询状态并给出回滚入口。"
+msgstr "提交后不再阻塞页面，部署详情页会自动轮询状态并给出回滚入口。"
+
+msgid "工作台标签"
+msgstr "工作台标签"
+
+msgid "高级操作"
+msgstr "高级操作"
+
+msgid "Starter 模板中心"
+msgstr "Starter 模板中心"
+
+msgid "这里不再要求你先选固定模式。先把项目里的可发布组件定义清楚，再预览脚本、配置和接入说明。"
+msgstr "这里不再要求你先选固定模式。先把项目里的可发布组件定义清楚，再预览脚本、配置和接入说明。"
+
+msgid "从 Compose 导入"
+msgstr "从 Compose 导入"
+
+msgid "当前工作区路径："
+msgstr "当前工作区路径："
+
+msgid "(空，表示直接使用全局工作区根)"
+msgstr "(空，表示直接使用全局工作区根)"
+
+msgid "当前解析目录："
+msgstr "当前解析目录："
+
+msgid "校验路径"
+msgstr "校验路径"
+
+msgid "从 compose 读取组件候选"
+msgstr "从 compose 读取组件候选"
+
+msgid "下载当前 starter 包"
+msgstr "下载当前 starter 包"
+
+msgid "推荐文件已更新"
+msgstr "推荐文件已更新"
+
+msgid "组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。"
+msgstr "组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。"
+
+msgid "Compose 规范检查"
+msgstr "Compose 规范检查"
+
+msgid "路径："
+msgstr "路径："
+
+msgid "解析到的 services："
+msgstr "解析到的 services："
+
+msgid "下载推荐 docker-compose.yml"
+msgstr "下载推荐 docker-compose.yml"
+
+msgid "预览推荐 docker-compose.yml"
+msgstr "预览推荐 docker-compose.yml"
+
+msgid "需要构建"
+msgstr "需要构建"
+
+msgid "外部镜像"
+msgstr "外部镜像"
+
+msgid "默认勾选"
+msgstr "默认勾选"
+
+msgid "手动勾选"
+msgstr "手动勾选"
+
+msgid "编辑组件"
+msgstr "编辑组件"
+
+msgid "组件名"
+msgstr "组件名"
+
+msgid "Compose service 名"
+msgstr "Compose service 名"
+
+msgid "镜像名"
+msgstr "镜像名"
+
+msgid "Tar 文件名模板"
+msgstr "Tar 文件名模板"
+
+msgid "启用"
+msgstr "启用"
+
+msgid "默认参与发版"
+msgstr "默认参与发版"
+
+msgid "保存组件"
+msgstr "保存组件"
+
+msgid "删除组件"
+msgstr "删除组件"
+
+msgid "还没有组件，先手工新增一个，或者从 compose 文件导入。"
+msgstr "还没有组件，先手工新增一个，或者从 compose 文件导入。"
+
+msgid "远端 deploy-agent 接入"
+msgstr "远端 deploy-agent 接入"
+
+msgid "这部分就是给目标 Docker 主机的。最少只需要一个兼容 `/deploy/hook` 和 `/deploy/status` 的轻量服务。"
+msgstr "这部分就是给目标 Docker 主机的。最少只需要一个兼容 `/deploy/hook` 和 `/deploy/status` 的轻量服务。"
+
+msgid "用于生成示例的目标环境"
+msgstr "用于生成示例的目标环境"
+
+msgid "还没有环境配置。当前展示的是通用 deploy-agent 示例，等你先创建环境后这里会自动带入 webhook 和 status 地址。"
+msgstr "还没有环境配置。当前展示的是通用 deploy-agent 示例，等你先创建环境后这里会自动带入 webhook 和 status 地址。"
+
+msgid "查看最小协议请求体"
+msgstr "查看最小协议请求体"
+
+msgid "查看 deploy-agent compose 示例"
+msgstr "查看 deploy-agent compose 示例"
+
+msgid "查看 deploy-agent env 示例"
+msgstr "查看 deploy-agent env 示例"
+
+msgid "Starter 预览"
+msgstr "Starter 预览"
+
+msgid "当前 starter 直接根据项目组件生成。不会写脚本时，下载 starter 包并按 README 调整字段即可。"
+msgstr "当前 starter 直接根据项目组件生成。不会写脚本时，下载 starter 包并按 README 调整字段即可。"
+
+msgid "当前组件"
+msgstr "当前组件"
+
+msgid "暂无启用组件"
+msgstr "暂无启用组件"
+
+msgid "在线可配置"
+msgstr "在线可配置"
+
+msgid "新手接入说明"
+msgstr "新手接入说明"
+
+msgid "这里决定“项目怎么生成 release”。组件列表负责描述可发布镜像，这里只保留构建模板和覆盖配置。"
+msgstr "这里决定“项目怎么生成 release”。组件列表负责描述可发布镜像，这里只保留构建模板和覆盖配置。"
+
+msgid "构建模板"
+msgstr "构建模板"
+
+msgid "（推荐）"
+msgstr "（推荐）"
+
+msgid "（高级）"
+msgstr "（高级）"
+
+msgid "新增组件"
+msgstr "新增组件"
+
+msgid "在左上卡片中手工新增或从 compose 导入"
+msgstr "在左上卡片中手工新增或从 compose 导入"
+
+msgid "主路径"
+msgstr "主路径"
+
+msgid "优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。"
+msgstr "优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。"
+
+msgid "保存接入配置"
+msgstr "保存接入配置"
+
+msgid "查看模板默认配置"
+msgstr "查看模板默认配置"
+
+msgid "手工新增组件"
+msgstr "手工新增组件"
+
+msgid "适合没有 compose 文件，或只想挑出少数组件纳入发版时使用。"
+msgstr "适合没有 compose 文件，或只想挑出少数组件纳入发版时使用。"
+
+msgid "环境管理"
+msgstr "环境管理"
+
+msgid "这里决定“生成好的 release 发到哪里”。建议至少配置一个正式环境和一个测试环境。"
+msgstr "这里决定“生成好的 release 发到哪里”。建议至少配置一个正式环境和一个测试环境。"
+
+msgid "环境名"
+msgstr "环境名"
+
+msgid "显示域名"
+msgstr "显示域名"
+
+msgid "逻辑环境名"
+msgstr "逻辑环境名"
+
+msgid "Webhook URL"
+msgstr "Webhook URL"
+
+msgid "Status URL"
+msgstr "Status URL"
+
+msgid "共享密钥"
+msgstr "共享密钥"
+
+msgid "生成密钥"
+msgstr "生成密钥"
+
+msgid "保存环境"
+msgstr "保存环境"
+
+msgid "当前接入摘要"
+msgstr "当前接入摘要"
+
+msgid "用最少的信息确认这个项目现在能不能直接一键生成和一键发布。"
+msgstr "用最少的信息确认这个项目现在能不能直接一键生成和一键发布。"
+
+msgid "执行适配器"
+msgstr "执行适配器"
+
+msgid "负责把 release 的 `manifest_url` 发给兼容的 deploy-agent。当前只有这一种协议，新用户按默认方式接入即可。"
+msgstr "负责把 release 的 `manifest_url` 发给兼容的 deploy-agent。当前只有这一种协议，新用户按默认方式接入即可。"
+
+msgid "项目目录"
+msgstr "项目目录"
+
+msgid "未设置"
+msgstr "未设置"
+
+msgid "用于 compose 导入、starter 预览和构建脚本执行。相对路径会基于全局工作目录解析。"
+msgstr "用于 compose 导入、starter 预览和构建脚本执行。相对路径会基于全局工作目录解析。"
+
+msgid "镜像仓库前缀"
+msgstr "镜像仓库前缀"
+
+msgid "compose 未声明 `image:` 时，会按此前缀自动生成镜像地址；未设置时只生成本地镜像名。"
+msgstr "compose 未声明 `image:` 时，会按此前缀自动生成镜像地址；未设置时只生成本地镜像名。"
+
+msgid "尚未配置构建模板说明。"
+msgstr "尚未配置构建模板说明。"
+
+msgid "环境数量"
+msgstr "环境数量"
+
+msgid "个"
+msgstr "个"
+
+msgid "建议至少配置一个测试环境和一个正式环境。"
+msgstr "建议至少配置一个测试环境和一个正式环境。"
+
+msgid "环境列表"
+msgstr "环境列表"
+
+msgid "环境编辑和删除放在这里，不再混进主发布流程。"
+msgstr "环境编辑和删除放在这里，不再混进主发布流程。"
+
+msgid "未设置显示域名"
+msgstr "未设置显示域名"
+
+msgid "Webhook："
+msgstr "Webhook："
+
+msgid "Status："
+msgstr "Status："
+
+msgid "编辑或删除环境"
+msgstr "编辑或删除环境"
+
+msgid "保存修改"
+msgstr "保存修改"
+
+msgid "删除环境"
+msgstr "删除环境"
+
+msgid "还没有环境。"
+msgstr "还没有环境。"
+
+msgid "主操作"
+msgstr "主操作"
+
+msgid "如果你只想完成一次正常发布，只需要在这里二选一。其它人工处理入口都已经折叠到高级操作。"
+msgstr "如果你只想完成一次正常发布，只需要在这里二选一。其它人工处理入口都已经折叠到高级操作。"
+
+msgid "一键生成制品"
+msgstr "一键生成制品"
+
+msgid "自动"
+msgstr "自动"
+
+msgid "本地制品站"
+msgstr "本地制品站"
+
+msgid "没有启用中的组件，先到“接入配置”维护组件。"
+msgstr "没有启用中的组件，先到“接入配置”维护组件。"
+
+msgid "附加 payload"
+msgstr "附加 payload"
+
+msgid "开始构建"
+msgstr "开始构建"
+
+msgid "一键生成并发布"
+msgstr "一键生成并发布"
+
+msgid "目标环境"
+msgstr "目标环境"
+
+msgid "生成后自动发布"
+msgstr "生成后自动发布"
+
+msgid "构建任务支持阶段进度、最终 release 地址和自动发布联动。"
+msgstr "构建任务支持阶段进度、最终 release 地址和自动发布联动。"
+
+msgid "版本："
+msgstr "版本："
+
+msgid "还没有构建任务。"
+msgstr "还没有构建任务。"
+
+msgid "大制品场景下部署会以异步任务方式轮询收敛状态，不再要求页面一直等待。"
+msgstr "大制品场景下部署会以异步任务方式轮询收敛状态，不再要求页面一直等待。"
+
+msgid "还没有部署任务。"
+msgstr "还没有部署任务。"
+
+msgid "可发布 Release"
+msgstr "可发布 Release"
+
+msgid "这里只保留最近的可发布版本，强调“选版本发版”，而不是把所有信息糅在一个列表里。"
+msgstr "这里只保留最近的可发布版本，强调“选版本发版”，而不是把所有信息糅在一个列表里。"
+
+msgid "个组件"
+msgstr "个组件"
+
+msgid "组件："
+msgstr "组件："
+
+msgid "重新同步 manifest"
+msgstr "重新同步 manifest"
+
+msgid "快速发布到"
+msgstr "快速发布到"
+
+msgid "还没有 Release。"
+msgstr "还没有 Release。"
+
+msgid "手动登记已有 Release"
+msgstr "手动登记已有 Release"
+
+msgid "兼容已有 manifest_url 流程，建议仅在特殊场景下使用。"
+msgstr "兼容已有 manifest_url 流程，建议仅在特殊场景下使用。"
+
+msgid "版本号"
+msgstr "版本号"
+
+msgid "Manifest URL"
+msgstr "Manifest URL"
+
+msgid "登记版本"
+msgstr "登记版本"
+
+msgid "上传已有制品"
+msgstr "上传已有制品"
+
+msgid "支持本地制品站或 OSS。页面会显示上传进度，适合外部构建系统产出的 release 包。"
+msgstr "支持本地制品站或 OSS。页面会显示上传进度，适合外部构建系统产出的 release 包。"
+
+msgid "存储模式"
+msgstr "存储模式"
+
+msgid "Manifest 文件"
+msgstr "Manifest 文件"
+
+msgid "组件 tar 文件"
+msgstr "组件 tar 文件"
+
+msgid "SHA256 文件"
+msgstr "SHA256 文件"
+
+msgid "上传并登记"
+msgstr "上传并登记"
+
+msgid "未提供模板说明。"
+msgstr "未提供模板说明。"
+
+msgid "高级场景"
+msgstr "高级场景"
+
+msgid "正在校验路径..."
+msgstr "正在校验路径..."
+
+msgid "路径校验失败"
+msgstr "路径校验失败"
+
+msgid "工作区根"
+msgstr "工作区根"
+
+msgid "配置路径"
+msgstr "配置路径"
+
+msgid "解析路径"
+msgstr "解析路径"
+
+msgid "真实路径"
+msgstr "真实路径"
+
+msgid "是"
+msgstr "是"
+
+msgid "否"
+msgstr "否"
+
+msgid "存在"
+msgstr "存在"
+
+msgid "不存在"
+msgstr "不存在"
+
+msgid "打包脚本"
+msgstr "打包脚本"
+
+msgid "正在上传制品："
+msgstr "正在上传制品："
+
+msgid "上传完成，正在跳转。"
+msgstr "上传完成，正在跳转。"
+
+msgid "上传失败"
+msgstr "上传失败"
+
+msgid "上传失败，请检查网络或服务器状态。"
+msgstr "上传失败，请检查网络或服务器状态。"
+
+msgid "把构建与发布收敛成一套可复用的流程"
+msgstr "把构建与发布收敛成一套可复用的流程"
+
+msgid "每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。"
+msgstr "每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。"
+
+msgid "项目总数"
+msgstr "项目总数"
+
+msgid "环境总数"
+msgstr "环境总数"
+
+msgid "已登记 Release"
+msgstr "已登记 Release"
+
+msgid "入口 1"
+msgstr "入口 1"
+
+msgid "新项目接入"
+msgstr "新项目接入"
+
+msgid "适合首次接入。创建项目后，继续在项目工作台里完成模板和环境配置。"
+msgstr "适合首次接入。创建项目后，继续在项目工作台里完成模板和环境配置。"
+
+msgid "入口 2"
+msgstr "入口 2"
+
+msgid "继续构建与发布"
+msgstr "继续构建与发布"
+
+msgid "已有项目直接进入工作台，主操作永远是\"一键生成\"或\"一键生成并发布\"。"
+msgstr "已有项目直接进入工作台，主操作永远是\"一键生成\"或\"一键生成并发布\"。"
+
+msgid "入口 3"
+msgstr "入口 3"
+
+msgid "异常排查"
+msgstr "异常排查"
+
+msgid "部署任务页集中查看超时、失败、回滚和状态轮询，不需要再翻多个页面。"
+msgstr "部署任务页集中查看超时、失败、回滚和状态轮询，不需要再翻多个页面。"
+
+msgid "新增项目"
+msgstr "新增项目"
+
+msgid "创建项目时先填工作区路径。它相对于统一工作区根，可以是真目录，也可以是管理员提前放好的软链接目录。"
+msgstr "创建项目时先填工作区路径。它相对于统一工作区根，可以是真目录，也可以是管理员提前放好的软链接目录。"
+
+msgid "项目名称"
+msgstr "项目名称"
+
+msgid "项目标识"
+msgstr "项目标识"
+
+msgid "项目工作区路径"
+msgstr "项目工作区路径"
+
+msgid "浏览选择"
+msgstr "浏览选择"
+
+msgid "工作区模型"
+msgstr "工作区模型"
+
+msgid "统一工作区根"
+msgstr "统一工作区根"
+
+msgid "推荐把所有待发布项目聚合到同一个工作区根下。这里填写的是相对路径；如果你偏向软链接方案，可由管理员先在工作区根下创建软链接，再在这里选择该目录。"
+msgstr "推荐把所有待发布项目聚合到同一个工作区根下。这里填写的是相对路径；如果你偏向软链接方案，可由管理员先在工作区根下创建软链接，再在这里选择该目录。"
+
+msgid "发布协议"
+msgstr "发布协议"
+
+msgid "这是当前唯一支持的执行适配器，表示平台会把 `manifest_url` 通过 webhook 发给兼容的 `deploy-agent`。新用户不需要修改，先按默认值使用即可。"
+msgstr "这是当前唯一支持的执行适配器，表示平台会把 `manifest_url` 通过 webhook 发给兼容的 `deploy-agent`。新用户不需要修改，先按默认值使用即可。"
+
+msgid "项目说明"
+msgstr "项目说明"
+
+msgid "描述此项目如何接入、部署到哪里、谁负责。"
+msgstr "描述此项目如何接入、部署到哪里、谁负责。"
+
+msgid "创建并进入接入流程"
+msgstr "创建并进入接入流程"
+
+msgid "已接入项目"
+msgstr "已接入项目"
+
+msgid "进入项目后可配置构建模板、环境、生成策略和一键发布入口。"
+msgstr "进入项目后可配置构建模板、环境、生成策略和一键发布入口。"
+
+msgid "工作区路径："
+msgstr "工作区路径："
+
+msgid "未设置，默认使用全局工作区根"
+msgstr "未设置，默认使用全局工作区根"
+
+msgid "镜像仓库前缀："
+msgstr "镜像仓库前缀："
+
+msgid "未设置，默认不拼接 registry 前缀"
+msgstr "未设置，默认不拼接 registry 前缀"
+
+msgid "个 Release"
+msgstr "个 Release"
+
+msgid "个构建任务"
+msgstr "个构建任务"
+
+msgid "进入项目工作台"
+msgstr "进入项目工作台"
+
+msgid "编辑或删除项目"
+msgstr "编辑或删除项目"
+
+msgid "保存项目信息"
+msgstr "保存项目信息"
+
+msgid "确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。"
+msgstr "确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。"
+
+msgid "删除项目"
+msgstr "删除项目"
+
+msgid "还没有项目，先创建一个项目开始接入。"
+msgstr "还没有项目，先创建一个项目开始接入。"
+
+msgid "选择项目工作区路径"
+msgstr "选择项目工作区路径"
+
+msgid "关闭"
+msgstr "关闭"
+
+msgid "返回上级"
+msgstr "返回上级"
+
+msgid "使用当前目录"
+msgstr "使用当前目录"
+
+msgid "正在加载目录..."
+msgstr "正在加载目录..."
+
+msgid "目录加载失败"
+msgstr "目录加载失败"
+
+msgid "浏览根目录："
+msgstr "浏览根目录："
+
+msgid "当前目录："
+msgstr "当前目录："
+
+msgid "选择一个目录，或直接使用当前目录。"
+msgstr "选择一个目录，或直接使用当前目录。"
+
+msgid "目录"
+msgstr "目录"
+
+msgid "软链接"
+msgstr "软链接"
+

@@ -48,6 +48,9 @@ def ensure_schema_compatibility() -> None:
             ("status_reason", "ALTER TABLE deploy_deployments ADD COLUMN status_reason TEXT"),
             ("progress_percent", "ALTER TABLE deploy_deployments ADD COLUMN progress_percent INTEGER DEFAULT 0 NOT NULL"),
         ],
+        "deploy_operator_users": [
+            ("preferred_lang", "ALTER TABLE deploy_operator_users ADD COLUMN preferred_lang VARCHAR(10)"),
+        ],
     }
 
     with engine.begin() as conn:

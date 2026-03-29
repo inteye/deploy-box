@@ -1,32 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="hero">
-  <h1>从这里进入你真正要做的下一步</h1>
-  <p>先看项目接入是否完成，再决定是生成制品、直接发布，还是进入部署任务排查异常。</p>
+  <h1>{{ _('从这里进入你真正要做的下一步') }}</h1>
+  <p>{{ _('先看项目接入是否完成，再决定是生成制品、直接发布，还是进入部署任务排查异常。') }}</p>
 </section>
 
 <section class="stats">
-  <article class="card stat"><strong>{{ summary.projects }}</strong><span>项目</span></article>
-  <article class="card stat"><strong>{{ summary.builds }}</strong><span>构建任务</span></article>
-  <article class="card stat"><strong>{{ summary.deployments }}</strong><span>部署任务</span></article>
-  <article class="card stat"><strong>{{ summary.running_deployments }}</strong><span>进行中的部署</span></article>
+  <article class="card stat"><strong>{{ summary.projects }}</strong><span>{{ _('项目') }}</span></article>
+  <article class="card stat"><strong>{{ summary.builds }}</strong><span>{{ _('构建任务') }}</span></article>
+  <article class="card stat"><strong>{{ summary.deployments }}</strong><span>{{ _('部署任务') }}</span></article>
+  <article class="card stat"><strong>{{ summary.running_deployments }}</strong><span>{{ _('进行中的部署') }}</span></article>
 </section>
 
 <section class="workflow-grid">
   <a class="anchor-card" href="/console/projects">
-    <span class="workflow-step">推荐入口</span>
-    <strong style="font-size:18px;">项目接入与构建</strong>
-    <p class="muted small" style="margin:0;">新增项目、配置构建模板、查看最近构建，统一从这里开始。</p>
+    <span class="workflow-step">{{ _('推荐入口') }}</span>
+    <strong style="font-size:18px;">{{ _('项目接入与构建') }}</strong>
+    <p class="muted small" style="margin:0;">{{ _('新增项目、配置构建模板、查看最近构建，统一从这里开始。') }}</p>
   </a>
   <a class="anchor-card" href="/console/projects{% if projects and projects[0] %}/{{ projects[0].id }}?tab=builds{% endif %}">
-    <span class="workflow-step">快速生成</span>
-    <strong style="font-size:18px;">进入最近项目工作台</strong>
-    <p class="muted small" style="margin:0;">如果你正在连续发版，直接回到最近项目的构建发布区继续操作。</p>
+    <span class="workflow-step">{{ _('快速生成') }}</span>
+    <strong style="font-size:18px;">{{ _('进入最近项目工作台') }}</strong>
+    <p class="muted small" style="margin:0;">{{ _('如果你正在连续发版，直接回到最近项目的构建发布区继续操作。') }}</p>
   </a>
   <a class="anchor-card" href="/console/deployments">
-    <span class="workflow-step">异常处理</span>
-    <strong style="font-size:18px;">查看部署任务</strong>
-    <p class="muted small" style="margin:0;">超时、失败、回滚和最终状态收敛都统一在部署任务页处理。</p>
+    <span class="workflow-step">{{ _('异常处理') }}</span>
+    <strong style="font-size:18px;">{{ _('查看部署任务') }}</strong>
+    <p class="muted small" style="margin:0;">{{ _('超时、失败、回滚和最终状态收敛都统一在部署任务页处理。') }}</p>
   </a>
 </section>
 
@@ -34,8 +34,8 @@
   <article class="card">
     <div class="section-head">
       <div>
-        <h2>最近项目</h2>
-        <p>优先进入项目工作台，不要从杂乱的表单开始。</p>
+        <h2>{{ _('最近项目') }}</h2>
+        <p>{{ _('优先进入项目工作台，不要从杂乱的表单开始。') }}</p>
       </div>
     </div>
     <div class="list-stack">
@@ -43,19 +43,19 @@
       <article class="list-card">
         <div class="meta-line">
           <span class="badge">{{ project.slug }}</span>
-          <span>{{ project.environments|length }} 个环境</span>
+          <span>{{ project.environments|length }} {{ _('个环境') }}</span>
         </div>
         <div>
           <strong style="font-size:18px;">{{ project.name }}</strong>
-          <p class="muted small" style="margin:6px 0 0;">{{ project.description or '尚未填写项目说明。' }}</p>
+          <p class="muted small" style="margin:6px 0 0;">{{ project.description or _('尚未填写项目说明。') }}</p>
         </div>
         <div class="actions">
-          <a class="button secondary" href="/console/projects/{{ project.id }}?tab=onboarding">接入配置</a>
-          <a class="button" href="/console/projects/{{ project.id }}?tab=builds">构建发布</a>
+          <a class="button secondary" href="/console/projects/{{ project.id }}?tab=onboarding">{{ _('接入配置') }}</a>
+          <a class="button" href="/console/projects/{{ project.id }}?tab=builds">{{ _('构建发布') }}</a>
         </div>
       </article>
       {% else %}
-      <div class="muted">还没有项目，先去项目页创建一个。</div>
+      <div class="muted">{{ _('还没有项目，先去项目页创建一个。') }}</div>
       {% endfor %}
     </div>
   </article>
@@ -63,8 +63,8 @@
   <article class="card">
     <div class="section-head">
       <div>
-        <h2>最近动作</h2>
-        <p>构建和部署都在这里快速回看，不需要自己猜刚才做到哪一步。</p>
+        <h2>{{ _('最近动作') }}</h2>
+        <p>{{ _('构建和部署都在这里快速回看，不需要自己猜刚才做到哪一步。') }}</p>
       </div>
     </div>
     <div class="list-stack">
@@ -72,11 +72,11 @@
       <article class="list-card">
         <div class="meta-line">
           <span class="badge {% if build.status == 'failed' %}failed{% elif build.status in ['queued', 'running'] %}warning{% endif %}">{{ build.status }}</span>
-          <span>构建 #{{ build.id }}</span>
-          <span>{{ build.output_version or '生成中' }}</span>
+          <span>{{ _('构建') }} #{{ build.id }}</span>
+          <span>{{ build.output_version or _('生成中') }}</span>
         </div>
         <div class="actions">
-          <a class="button secondary" href="/console/build-jobs/{{ build.id }}">查看构建详情</a>
+          <a class="button secondary" href="/console/build-jobs/{{ build.id }}">{{ _('查看构建详情') }}</a>
         </div>
       </article>
       {% endfor %}
@@ -88,12 +88,12 @@
           <span>{{ deployment.release.version }}</span>
         </div>
         <div class="actions">
-          <a class="button secondary" href="/console/deployments/{{ deployment.id }}">查看部署详情</a>
+          <a class="button secondary" href="/console/deployments/{{ deployment.id }}">{{ _('查看部署详情') }}</a>
         </div>
       </article>
       {% endfor %}
       {% if not recent_builds and not recent_deployments %}
-      <div class="muted">还没有构建或部署记录。</div>
+      <div class="muted">{{ _('还没有构建或部署记录。') }}</div>
       {% endif %}
     </div>
   </article>

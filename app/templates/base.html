@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="{{ current_lang or 'zh' }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -791,41 +791,51 @@
           <div class="brand-row">
             <span class="brand-mark" aria-hidden="true">D</span>
             <strong class="brand-name">DeployBox</strong>
-            <button type="button" class="sidebar-toggle sidebar-toggle-desktop" data-sidebar-toggle aria-label="收起或展开侧边栏" aria-expanded="true">≡</button>
+            <button type="button" class="sidebar-toggle sidebar-toggle-desktop" data-sidebar-toggle aria-label="{{ _('收起或展开侧边栏') }}" aria-expanded="true">≡</button>
           </div>
-          <span>独立发布平台 · 移动优先 · 构建与发布一体化</span>
+          <span>{{ _('独立发布平台 · 移动优先 · 构建与发布一体化') }}</span>
         </div>
         <nav class="nav">
           <a href="/console/dashboard" class="{% if current_path.startswith('/console/dashboard') %}active{% endif %}">
             <span class="nav-icon">D</span>
-            <span class="nav-label"><strong>Dashboard</strong><span>总览与下一步</span></span>
+            <span class="nav-label"><strong>Dashboard</strong><span>{{ _('总览与下一步') }}</span></span>
           </a>
           <a href="/console/projects" class="{% if current_path.startswith('/console/projects') or current_path.startswith('/console/build-jobs') %}active{% endif %}">
-            <span class="nav-icon">项</span>
-            <span class="nav-label"><strong>项目与构建</strong><span>接入、生成、上传</span></span>
+            <span class="nav-icon">{{ _('项') }}</span>
+            <span class="nav-label"><strong>{{ _('项目与构建') }}</strong><span>{{ _('接入、生成、上传') }}</span></span>
           </a>
           <a href="/console/deployments" class="{% if current_path.startswith('/console/deployments') %}active{% endif %}">
-            <span class="nav-icon">发</span>
-            <span class="nav-label"><strong>部署任务</strong><span>状态、日志、回滚</span></span>
+            <span class="nav-icon">{{ _('发') }}</span>
+            <span class="nav-label"><strong>{{ _('部署任务') }}</strong><span>{{ _('状态、日志、回滚') }}</span></span>
           </a>
         </nav>
         <div class="sidebar-meta">
-          <strong>当前用户：{{ current_user.username }}</strong>
-          <span class="sidebar-copy">当前系统会保留你的侧栏展开状态。</span>
+          <strong>{{ _('当前用户：') }}{{ current_user.username }}</strong>
+          <span class="sidebar-copy">{{ _('当前系统会保留你的侧栏展开状态。') }}</span>
           <form method="post" action="/logout" style="margin-top:12px;">
-            <button type="submit" class="secondary" style="width:100%;">退出登录</button>
+            <button type="submit" class="secondary" style="width:100%;">{{ _('退出登录') }}</button>
           </form>
+          <div style="display:flex;gap:6px;margin-top:10px;">
+            <form method="post" action="/console/settings/lang">
+              <input type="hidden" name="lang" value="zh">
+              <button type="submit" class="{% if current_lang == 'zh' %}secondary{% else %}ghost{% endif %}" style="padding:6px 10px;min-height:0;font-size:12px;">中文</button>
+            </form>
+            <form method="post" action="/console/settings/lang">
+              <input type="hidden" name="lang" value="en">
+              <button type="submit" class="{% if current_lang == 'en' %}secondary{% else %}ghost{% endif %}" style="padding:6px 10px;min-height:0;font-size:12px;">EN</button>
+            </form>
+          </div>
         </div>
       </aside>
       <main class="main">
         <div class="topbar">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-            <button type="button" class="sidebar-toggle sidebar-toggle-mobile" data-sidebar-toggle aria-label="收起或展开侧边栏" aria-expanded="true">≡</button>
+            <button type="button" class="sidebar-toggle sidebar-toggle-mobile" data-sidebar-toggle aria-label="{{ _('收起或展开侧边栏') }}" aria-expanded="true">≡</button>
             <span class="eyebrow">{{ title }}</span>
           </div>
           <div class="topbar-meta">
-            <span class="chip">当前系统：独立部署控制台</span>
-            <span class="chip">主路径：接入 → 生成 → 发布</span>
+            <span class="chip">{{ _('当前系统：独立部署控制台') }}</span>
+            <span class="chip">{{ _('主路径：接入 → 生成 → 发布') }}</span>
           </div>
         </div>
         <div class="page">
