@@ -26,6 +26,8 @@ It is built for teams that need practical release operations without introducing
 - Built-in artifact flow (`manifest.json` + image tar)
 - Async deployment tracking, logs, and rollback entry
 - Supports local artifact server and OSS
+- Private OSS bucket support through deploy-agent credentials
+- Paginated build / deployment / release lists in project detail
 
 ## Architecture
 
@@ -122,6 +124,12 @@ http://127.0.0.1:18101
 - `local`: force local artifact server
 - `oss`: force OSS upload
 
+Important:
+
+- `artifact_public_base_url` is a project-level build setting, not an environment-level setting
+- it is only used when generating release URLs for `local` artifact mode
+- when `oss` is used, final manifest artifact URLs are rewritten to OSS locations
+
 Recommended:
 
 - dev / staging: `local` (or `auto` with `USE_OSS=false`)
@@ -136,6 +144,12 @@ Recommended:
 5. Configure environment endpoints (`webhook_url`, `status_url`, `shared_secret`)
 6. Build release and deploy asynchronously
 
+Project detail behavior:
+
+- build jobs, deployment jobs, and releasable releases are independently paginated
+- starter preview is collapsed by default and can be expanded on demand
+- importing component candidates from compose requires confirmation before overwriting existing component settings
+
 ## Compose Best Practices
 
 To ensure deployed containers actually switch to new release images:
@@ -145,6 +159,13 @@ To ensure deployed containers actually switch to new release images:
 - Wire image to `DEPLOY_IMAGE_<SERVICE>`
 - Avoid source bind mounts that override image filesystem (example: `./backend:/app`)
 - Avoid floating tags (`latest`) for business images
+
+Current DeployBox behavior:
+
+- build-enabled components are normalized toward versioned image tags
+- if a build-enabled component still uses `:latest`, DeployBox rewrites it to `:__VERSION__`
+- generated release versions use `YYYYMMDD-HHMM-<shortsha>` when Git is available
+- when Git metadata is unavailable, versions fall back to `YYYYMMDD-HHMM` without a `-local` suffix
 
 Example:
 
@@ -178,11 +199,32 @@ Critical envs:
 - `DEPLOY_PROJECT_ROOT=/workspace`
 - `DEPLOY_PROJECT_WORKSPACE_HOST_PATH=/absolute/host/project/path`
 
+For private OSS buckets:
+
+- `DEPLOY_OSS_ACCESS_KEY_ID`
+- `DEPLOY_OSS_ACCESS_KEY_SECRET`
+- `DEPLOY_OSS_BUCKET_NAME`
+- `DEPLOY_OSS_ENDPOINT`
+- `DEPLOY_OSS_REGION`
+
 Notes:
 
 - Use the real host path, not a container path
 - On Docker Desktop, add this path to File Sharing
 - DeployBox uses it for both mount and `docker compose --project-directory`
+- New OSS releases include object-key metadata, and deploy-agent downloads tar files from private OSS with OSS SDK first
+- Older releases still fall back to `image_tar_url`
+
+Webhook behavior:
+
+- DeployBox sends both `manifest_url` and inline `manifest_json` to deploy-agent
+- this avoids requiring deploy-agent to fetch a private manifest before deployment starts
+
+## Deployment Trigger Timeout
+
+- Trigger requests to `webhook_url` now use a longer dedicated timeout than generic read requests
+- if the trigger request takes too long, DeployBox marks the deployment as submitted and continues status polling in the background
+- this is intended to reduce user confusion when deploy-agent eventually succeeds after a slow trigger phase
 
 ## Development
 
