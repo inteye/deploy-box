@@ -235,6 +235,12 @@ msgstr "把 webhook_url、status_url、shared_secret 填回本平台的环境配
 msgid "脚本打包模板"
 msgstr "脚本打包模板"
 
+msgid "正在构建组件 {current}/{total}: {name}"
+msgstr "正在构建组件 {current}/{total}: {name}"
+
+msgid "已完成组件 {current}/{total}: {name}"
+msgstr "已完成组件 {current}/{total}: {name}"
+
 msgid "执行项目已有打包脚本，产出 manifest 与多组件制品。"
 msgstr "执行项目已有打包脚本，产出 manifest 与多组件制品。"
 

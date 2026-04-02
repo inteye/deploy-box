@@ -100,7 +100,7 @@ def translate_runtime_text(translation: gettext.NullTranslations, text: str | No
     _ = translation.gettext
     patterns = [
         ("本次将处理组件: ", lambda value: _("本次将处理组件: {components}").format(components=value)),
-        ("使用模板 ", lambda value: _("使用模板 {template}").format(template=value)),
+        ("使用模板 ", lambda value: _("使用模板 {template}").format(template=_(value))),
         ("工作目录不存在: ", lambda value: _("工作目录不存在: {path}").format(path=value)),
         ("打包脚本不存在: ", lambda value: _("打包脚本不存在: {path}").format(path=value)),
         ("未找到 manifest 文件: ", lambda value: _("未找到 manifest 文件: {path}").format(path=value)),
@@ -115,6 +115,14 @@ def translate_runtime_text(translation: gettext.NullTranslations, text: str | No
     if text.startswith("组件 ") and text.endswith(" 为外部镜像，跳过 tar 上传"):
         component = text[len("组件 ") : -len(" 为外部镜像，跳过 tar 上传")]
         return _("组件 {component} 为外部镜像，跳过 tar 上传").format(component=component)
+    if text.startswith("正在构建组件 ") and ": " in text:
+        prefix, name = text[len("正在构建组件 ") :].split(": ", 1)
+        current, total = prefix.split("/", 1)
+        return _("正在构建组件 {current}/{total}: {name}").format(current=current, total=total, name=name)
+    if text.startswith("已完成组件 ") and ": " in text:
+        prefix, name = text[len("已完成组件 ") :].split(": ", 1)
+        current, total = prefix.split("/", 1)
+        return _("已完成组件 {current}/{total}: {name}").format(current=current, total=total, name=name)
     if text.startswith("已上传组件 ") and ": " in text:
         prefix, name = text[len("已上传组件 ") :].split(": ", 1)
         current, total = prefix.split("/", 1)

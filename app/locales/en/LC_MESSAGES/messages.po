@@ -234,6 +234,12 @@ msgstr "Fill webhook_url, status_url, and shared_secret back into the environmen
 msgid "脚本打包模板"
 msgstr "Script Packaging Template"
 
+msgid "正在构建组件 {current}/{total}: {name}"
+msgstr "Building component {current}/{total}: {name}"
+
+msgid "已完成组件 {current}/{total}: {name}"
+msgstr "Completed component {current}/{total}: {name}"
+
 msgid "执行项目已有打包脚本，产出 manifest 与多组件制品。"
 msgstr "Run the project's existing packaging script to produce a manifest and multi-component artifacts."
 
