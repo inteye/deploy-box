@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlencode
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, status
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
@@ -23,6 +23,7 @@ from ..services import (
     ensure_project_build_config,
     import_project_components_from_compose,
     list_project_components,
+    normalize_project_component_images,
     normalize_build_config_override,
     refresh_deployment_status,
     resolve_project_workspace,
@@ -71,6 +72,49 @@ def success_redirect(url: str, message: str) -> RedirectResponse:
 def error_redirect(url: str, message: str) -> RedirectResponse:
     separator = "&" if "?" in url else "?"
     return RedirectResponse(url=f"{url}{separator}error={quote_plus(message)}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+def _parse_page(raw: str | None) -> int:
+    if raw and raw.isdigit():
+        return max(int(raw), 1)
+    return 1
+
+
+def _build_project_detail_url(request: Request, project_id: int, **updates: int | str | None) -> str:
+    params = {key: value for key, value in request.query_params.items()}
+    for key, value in updates.items():
+        if value is None:
+            params.pop(key, None)
+        else:
+            params[key] = str(value)
+    query = urlencode(params)
+    base_url = f"/console/projects/{project_id}"
+    return f"{base_url}?{query}" if query else base_url
+
+
+def _paginate_section(*, total: int, page: int, per_page: int, request: Request, project_id: int, param_name: str) -> dict:
+    total_pages = max((total - 1) // per_page + 1, 1)
+    current_page = min(max(page, 1), total_pages)
+    page_start = max(current_page - 2, 1)
+    page_end = min(page_start + 4, total_pages)
+    page_start = max(page_end - 4, 1)
+    return {
+        "page": current_page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": total_pages,
+        "offset": (current_page - 1) * per_page,
+        "pages": [
+            {
+                "number": number,
+                "url": _build_project_detail_url(request, project_id, **{param_name: number}),
+                "current": number == current_page,
+            }
+            for number in range(page_start, page_end + 1)
+        ],
+        "prev_url": _build_project_detail_url(request, project_id, **{param_name: current_page - 1}) if current_page > 1 else None,
+        "next_url": _build_project_detail_url(request, project_id, **{param_name: current_page + 1}) if current_page < total_pages else None,
+    }
 
 
 @router.get("/console/fs/directories")
@@ -337,12 +381,11 @@ def project_detail_page(
     db: Session = Depends(get_db),
     current_user: OperatorUser = Depends(get_current_user),
 ):
+    per_page = 10
     project = db.execute(
         select(Project)
         .options(
             joinedload(Project.environments),
-            joinedload(Project.releases).joinedload(Release.components),
-            joinedload(Project.build_jobs),
             joinedload(Project.build_config).joinedload(ProjectBuildConfig.template),
             joinedload(Project.components),
         )
@@ -353,22 +396,62 @@ def project_detail_page(
 
     compose_path_hint = request.query_params.get("compose_path", "docker-compose.yml").strip() or "docker-compose.yml"
     build_config = ensure_project_build_config(db, project)
-    project_components = list_project_components(db, project)
+    project_components = normalize_project_component_images(db, project)
     build_config = db.execute(
         select(ProjectBuildConfig)
         .options(joinedload(ProjectBuildConfig.template))
         .where(ProjectBuildConfig.id == build_config.id)
     ).unique().scalar_one_or_none()
+    build_job_total = db.scalar(select(func.count()).select_from(BuildJob).where(BuildJob.project_id == project.id)) or 0
+    deployment_total = db.scalar(select(func.count()).select_from(Deployment).where(Deployment.project_id == project.id)) or 0
+    release_total = db.scalar(select(func.count()).select_from(Release).where(Release.project_id == project.id)) or 0
+    build_jobs_pagination = _paginate_section(
+        total=build_job_total,
+        page=_parse_page(request.query_params.get("build_page")),
+        per_page=per_page,
+        request=request,
+        project_id=project.id,
+        param_name="build_page",
+    )
+    deployments_pagination = _paginate_section(
+        total=deployment_total,
+        page=_parse_page(request.query_params.get("deployment_page")),
+        per_page=per_page,
+        request=request,
+        project_id=project.id,
+        param_name="deployment_page",
+    )
+    releases_pagination = _paginate_section(
+        total=release_total,
+        page=_parse_page(request.query_params.get("release_page")),
+        per_page=per_page,
+        request=request,
+        project_id=project.id,
+        param_name="release_page",
+    )
     deployments = db.execute(
         select(Deployment)
         .options(joinedload(Deployment.environment), joinedload(Deployment.release))
         .where(Deployment.project_id == project.id)
         .order_by(Deployment.created_at.desc())
-        .limit(12)
+        .offset(deployments_pagination["offset"])
+        .limit(per_page)
     ).unique().scalars().all()
     build_jobs = db.scalars(
-        select(BuildJob).where(BuildJob.project_id == project.id).order_by(BuildJob.created_at.desc()).limit(12)
+        select(BuildJob)
+        .where(BuildJob.project_id == project.id)
+        .order_by(BuildJob.created_at.desc())
+        .offset(build_jobs_pagination["offset"])
+        .limit(per_page)
     ).all()
+    releases = db.execute(
+        select(Release)
+        .options(joinedload(Release.components))
+        .where(Release.project_id == project.id)
+        .order_by(Release.created_at.desc())
+        .offset(releases_pagination["offset"])
+        .limit(per_page)
+    ).unique().scalars().all()
     templates_list = db.scalars(
         select(BuildTemplate).where(BuildTemplate.is_active.is_(True)).order_by(BuildTemplate.is_builtin.desc(), BuildTemplate.name.asc())
     ).all()
@@ -413,7 +496,14 @@ def project_detail_page(
         project=project,
         build_config=build_config,
         build_jobs=build_jobs,
+        build_job_total=build_job_total,
+        build_jobs_pagination=build_jobs_pagination,
         deployments=deployments,
+        deployment_total=deployment_total,
+        deployments_pagination=deployments_pagination,
+        releases=releases,
+        release_total=release_total,
+        releases_pagination=releases_pagination,
         templates_list=templates_list,
         starter_bundle=starter_bundle,
         starter_environment=selected_environment,

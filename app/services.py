@@ -197,9 +197,10 @@ def save_project_component(
         raise RuntimeError(f"Compose service 已存在: {normalized_service}")
     if not component:
         component = ProjectComponent(project_id=project.id)
+    normalized_image = _normalize_component_image(project, normalized_service, image, build_enabled)
     component.name = normalized_name
     component.service_name = normalized_service
-    component.image = image.strip()
+    component.image = normalized_image
     component.dockerfile = dockerfile.strip() or "./Dockerfile"
     component.context_path = context_path.strip() or "."
     component.tar_name_pattern = tar_name_pattern.strip() or f"{project.slug}-{normalized_service}-__VERSION__.tar"
@@ -211,6 +212,26 @@ def save_project_component(
     db.commit()
     db.refresh(component)
     return component
+
+
+def normalize_project_component_images(db: Session, project: Project) -> list[ProjectComponent]:
+    components = db.scalars(
+        select(ProjectComponent).where(ProjectComponent.project_id == project.id).order_by(ProjectComponent.id.asc())
+    ).all()
+    if not components:
+        components = ensure_default_project_components(db, project)
+    changed = False
+    for component in components:
+        normalized_image = _normalize_component_image(project, component.service_name, component.image, component.build_enabled)
+        if normalized_image != component.image:
+            component.image = normalized_image
+            db.add(component)
+            changed = True
+    if changed:
+        db.commit()
+        for component in components:
+            db.refresh(component)
+    return components
 
 
 def delete_project_component(db: Session, *, project: Project, component_id: int) -> None:
@@ -262,19 +283,20 @@ def import_project_components_from_compose(
         dockerfile = _normalize_compose_dockerfile_path(item["dockerfile"], item["context_path"])
         context_path = item["context_path"] or "."
         build_enabled = bool(item.get("has_build"))
+        normalized_image = _normalize_component_image(project, service_name, image, build_enabled)
         component = save_project_component(
             db,
             project=project,
             component_id=existing_by_service.get(service_name).id if service_name in existing_by_service else None,
             name=service_name,
             service_name=service_name,
-            image=image,
+            image=normalized_image,
             dockerfile=dockerfile,
             context_path=context_path,
             tar_name_pattern=f"{project.slug}-{service_name}-__VERSION__.tar",
             build_enabled=build_enabled,
             enabled=True,
-            default_selected=build_enabled and not _is_infra_component(service_name, image),
+            default_selected=build_enabled and not _is_infra_component(service_name, normalized_image),
             source_type="compose_import",
         )
         imported.append(component)
@@ -482,8 +504,15 @@ def execute_deployment_job(deployment_id: int) -> None:
             deployment.submitted_at = datetime.now(timezone.utc)
             deployment.status = "timed_out_but_running"
             deployment.progress_percent = 25
-            deployment.status_reason = "触发请求超时，改为后台轮询发布状态"
-            deployment.adapter_response_json = json.dumps({"detail": str(exc)}, ensure_ascii=True)
+            deployment.status_reason = "触发请求等待较久，已提交并改为后台轮询状态"
+            deployment.adapter_response_json = json.dumps(
+                {
+                    "detail": "trigger_request_timed_out_polling_in_background",
+                    "message": "触发请求等待较久，已提交并改为后台轮询状态",
+                },
+                ensure_ascii=True,
+            )
+            deployment.log_excerpt = "触发请求等待较久，已提交并改为后台轮询状态"
             db.commit()
         except httpx.HTTPStatusError as exc:
             deployment.status = "failed"
@@ -536,7 +565,7 @@ def create_build_job(
     selected_component_ids: list[int] | None = None,
 ) -> BuildJob:
     build_config = ensure_project_build_config(db, project)
-    components = list_project_components(db, project)
+    components = normalize_project_component_images(db, project)
     selected_components = _selected_project_components(components, selected_component_ids)
     normalized_payload = _normalize_build_payload(payload_json, selected_components)
     job = BuildJob(
@@ -1262,6 +1291,18 @@ def _release_image_fallback(image: str) -> str:
         return ""
     if value.endswith(":__VERSION__"):
         return value[: -len("__VERSION__")] + "latest"
+    return value
+
+
+def _normalize_component_image(project: Project, service_name: str, image: str, build_enabled: bool) -> str:
+    value = (image or "").strip()
+    if not value:
+        return _default_component_image(project, service_name) if build_enabled else ""
+    if not build_enabled or "__VERSION__" in value:
+        return value
+    normalized = _unwrap_compose_image_reference(value)
+    if normalized.endswith(":latest"):
+        return normalized[: -len("latest")] + "__VERSION__"
     return value
 
 

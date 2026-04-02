@@ -1055,3 +1055,36 @@ msgstr "Directory"
 
 msgid "软链接"
 msgstr "Symlink"
+
+msgid "共"
+msgstr "Total"
+
+msgid "上一页"
+msgstr "Previous"
+
+msgid "下一页"
+msgstr "Next"
+
+msgid "重新读取后将覆盖已有设置，请确认。"
+msgstr "Reloading will overwrite the current settings. Please confirm."
+
+msgid "组件维护"
+msgstr "Components"
+
+msgid "组件不在这里新增。请到左上区域手工新增组件，或使用“从 compose 读取组件候选”。"
+msgstr "Components are not added here. Use the upper-left section to add one manually or import candidates from compose."
+
+msgid "覆盖说明"
+msgstr "Override Notes"
+
+msgid "这里保存的是当前项目对所选模板的覆盖项，不会自动按环境切换。"
+msgstr "This stores project-level overrides for the selected template. It does not switch automatically by environment."
+
+msgid "其中 `artifact_public_base_url` 只用于本地制品模式下生成 release 访问地址；如果选择 OSS，最终 manifest 会改写成 OSS 地址。"
+msgstr "`artifact_public_base_url` is only used to generate release URLs in local artifact mode. When OSS is used, the manifest is rewritten to OSS URLs."
+
+msgid "点击展开 Starter 预览"
+msgstr "Expand Starter Preview"
+
+msgid "快速发布"
+msgstr "Deploy Now"

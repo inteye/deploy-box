@@ -1,5 +1,73 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+  .release-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .release-card {
+    min-width: 0;
+  }
+
+  .release-card > * {
+    min-width: 0;
+  }
+
+  .release-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  .release-actions form {
+    margin: 0;
+  }
+
+  .release-deploy-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-wrap: nowrap;
+  }
+
+  .release-actions select {
+    width: 125px;
+    min-width: 100px;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .pagination .summary {
+    color: var(--muted);
+    font-size: 13px;
+    margin-right: 4px;
+  }
+
+  @media (max-width: 900px) {
+    .release-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .release-actions {
+      flex-wrap: wrap;
+    }
+
+    .release-deploy-form {
+      margin-left: 0;
+      flex-wrap: wrap;
+    }
+  }
+</style>
 <section class="hero">
   <h1>{{ project.name }}</h1>
   <p>{{ project.description or _('当前项目已接入独立发布平台，可直接配置模板、生成制品并发版。') }}</p>
@@ -14,9 +82,9 @@
 
 <section class="stats">
   <article class="card stat"><strong>{{ project.environments|length }}</strong><span>{{ _('环境') }}</span></article>
-  <article class="card stat"><strong>{{ project.releases|length }}</strong><span>{{ _('Release') }}</span></article>
-  <article class="card stat"><strong>{{ build_jobs|length }}</strong><span>{{ _('最近构建任务') }}</span></article>
-  <article class="card stat"><strong>{{ deployments|length }}</strong><span>{{ _('最近部署任务') }}</span></article>
+  <article class="card stat"><strong>{{ release_total }}</strong><span>{{ _('Release') }}</span></article>
+  <article class="card stat"><strong>{{ build_job_total }}</strong><span>{{ _('最近构建任务') }}</span></article>
+  <article class="card stat"><strong>{{ deployment_total }}</strong><span>{{ _('最近部署任务') }}</span></article>
 </section>
 
 <section class="workflow-grid">
@@ -60,7 +128,7 @@
         <p>{{ _('这里不再要求你先选固定模式。先把项目里的可发布组件定义清楚，再预览脚本、配置和接入说明。') }}</p>
       </div>
     </div>
-    <form method="post" action="/console/projects/{{ project.id }}/components/import-compose" class="grid">
+    <form method="post" action="/console/projects/{{ project.id }}/components/import-compose" class="grid" data-confirm-message="{{ _('重新读取后将覆盖已有设置，请确认。') }}">
       <div class="form-grid">
         <label>{{ _('从 Compose 导入') }}
           <input type="text" name="compose_path" value="{{ compose_path_hint }}" placeholder="docker-compose.yml">
@@ -216,7 +284,7 @@
         <strong style="display:block; word-break:break-all;">{{ starter_bundle.remote_agent.status_url }}</strong>
       </div>
     </div>
-    <details class="advanced" open>
+    <details class="advanced">
       <summary>{{ _('查看最小协议请求体') }}</summary>
       <pre class="code-block">{{ starter_bundle.remote_agent.required_contract.hook_payload | tojson(indent=2) }}</pre>
     </details>
@@ -242,29 +310,32 @@
       <span>{{ starter_bundle.component_names|join(' + ') if starter_bundle.component_names else _('暂无启用组件') }}</span>
     </div>
   </div>
-  <div class="list-stack">
-    <article class="list-card">
-      <div class="meta-line">
-        <span class="badge">deploy/release.config.json</span>
-        <span>{{ _('在线可配置') }}</span>
-      </div>
-      <pre class="code-block">{{ starter_bundle.files["deploy/release.config.json"] }}</pre>
-    </article>
-    <article class="list-card">
-      <div class="meta-line">
-        <span class="badge">build-release.sh</span>
-        <span>deploy/scripts/package_release.sh</span>
-      </div>
-      <pre class="code-block">{{ starter_bundle.files["deploy/scripts/package_release.sh"] }}</pre>
-    </article>
-    <article class="list-card">
-      <div class="meta-line">
-        <span class="badge">README.md</span>
-        <span>{{ _('新手接入说明') }}</span>
-      </div>
-      <pre class="code-block">{{ starter_bundle.files["README.md"] }}</pre>
-    </article>
-  </div>
+  <details class="advanced">
+    <summary>{{ _('点击展开 Starter 预览') }}</summary>
+    <div class="list-stack" style="margin-top:16px;">
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">deploy/release.config.json</span>
+          <span>{{ _('在线可配置') }}</span>
+        </div>
+        <pre class="code-block">{{ starter_bundle.files["deploy/release.config.json"] }}</pre>
+      </article>
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">build-release.sh</span>
+          <span>deploy/scripts/package_release.sh</span>
+        </div>
+        <pre class="code-block">{{ starter_bundle.files["deploy/scripts/package_release.sh"] }}</pre>
+      </article>
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">README.md</span>
+          <span>{{ _('新手接入说明') }}</span>
+        </div>
+        <pre class="code-block">{{ starter_bundle.files["README.md"] }}</pre>
+      </article>
+    </div>
+  </details>
 </section>
 
 <section class="grid two">
@@ -292,10 +363,13 @@
             {% endfor %}
           </select>
         </label>
-        <label>{{ _('新增组件') }}
-          <input type="text" value="{{ _('在左上卡片中手工新增或从 compose 导入') }}" disabled>
-        </label>
       </div>
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">{{ _('组件维护') }}</span>
+        </div>
+        <p class="muted small" style="margin:0;">{{ _('组件不在这里新增。请到左上区域手工新增组件，或使用“从 compose 读取组件候选”。') }}</p>
+      </article>
       <article class="list-card">
         <div class="meta-line">
           <span class="badge" id="build-template-mode-badge">{{ _('主路径') }}</span>
@@ -306,6 +380,13 @@
       <label>{{ _('配置覆盖(JSON)') }}
         <textarea id="build-config-override" name="config_override_json" placeholder='{"workspace_path":"/workspace","package_script":"deploy/scripts/package_release.sh"}'>{{ build_config.config_override_json if build_config and build_config.config_override_json else '' }}</textarea>
       </label>
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="badge">{{ _('覆盖说明') }}</span>
+        </div>
+        <p class="muted small" style="margin:0;">{{ _('这里保存的是当前项目对所选模板的覆盖项，不会自动按环境切换。') }}</p>
+        <p class="muted small" style="margin:8px 0 0;">{{ _('其中 `artifact_public_base_url` 只用于本地制品模式下生成 release 访问地址；如果选择 OSS，最终 manifest 会改写成 OSS 地址。') }}</p>
+      </article>
       <div class="actions">
         <button type="submit" class="secondary">{{ _('保存接入配置') }}</button>
       </div>
@@ -313,7 +394,7 @@
     {% if build_config and build_config.template %}
     <details class="advanced">
       <summary>{{ _('查看模板默认配置') }}</summary>
-      <pre style="margin-top:12px;">{{ build_config.template.config_json or '{}' }}</pre>
+      <pre id="build-template-default-config" style="margin-top:12px;">{{ build_config.template.config_json or '{}' }}</pre>
     </details>
     {% endif %}
   </article>
@@ -383,7 +464,7 @@
           <input type="text" name="status_url" required>
         </label>
         <label>{{ _('共享密钥') }}
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; height:44px;">
             <input type="text" name="shared_secret" data-shared-secret-input required>
             <button type="button" class="secondary generate-shared-secret-button">{{ _('生成密钥') }}</button>
           </div>
@@ -471,7 +552,7 @@
                 <input type="text" name="status_url" value="{{ env.status_url }}" required>
               </label>
               <label>{{ _('共享密钥') }}
-                <div style="display:flex; gap:8px;">
+                <div style="display:flex; gap:8px; height:44px;">
                   <input type="text" name="shared_secret" value="{{ env.shared_secret }}" data-shared-secret-input required>
                   <button type="button" class="secondary generate-shared-secret-button">{{ _('生成密钥') }}</button>
                 </div>
@@ -601,6 +682,20 @@
       <div class="muted">{{ _('还没有构建任务。') }}</div>
       {% endfor %}
     </div>
+    {% if build_jobs_pagination.total > 0 %}
+    <div class="pagination">
+      <span class="summary">{{ _('共') }} {{ build_jobs_pagination.total }}</span>
+      {% if build_jobs_pagination.prev_url %}
+      <a class="button secondary" href="{{ build_jobs_pagination.prev_url }}">{{ _('上一页') }}</a>
+      {% endif %}
+      {% for page_item in build_jobs_pagination.pages %}
+      <a class="button {% if page_item.current %}{% else %}secondary{% endif %}" href="{{ page_item.url }}">{{ page_item.number }}</a>
+      {% endfor %}
+      {% if build_jobs_pagination.next_url %}
+      <a class="button secondary" href="{{ build_jobs_pagination.next_url }}">{{ _('下一页') }}</a>
+      {% endif %}
+    </div>
+    {% endif %}
   </article>
 
   <article class="card">
@@ -629,6 +724,20 @@
       <div class="muted">{{ _('还没有部署任务。') }}</div>
       {% endfor %}
     </div>
+    {% if deployments_pagination.total > 0 %}
+    <div class="pagination">
+      <span class="summary">{{ _('共') }} {{ deployments_pagination.total }}</span>
+      {% if deployments_pagination.prev_url %}
+      <a class="button secondary" href="{{ deployments_pagination.prev_url }}">{{ _('上一页') }}</a>
+      {% endif %}
+      {% for page_item in deployments_pagination.pages %}
+      <a class="button {% if page_item.current %}{% else %}secondary{% endif %}" href="{{ page_item.url }}">{{ page_item.number }}</a>
+      {% endfor %}
+      {% if deployments_pagination.next_url %}
+      <a class="button secondary" href="{{ deployments_pagination.next_url }}">{{ _('下一页') }}</a>
+      {% endif %}
+    </div>
+    {% endif %}
   </article>
 </section>
 
@@ -639,9 +748,9 @@
       <p>{{ _('这里只保留最近的可发布版本，强调“选版本发版”，而不是把所有信息糅在一个列表里。') }}</p>
     </div>
   </div>
-  <div class="list-stack">
-    {% for release in project.releases|sort(attribute='created_at', reverse=True) %}
-    <article class="list-card">
+  <div class="release-grid">
+    {% for release in releases %}
+    <article class="list-card release-card">
       <div class="meta-line">
         <span class="badge {% if release.manifest_sync_status == 'failed' %}failed{% endif %}">{{ release.manifest_sync_status }}</span>
         <span>{{ release.storage_mode }}</span>
@@ -662,12 +771,9 @@
         <span>{{ release.components|sort(attribute='position')|map(attribute='name')|join(', ') }}</span>
       </div>
       {% endif %}
-      <div class="actions">
-        <form method="post" action="/console/releases/{{ release.id }}/sync-manifest" class="inline">
-          <button type="submit" class="secondary">{{ _('重新同步 manifest') }}</button>
-        </form>
+      <div class="release-actions">
         {% if project.environments %}
-        <form method="post" action="/console/projects/{{ project.id }}/deploy" class="inline">
+        <form method="post" action="/console/projects/{{ project.id }}/deploy" class="inline release-deploy-form">
           <input type="hidden" name="release_id" value="{{ release.id }}">
           <select name="environment_id" aria-label="{{ _('选择发布环境') }}">
             {% for env in project.environments %}
@@ -683,6 +789,20 @@
     <div class="muted">{{ _('还没有 Release。') }}</div>
     {% endfor %}
   </div>
+  {% if releases_pagination.total > 0 %}
+  <div class="pagination">
+    <span class="summary">{{ _('共') }} {{ releases_pagination.total }}</span>
+    {% if releases_pagination.prev_url %}
+    <a class="button secondary" href="{{ releases_pagination.prev_url }}">{{ _('上一页') }}</a>
+    {% endif %}
+    {% for page_item in releases_pagination.pages %}
+    <a class="button {% if page_item.current %}{% else %}secondary{% endif %}" href="{{ page_item.url }}">{{ page_item.number }}</a>
+    {% endfor %}
+    {% if releases_pagination.next_url %}
+    <a class="button secondary" href="{{ releases_pagination.next_url }}">{{ _('下一页') }}</a>
+    {% endif %}
+  </div>
+  {% endif %}
 </section>
 {% endif %}
 
@@ -801,6 +921,15 @@
       });
     });
 
+    document.querySelectorAll("form[data-confirm-message]").forEach((formNode) => {
+      formNode.addEventListener("submit", (event) => {
+        const message = formNode.getAttribute("data-confirm-message");
+        if (message && !window.confirm(message)) {
+          event.preventDefault();
+        }
+      });
+    });
+
     document.querySelectorAll(".file-picker input[type='file']").forEach((input) => {
       const wrapper = input.closest(".file-picker");
       const nameNode = wrapper ? wrapper.querySelector("[data-file-picker-name]") : null;
@@ -826,6 +955,7 @@
     const templateSlugNode = document.getElementById("build-template-slug");
     const templateModeBadgeNode = document.getElementById("build-template-mode-badge");
     const buildConfigOverrideNode = document.getElementById("build-config-override");
+    const buildTemplateDefaultConfigNode = document.getElementById("build-template-default-config");
     function updateBuildTemplateHint() {
       if (!templateSelect || !templateDescriptionNode || !buildConfigOverrideNode) return;
       const option = templateSelect.options[templateSelect.selectedIndex];
@@ -840,6 +970,9 @@
         templateModeBadgeNode.textContent = slug === "manifest_upload_v1" ? "{{ _('高级场景') }}" : "{{ _('主路径') }}";
       }
       buildConfigOverrideNode.placeholder = configJson;
+      if (buildTemplateDefaultConfigNode) {
+        buildTemplateDefaultConfigNode.textContent = configJson;
+      }
     }
     if (templateSelect) {
       templateSelect.addEventListener("change", updateBuildTemplateHint);

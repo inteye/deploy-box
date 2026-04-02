@@ -42,7 +42,13 @@ class WebhookManifestV1Adapter(DeployAdapter):
             "X-Release-Version": release.version,
             "X-Signature": f"sha256={signature}",
         }
-        with httpx.Client(timeout=self.settings.request_timeout_seconds) as client:
+        timeout = httpx.Timeout(
+            connect=min(self.settings.deployment_trigger_timeout_seconds, 10),
+            read=self.settings.deployment_trigger_timeout_seconds,
+            write=min(self.settings.deployment_trigger_timeout_seconds, 30),
+            pool=min(self.settings.deployment_trigger_timeout_seconds, 30),
+        )
+        with httpx.Client(timeout=timeout) as client:
             response = client.post(self.environment.webhook_url, content=raw_body, headers=headers)
         response.raise_for_status()
         return {

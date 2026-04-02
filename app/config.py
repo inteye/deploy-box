@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     app_name: str = "DeployBox"
     database_url: str = f"sqlite:///{(DATA_DIR / 'deploy-console.db').as_posix()}"
     request_timeout_seconds: int = 30
+    deployment_trigger_timeout_seconds: int = 90
     deployment_poll_interval_seconds: int = 5
     deployment_watch_timeout_seconds: int = 1800
     secret_key: str = "replace-me-in-production"

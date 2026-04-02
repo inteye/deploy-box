@@ -1041,3 +1041,36 @@ msgstr "目录"
 
 msgid "软链接"
 msgstr "软链接"
+
+msgid "共"
+msgstr "共"
+
+msgid "上一页"
+msgstr "上一页"
+
+msgid "下一页"
+msgstr "下一页"
+
+msgid "重新读取后将覆盖已有设置，请确认。"
+msgstr "重新读取后将覆盖已有设置，请确认。"
+
+msgid "组件维护"
+msgstr "组件维护"
+
+msgid "组件不在这里新增。请到左上区域手工新增组件，或使用“从 compose 读取组件候选”。"
+msgstr "组件不在这里新增。请到左上区域手工新增组件，或使用“从 compose 读取组件候选”。"
+
+msgid "覆盖说明"
+msgstr "覆盖说明"
+
+msgid "这里保存的是当前项目对所选模板的覆盖项，不会自动按环境切换。"
+msgstr "这里保存的是当前项目对所选模板的覆盖项，不会自动按环境切换。"
+
+msgid "其中 `artifact_public_base_url` 只用于本地制品模式下生成 release 访问地址；如果选择 OSS，最终 manifest 会改写成 OSS 地址。"
+msgstr "其中 `artifact_public_base_url` 只用于本地制品模式下生成 release 访问地址；如果选择 OSS，最终 manifest 会改写成 OSS 地址。"
+
+msgid "点击展开 Starter 预览"
+msgstr "点击展开 Starter 预览"
+
+msgid "快速发布"
+msgstr "快速发布"
