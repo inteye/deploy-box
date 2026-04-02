@@ -669,8 +669,12 @@
         {% if project.environments %}
         <form method="post" action="/console/projects/{{ project.id }}/deploy" class="inline">
           <input type="hidden" name="release_id" value="{{ release.id }}">
-          <input type="hidden" name="environment_id" value="{{ project.environments[0].id }}">
-          <button type="submit">{{ _('快速发布到') }} {{ project.environments[0].name }}</button>
+          <select name="environment_id" aria-label="{{ _('选择发布环境') }}">
+            {% for env in project.environments %}
+            <option value="{{ env.id }}">{{ env.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">{{ _('快速发布') }}</button>
         </form>
         {% endif %}
       </div>

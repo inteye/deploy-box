@@ -15,3 +15,12 @@ def build_artifact_storage(settings) -> ArtifactStorage:
     if missing:
         raise RuntimeError(f"OSS 配置不完整，缺少: {', '.join(missing)}")
     return AliyunOssStorage(settings)
+
+
+def build_oss_storage_descriptor(settings) -> dict:
+    return {
+        "provider": "aliyun_oss",
+        "bucket": settings.oss_bucket_name,
+        "endpoint": settings.oss_endpoint,
+        "region": settings.oss_region or None,
+    }

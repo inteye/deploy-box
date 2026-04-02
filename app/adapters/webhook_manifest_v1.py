@@ -15,9 +15,18 @@ class WebhookManifestV1Adapter(DeployAdapter):
         self.settings = get_settings()
 
     def trigger_deploy(self, release: Release, triggered_by: str | None) -> dict:
+        manifest_json = None
+        if release.manifest_json:
+            try:
+                parsed = json.loads(release.manifest_json)
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, dict):
+                manifest_json = parsed
         payload = {
             "version": release.version,
             "manifest_url": release.manifest_url,
+            "manifest_json": manifest_json,
             "environment": self.environment.default_environment_name,
             "triggered_by": triggered_by or "manual",
             "commit": release.commit or "",

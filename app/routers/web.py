@@ -32,7 +32,7 @@ from ..services import (
     sync_release_manifest,
     sync_release_manifest_payload,
 )
-from ..storage import build_artifact_storage
+from ..storage import build_artifact_storage, build_oss_storage_descriptor
 
 
 router = APIRouter(tags=["web"])
@@ -733,17 +733,20 @@ def upload_release_form(
         remote_prefix = f"{project.slug}/releases/{version}"
         if use_oss:
             storage = build_artifact_storage(settings)
+            manifest_payload["artifact_storage"] = build_oss_storage_descriptor(settings)
             for component in components:
                 image_tar_url = str(component.get("image_tar_url") or "").strip()
                 artifact_name = Path(image_tar_url).name
                 artifact_bytes = uploaded_artifacts.get(artifact_name)
                 if not artifact_name or artifact_bytes is None:
                     raise ValueError(f"缺少组件文件: {artifact_name or '-'}")
+                remote_object_key = f"{remote_prefix}/{artifact_name}"
                 component["image_tar_url"] = storage.upload_bytes(
                     data=artifact_bytes,
-                    remote_path=f"{remote_prefix}/{artifact_name}",
+                    remote_path=remote_object_key,
                     content_type="application/x-tar",
                 )
+                component["image_tar_object_key"] = remote_object_key
             if sha256_file and sha256_file.filename:
                 storage.upload_bytes(
                     data=sha256_file.file.read(),
@@ -760,6 +763,7 @@ def upload_release_form(
             release_root = Path(settings.local_artifacts_path).resolve() / version
             release_root.mkdir(parents=True, exist_ok=True)
             public_base = (settings.package_artifact_public_base_url or settings.package_artifact_base_url).rstrip("/")
+            manifest_payload.pop("artifact_storage", None)
             for artifact_name, artifact_bytes in uploaded_artifacts.items():
                 (release_root / artifact_name).write_bytes(artifact_bytes)
             for component in components:
@@ -768,6 +772,7 @@ def upload_release_form(
                 if not artifact_name or artifact_name not in uploaded_artifacts:
                     raise ValueError(f"缺少组件文件: {artifact_name or '-'}")
                 component["image_tar_url"] = f"{public_base}/{version}/{artifact_name}"
+                component.pop("image_tar_object_key", None)
             if sha256_file and sha256_file.filename:
                 (release_root / "sha256sum.txt").write_bytes(sha256_file.file.read())
             (release_root / "manifest.json").write_text(

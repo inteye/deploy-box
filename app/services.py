@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import subprocess
 import tarfile
@@ -31,7 +32,7 @@ from .models import (
     Release,
     ReleaseComponent,
 )
-from .storage import build_artifact_storage
+from .storage import build_artifact_storage, build_oss_storage_descriptor
 from .task_runner import submit_background_job
 
 
@@ -257,7 +258,7 @@ def import_project_components_from_compose(
     existing_by_service = {item.service_name: item for item in existing_components}
     for item in services:
         service_name = item["service_name"]
-        image = item["image"] or _default_component_image(project, service_name)
+        image = _unwrap_compose_image_reference(item["image"]) or _default_component_image(project, service_name)
         dockerfile = _normalize_compose_dockerfile_path(item["dockerfile"], item["context_path"])
         context_path = item["context_path"] or "."
         build_enabled = bool(item.get("has_build"))
@@ -827,26 +828,72 @@ def _run_manifest_script_build(
     env["CONFIG_FILE"] = str(temp_config_path)
 
     _record_build_event(db, job, "info", "package", "开始执行打包脚本", 20)
+    output_lines: list[str] = []
+    combined_stdout = ""
+    component_total = len(resolved["components"])
+    completed_components = 0
+    active_progress = 20
     try:
-        process = subprocess.run(
+        process = subprocess.Popen(
             ["bash", str(package_script)],
             cwd=workspace,
             env=env,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            check=False,
+            bufsize=1,
         )
+        assert process.stdout is not None
+        for raw_line in process.stdout:
+            line = raw_line.rstrip()
+            output_lines.append(line)
+            if line.startswith("==> building "):
+                component_name = line.removeprefix("==> building ").split(" (", 1)[0].strip()
+                active_progress = 20 + int(25 * completed_components / max(component_total, 1))
+                _record_build_event(
+                    db,
+                    job,
+                    "info",
+                    "package",
+                    f"正在构建组件 {completed_components + 1}/{component_total}: {component_name}",
+                    active_progress,
+                )
+            elif line.startswith("==> saving "):
+                completed_components += 1
+                active_progress = 20 + int(25 * completed_components / max(component_total, 1))
+                _record_build_event(
+                    db,
+                    job,
+                    "info",
+                    "package",
+                    f"已完成组件 {completed_components}/{component_total}: {line.removeprefix('==> saving ').strip()}",
+                    active_progress,
+                )
+            elif line.startswith("==> pulling external image for "):
+                completed_components += 1
+                component_name = line.removeprefix("==> pulling external image for ").split(" (", 1)[0].strip()
+                active_progress = 20 + int(25 * completed_components / max(component_total, 1))
+                _record_build_event(
+                    db,
+                    job,
+                    "info",
+                    "package",
+                    f"已完成外部镜像 {completed_components}/{component_total}: {component_name}",
+                    active_progress,
+                )
+        process.wait()
     finally:
         if temp_config_path.exists():
             temp_config_path.unlink()
-    job.log_excerpt = ((process.stdout or "") + "\n" + (process.stderr or "")).strip()[:4000] or None
+    combined_stdout = "\n".join(output_lines).strip()
+    job.log_excerpt = _tail_text(output_lines)
     db.commit()
     if process.returncode != 0:
-        error_text = (process.stderr or process.stdout or "package_release failed").strip()
+        error_text = (combined_stdout or "package_release failed").strip()
         raise RuntimeError(error_text[:4000])
 
-    version = _parse_stdout_value(process.stdout, "Version:")
-    output_dir = _parse_stdout_value(process.stdout, "Release package created at")
+    version = _parse_stdout_value(combined_stdout, "Version:")
+    output_dir = _parse_stdout_value(combined_stdout, "Release package created at")
     if not version or not output_dir:
         raise RuntimeError("打包脚本输出缺少 Version 或 Release package created at")
     output_path = Path(output_dir).resolve()
@@ -871,6 +918,7 @@ def _run_manifest_script_build(
     if use_oss:
         _record_build_event(db, job, "info", "upload", "开始上传到 OSS", 70)
         storage = build_artifact_storage(settings)
+        manifest_payload["artifact_storage"] = build_oss_storage_descriptor(settings)
         components = _validated_components(manifest_payload)
         total = len(components)
         for index, component in enumerate(components, start=1):
@@ -890,11 +938,13 @@ def _run_manifest_script_build(
             artifact_path = output_path / artifact_name
             if not artifact_name or not artifact_path.exists():
                 raise RuntimeError(f"未找到组件文件: {artifact_name or '-'}")
+            remote_object_key = f"{remote_prefix}/{artifact_name}"
             component["image_tar_url"] = storage.upload_bytes(
                 data=artifact_path.read_bytes(),
-                remote_path=f"{remote_prefix}/{artifact_name}",
+                remote_path=remote_object_key,
                 content_type="application/x-tar",
             )
+            component["image_tar_object_key"] = remote_object_key
             progress = 70 + int(20 * index / max(total, 1))
             _record_build_event(
                 db,
@@ -920,14 +970,17 @@ def _run_manifest_script_build(
         )
     else:
         _record_build_event(db, job, "info", "local_artifacts", "使用本地制品站登记 release", 75)
+        manifest_payload.pop("artifact_storage", None)
         manifest_payload["components"] = _validated_components(manifest_payload)
         manifest_url = f"{artifact_base_url}/{version}/manifest.json"
         for component in manifest_payload["components"]:
             image_tar_url = str(component.get("image_tar_url") or "").strip()
             if not image_tar_url:
+                component.pop("image_tar_object_key", None)
                 continue
             artifact_name = Path(image_tar_url).name
             component["image_tar_url"] = f"{artifact_base_url}/{version}/{artifact_name}"
+            component.pop("image_tar_object_key", None)
         manifest_path.write_text(
             json.dumps(manifest_payload, ensure_ascii=True, indent=2),
             encoding="utf-8",
@@ -1049,7 +1102,7 @@ def _project_components_to_release_config(project: Project, components: list[Pro
         items.append(
             {
                 "name": component.name,
-                "image": component.image,
+                "image": _unwrap_compose_image_reference(component.image),
                 "dockerfile": component.dockerfile,
                 "context": component.context_path,
                 "service": component.service_name,
@@ -1122,6 +1175,15 @@ def _parse_stdout_value(stdout: str, prefix: str) -> str | None:
     return None
 
 
+def _tail_text(lines: list[str], max_chars: int = 4000) -> str | None:
+    if not lines:
+        return None
+    text = "\n".join(lines)
+    if len(text) <= max_chars:
+        return text
+    return text[-max_chars:]
+
+
 def _git_commit(workspace: Path) -> str | None:
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"],
@@ -1184,8 +1246,18 @@ def _service_image_env_key(service_name: str) -> str:
     return "DEPLOY_IMAGE_" + "".join(ch if ch.isalnum() else "_" for ch in service_name).upper()
 
 
-def _release_image_fallback(image: str) -> str:
+def _unwrap_compose_image_reference(image: str) -> str:
     value = (image or "").strip()
+    if not value:
+        return ""
+    match = re.fullmatch(r"\$\{[^}:]+(?::-|:-)([^}]+)\}", value)
+    if match:
+        return match.group(1).strip()
+    return value
+
+
+def _release_image_fallback(image: str) -> str:
+    value = _unwrap_compose_image_reference(image)
     if not value:
         return ""
     if value.endswith(":__VERSION__"):
@@ -1410,8 +1482,13 @@ def _render_build_release_script() -> str:
           exit 1
         fi
 
-        short_sha="$(git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/null || echo local)"
-        VERSION="${VERSION:-$(date +%Y%m%d-%H%M)-${short_sha}}"
+        short_sha="$(git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/null || true)"
+        timestamp="$(date +%Y%m%d-%H%M)"
+        if [[ -n "${short_sha}" ]]; then
+          VERSION="${VERSION:-${timestamp}-${short_sha}}"
+        else
+          VERSION="${VERSION:-${timestamp}}"
+        fi
 
         export CONFIG_FILE ROOT_DIR PROJECT_ROOT VERSION
 
@@ -1446,9 +1523,11 @@ def _render_build_release_script() -> str:
             docker save -o "${OUTPUT_DIR}/${tar_name}" "${image}"
             sha="$(shasum -a 256 "${OUTPUT_DIR}/${tar_name}" | awk '{print $1}')"
           else
-            echo "==> skipping docker build for ${name}, use image reference only (${image})"
-            tar_name=""
-            sha=""
+            echo "==> pulling external image for ${name} (${image})"
+            docker pull "${image}"
+            echo "==> saving ${tar_name}"
+            docker save -o "${OUTPUT_DIR}/${tar_name}" "${image}"
+            sha="$(shasum -a 256 "${OUTPUT_DIR}/${tar_name}" | awk '{print $1}')"
           fi
           name="${name}" service="${service}" image="${image}" dockerfile="${dockerfile}" context="${context}" tar_name="${tar_name}" sha="${sha}" build_enabled="${build_enabled}" COMPONENTS_FILE="${COMPONENTS_FILE}" python3 - <<'PY'
         import json, os
@@ -1468,14 +1547,22 @@ def _render_build_release_script() -> str:
         PY
         done < <(
           python3 - <<'PY'
-        import json, os
+        import json, os, re
         from pathlib import Path
+        def unwrap_image_ref(value: str) -> str:
+            raw = str(value or "").strip()
+            if not raw:
+                return ""
+            match = re.fullmatch(r"\\$\\{[^}:]+(?::-|:-)([^}]+)\\}", raw)
+            if match:
+                return match.group(1).strip()
+            return raw
         config = json.loads(Path(os.environ["CONFIG_FILE"]).read_text(encoding="utf-8"))
         version = os.environ["VERSION"]
         for item in config.get("components", []):
             name = item["name"]
             service = item.get("service") or name
-            image = str(item["image"]).replace("__VERSION__", version)
+            image = unwrap_image_ref(item["image"]).replace("__VERSION__", version)
             dockerfile = item.get("dockerfile", "./Dockerfile")
             context = item.get("context", ".")
             tar_name = str(item.get("tar_name") or f"{name}-__VERSION__.tar").replace("__VERSION__", version)
@@ -1594,12 +1681,16 @@ def _render_starter_readme(
                - `dist/releases/<version>/manifest.json`
                - `dist/releases/<version>/*.tar`
                - `dist/releases/<version>/sha256sum.txt`
+               External images are packaged as tar files too. The script uses `docker build` for build-enabled components and `docker pull` plus `docker save` for external-image components.
             5. In DeployBox, bind the build template to `manifest_script_v1`.
             6. Maintain the deployable services in the component list.
             7. Deploy a compatible deploy-agent on the target host and configure:
                - webhook URL: {webhook_url}
                - status URL: {status_url}
                - shared secret: keep it consistent with `DEPLOY_SHARED_SECRET`
+               - if artifacts are stored in a private OSS bucket, also configure:
+                 `DEPLOY_OSS_ACCESS_KEY_ID`, `DEPLOY_OSS_ACCESS_KEY_SECRET`,
+                 `DEPLOY_OSS_BUCKET_NAME`, `DEPLOY_OSS_ENDPOINT`, `DEPLOY_OSS_REGION`
 
             ## deploy-agent Quick Start
 
@@ -1628,6 +1719,20 @@ def _render_starter_readme(
                curl http://127.0.0.1:9000/deploy/status
                ```
             6. After the endpoint is reachable, fill webhook URL, status URL, and shared secret back into DeployBox.
+
+            ## Private OSS Buckets
+
+            If release artifacts are stored in a private OSS bucket, the deploy-agent must download them with OSS credentials instead of relying on a public URL.
+
+            Configure these variables in `deploy-agent.env`:
+
+            - `DEPLOY_OSS_ACCESS_KEY_ID`
+            - `DEPLOY_OSS_ACCESS_KEY_SECRET`
+            - `DEPLOY_OSS_BUCKET_NAME`
+            - `DEPLOY_OSS_ENDPOINT`
+            - `DEPLOY_OSS_REGION`
+
+            The current deploy protocol will send the manifest payload directly in the webhook request. New OSS releases include `artifact_storage` and `image_tar_object_key`, and the deploy-agent will use OSS SDK download first, then fall back to `image_tar_url` for older releases.
 
             ## Minimal Hook Payload
 
@@ -1685,6 +1790,11 @@ def _render_starter_readme(
 
         这些默认值不是为某个特定项目硬编码的，它们只是帮助你从 0 接入时先跑通一条主路径。
 
+        当前默认打包规则是：
+        - `需要构建` 的组件会执行 `docker build` 后再 `docker save`
+        - `外部镜像` 组件会执行 `docker pull` 后再 `docker save`
+        - 所以只要组件被选中参与本次 release，默认都会随 release 一起生成 tar 制品
+
         ## starter 目录结构
 
         - `README.md`
@@ -1716,6 +1826,9 @@ def _render_starter_readme(
            - webhook URL：{webhook_url}
            - status URL：{status_url}
            - 共享密钥：与远端 `DEPLOY_SHARED_SECRET` 保持一致
+           - 如果制品存放在私有 OSS bucket，还需要填写：
+             `DEPLOY_OSS_ACCESS_KEY_ID`、`DEPLOY_OSS_ACCESS_KEY_SECRET`、
+             `DEPLOY_OSS_BUCKET_NAME`、`DEPLOY_OSS_ENDPOINT`、`DEPLOY_OSS_REGION`
 
         ## deploy-agent 启动方法
 
@@ -1750,6 +1863,20 @@ def _render_starter_readme(
            curl http://127.0.0.1:9000/deploy/status
            ```
         7. 确认接口可达后，把 webhook URL、status URL、shared secret 填回 DeployBox 环境配置。
+
+        ## 私有 OSS Bucket
+
+        如果 release 制品存放在私有 OSS bucket，deploy-agent 不能再依赖公开下载链接，而是需要用本机配置的 OSS 凭证直接下载对象。
+
+        需要在 `deploy-agent.env` 里配置：
+
+        - `DEPLOY_OSS_ACCESS_KEY_ID`
+        - `DEPLOY_OSS_ACCESS_KEY_SECRET`
+        - `DEPLOY_OSS_BUCKET_NAME`
+        - `DEPLOY_OSS_ENDPOINT`
+        - `DEPLOY_OSS_REGION`
+
+        当前协议下，DeployBox 会把 manifest 内容直接放进 webhook 请求里。新生成的 OSS release 会额外带上 `artifact_storage` 和 `image_tar_object_key`，deploy-agent 会优先按对象 key 走 OSS SDK 下载；只有旧 release 才继续回退到 `image_tar_url`。
 
         说明：
 
@@ -1850,7 +1977,11 @@ def _render_deploy_agent_compose(project_slug: str) -> str:
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
               - ./state:/deploy/state
+              # Mount the project to a stable in-container path for deploy scripts.
               - ${{DEPLOY_PROJECT_WORKSPACE_HOST_PATH:-/srv/apps/{project_slug}}}:/workspace
+              # Mirror the same host path inside the container so docker compose
+              # can resolve --project-directory, env_file, and bind mounts against
+              # the real host path instead of the in-container /workspace path.
               - ${{DEPLOY_PROJECT_WORKSPACE_HOST_PATH:-/srv/apps/{project_slug}}}:${{DEPLOY_PROJECT_WORKSPACE_HOST_PATH:-/srv/apps/{project_slug}}}
         """
     )
@@ -1861,19 +1992,36 @@ def _render_deploy_agent_dockerfile() -> str:
         """\
         FROM python:3.13-slim
 
+        ARG DEBIAN_MIRROR=mirrors.tuna.tsinghua.edu.cn
+        ARG DEBIAN_SECURITY_MIRROR=mirrors.tuna.tsinghua.edu.cn
+        ARG DOCKER_APT_MIRROR=mirrors.aliyun.com/docker-ce
+
         WORKDIR /opt/deploy
 
-        RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources \
-            && sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources
+        RUN . /etc/os-release \
+            && codename="${VERSION_CODENAME:-bookworm}" \
+            && cat > /etc/apt/sources.list.d/debian.sources <<EOF
+        Types: deb
+        URIs: https://${DEBIAN_MIRROR}/debian
+        Suites: ${codename} ${codename}-updates
+        Components: main
+        Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+        Types: deb
+        URIs: https://${DEBIAN_SECURITY_MIRROR}/debian-security
+        Suites: ${codename}-security
+        Components: main
+        Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+        EOF
         RUN apt-get update \
             && apt-get install -y --no-install-recommends bash curl ca-certificates gnupg \
             && install -m 0755 -d /etc/apt/keyrings \
-            && curl --http1.1 --retry 5 --retry-all-errors --retry-delay 2 -fsSL https://mirrors.aliyun.com/docker-ce/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
+            && curl --http1.1 --retry 5 --retry-all-errors --retry-delay 2 -fsSL https://${DOCKER_APT_MIRROR}/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
             && chmod a+r /etc/apt/keyrings/docker.asc \
             && . /etc/os-release \
             && docker_repo_codename="${VERSION_CODENAME}" \
             && case "${docker_repo_codename}" in trixie|forky|sid|unstable) docker_repo_codename="bookworm" ;; esac \
-            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://mirrors.aliyun.com/docker-ce/linux/debian ${docker_repo_codename} stable" > /etc/apt/sources.list.d/docker.list \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://${DOCKER_APT_MIRROR}/linux/debian ${docker_repo_codename} stable" > /etc/apt/sources.list.d/docker.list \
             && apt-get update \
             && apt-get install -y --no-install-recommends docker-ce-cli docker-compose-plugin \
             && if [ -x /usr/libexec/docker/cli-plugins/docker-compose ]; then ln -sf /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose; fi \
@@ -1900,12 +2048,13 @@ def _render_deploy_agent_requirements() -> str:
         fastapi==0.116.1
         uvicorn==0.35.0
         httpx==0.28.1
+        oss2==2.19.1
         """
     )
 
 
 def _render_deploy_agent_app(lang: str = "zh") -> str:
-    manifest_detail = "Downloading manifest" if lang == "en" else "正在下载 manifest"
+    manifest_detail = "Loading manifest" if lang == "en" else "正在加载 manifest"
     failed_detail = "Deploy script failed" if lang == "en" else "部署脚本执行失败"
     success_detail = "Deployment completed" if lang == "en" else "部署完成"
     return dedent(
@@ -1971,7 +2120,12 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
             payload = json.loads(raw_body.decode("utf-8"))
             version = str(payload.get("version") or "").strip()
             manifest_url = str(payload.get("manifest_url") or "").strip()
-            if not version or not manifest_url:
+            manifest_payload = payload.get("manifest_json")
+            if not version:
+                raise HTTPException(status_code=400, detail="version_missing")
+            if manifest_payload is not None and not isinstance(manifest_payload, dict):
+                raise HTTPException(status_code=400, detail="manifest_json_invalid")
+            if manifest_payload is None and not manifest_url:
                 raise HTTPException(status_code=400, detail="version_or_manifest_missing")
 
             release_dir = STATE_DIR / "releases" / version
@@ -1987,10 +2141,13 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                 }}
             )
 
-            async with httpx.AsyncClient(timeout=60) as client:
-                response = await client.get(manifest_url)
-                response.raise_for_status()
-                manifest_path.write_bytes(response.content)
+            if manifest_payload is not None:
+                manifest_path.write_text(json.dumps(manifest_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            else:
+                async with httpx.AsyncClient(timeout=60) as client:
+                    response = await client.get(manifest_url)
+                    response.raise_for_status()
+                    manifest_path.write_bytes(response.content)
 
             env = os.environ.copy()
             env["DEPLOY_VERSION"] = version
@@ -2073,6 +2230,8 @@ def _render_deploy_release_script() -> str:
         from pathlib import Path
         from urllib.request import urlretrieve
 
+        import oss2
+
 
         def compose_base_command() -> list[str]:
             if shutil.which("docker"):
@@ -2084,6 +2243,39 @@ def _render_deploy_release_script() -> str:
                 if probe.returncode == 0:
                     return ["docker-compose"]
             raise RuntimeError("docker compose is not available inside deploy-agent")
+
+
+        def normalize_endpoint(value: str) -> str:
+            raw = str(value or "").strip()
+            if not raw:
+                return ""
+            if raw.startswith("http://") or raw.startswith("https://"):
+                return raw.rstrip("/")
+            return f"https://{raw.rstrip('/')}"
+
+
+        def build_oss_bucket(storage_info: dict):
+            provider = str(storage_info.get("provider") or os.environ.get("DEPLOY_ARTIFACT_PROVIDER") or "").strip()
+            if provider and provider != "aliyun_oss":
+                raise RuntimeError(f"unsupported artifact storage provider: {provider}")
+            access_key_id = str(os.environ.get("DEPLOY_OSS_ACCESS_KEY_ID") or "").strip()
+            access_key_secret = str(os.environ.get("DEPLOY_OSS_ACCESS_KEY_SECRET") or "").strip()
+            bucket_name = str(storage_info.get("bucket") or os.environ.get("DEPLOY_OSS_BUCKET_NAME") or "").strip()
+            endpoint = normalize_endpoint(storage_info.get("endpoint") or os.environ.get("DEPLOY_OSS_ENDPOINT") or "")
+            region = str(storage_info.get("region") or os.environ.get("DEPLOY_OSS_REGION") or "").strip() or None
+            required = {
+                "DEPLOY_OSS_ACCESS_KEY_ID": access_key_id,
+                "DEPLOY_OSS_ACCESS_KEY_SECRET": access_key_secret,
+                "DEPLOY_OSS_BUCKET_NAME": bucket_name,
+                "DEPLOY_OSS_ENDPOINT": endpoint,
+            }
+            missing = [name for name, value in required.items() if not value]
+            if missing:
+                raise RuntimeError(
+                    "manifest requires private OSS download, missing deploy-agent config: " + ", ".join(missing)
+                )
+            auth = oss2.Auth(access_key_id, access_key_secret)
+            return oss2.Bucket(auth, endpoint, bucket_name, region=region)
 
 
         manifest_path = Path(os.environ["DEPLOY_MANIFEST_PATH"])
@@ -2098,10 +2290,13 @@ def _render_deploy_release_script() -> str:
         services = []
         compose_env = os.environ.copy()
         compose_cmd = compose_base_command()
+        artifact_storage = payload.get("artifact_storage") if isinstance(payload.get("artifact_storage"), dict) else {}
+        oss_bucket = None
 
         for component in payload.get("components", []):
             image = str(component.get("image") or "").strip()
             tar_url = str(component.get("image_tar_url") or "").strip()
+            object_key = str(component.get("image_tar_object_key") or "").strip()
             service = str(component.get("service") or component.get("name") or "").strip()
             if service:
                 services.append(service)
@@ -2109,7 +2304,15 @@ def _render_deploy_release_script() -> str:
                 env_key = "DEPLOY_IMAGE_" + "".join(ch if ch.isalnum() else "_" for ch in service).upper()
                 compose_env[env_key] = image
                 print(f"compose image override: {env_key}={image}")
-            if tar_url:
+            if object_key:
+                tar_name = Path(object_key).name
+                local_tar = manifest_path.parent / tar_name
+                if oss_bucket is None:
+                    oss_bucket = build_oss_bucket(artifact_storage)
+                print(f"downloading private oss object: {object_key}")
+                oss_bucket.get_object_to_file(object_key, str(local_tar))
+                subprocess.run(["docker", "load", "-i", str(local_tar)], check=True)
+            elif tar_url:
                 tar_name = Path(tar_url).name
                 local_tar = manifest_path.parent / tar_name
                 print(f"downloading {tar_url}")
@@ -2172,15 +2375,23 @@ def _render_deploy_agent_env(
             DEPLOY_SCRIPT=/opt/deploy/bin/deploy-release.sh
             DEPLOY_ENVIRONMENT={deploy_environment}
             DEPLOY_PROJECT_ROOT=/workspace
+            DEPLOY_OSS_ACCESS_KEY_ID=
+            DEPLOY_OSS_ACCESS_KEY_SECRET=
+            DEPLOY_OSS_BUCKET_NAME=
+            DEPLOY_OSS_ENDPOINT=
+            DEPLOY_OSS_REGION=
 
             # This must be the real project path on the target host.
-            # It is used for:
-            # 1. mounting the project into /workspace
-            # 2. docker compose --project-directory
-            # This keeps bind mounts and relative paths resolved from the host path.
+            # It is used for mounting the project into /workspace.
+            # It is also used as docker compose --project-directory.
+            # Keep bind mounts and relative paths resolved from the host path.
             #
-            # macOS example: /Users/inteye/TXCL/workstation/demo
-            # Linux example: /srv/apps/{remote_prefix.split('/')[0]}
+            # macOS example:
+            # /Users/yourname/workspace/sample-service
+            #
+            # Linux example:
+            # /srv/apps/{remote_prefix.split('/')[0]}
+            #
             # On Docker Desktop, add this path to File Sharing first.
             DEPLOY_PROJECT_WORKSPACE_HOST_PATH=/srv/apps/{remote_prefix.split('/')[0]}
 
@@ -2200,15 +2411,23 @@ def _render_deploy_agent_env(
         DEPLOY_SCRIPT=/opt/deploy/bin/deploy-release.sh
         DEPLOY_ENVIRONMENT={deploy_environment}
         DEPLOY_PROJECT_ROOT=/workspace
+        DEPLOY_OSS_ACCESS_KEY_ID=
+        DEPLOY_OSS_ACCESS_KEY_SECRET=
+        DEPLOY_OSS_BUCKET_NAME=
+        DEPLOY_OSS_ENDPOINT=
+        DEPLOY_OSS_REGION=
 
         # 必须填写目标机宿主机上的真实项目目录。
-        # 这个值会同时用于：
-        # 1. 挂载到容器内的 /workspace
-        # 2. docker compose 的 --project-directory
+        # 这个值会用于挂载到容器内的 /workspace。
+        # 这个值也会作为 docker compose 的 --project-directory。
         # 这样 compose 里的 bind mount / 相对路径才能按宿主机目录解析。
         #
-        # macOS 例子：/Users/inteye/TXCL/workstation/demo
-        # Linux 例子：/srv/apps/{remote_prefix.split('/')[0]}
+        # macOS 例子：
+        # /Users/yourname/workspace/sample-service
+        #
+        # Linux 例子：
+        # /srv/apps/{remote_prefix.split('/')[0]}
+        #
         # Docker Desktop 还需要把这个目录加入 File Sharing。
         DEPLOY_PROJECT_WORKSPACE_HOST_PATH=/srv/apps/{remote_prefix.split('/')[0]}
 
