@@ -1,7 +1,7 @@
 # DeployBox
 
 <p align="center">
-  <strong>Open-source release control plane for Docker / Docker Compose projects.</strong>
+  <strong>面向 Docker / Docker Compose 项目的开源发布控制平面。</strong>
 </p>
 
 <p align="center">
@@ -14,74 +14,72 @@
 [![Docker](https://img.shields.io/badge/docker-compose-2496ED.svg)](#)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](#license)
 
-DeployBox standardizes **project onboarding**, **artifact packaging**, **versioned releases**, and **remote deployment tracking** in one lightweight control plane.
+DeployBox 将**项目接入、制品打包、版本发布、远端部署跟踪**整合在一个轻量控制台中。
 
-It is built for teams that need practical release operations without introducing heavyweight CI/CD infrastructure.
+它面向希望快速落地发布流程、但不想引入重型 CI/CD 平台的团队。
 
-## Features
+## 核心特性
 
-- Multi-project release management in one console
-- Component-based releases (ship only images you selected)
-- Compose-aware onboarding (import service candidates from `docker-compose.yml`)
-- Built-in artifact flow (`manifest.json` + image tar)
-- Async deployment tracking, logs, and rollback entry
-- Supports local artifact server and OSS
-- Private OSS bucket support through deploy-agent credentials
-- Paginated build / deployment / release lists in project detail
+- 在一个控制台管理多个项目和发布流程
+- 组件级发布（只发布本次变更的镜像）
+- 支持从 `docker-compose.yml` 导入组件候选
+- 内置制品链路（`manifest.json` + 镜像 tar）
+- 异步部署跟踪、日志查看、回滚入口
+- 支持本地制品站和 OSS
 
-## Architecture
+## 系统架构
 
 ```mermaid
 flowchart LR
-    U[User] --> C[DeployBox Console]
+    U[用户] --> C[DeployBox Console]
     C --> DB[(SQLite / Data)]
     C --> A[Artifacts Server]
     C --> W[Webhook Adapter]
     W --> R[Deploy Agent]
-    R --> H[Target Docker Host]
+    R --> H[目标 Docker 主机]
     A --> R
 ```
 
-## Release Sequence
+## 发布时序
 
 ```mermaid
 sequenceDiagram
-    participant User
+    participant User as 用户
     participant Console as DeployBox Console
     participant Artifacts as Artifacts/OSS
     participant Agent as deploy-agent
-    participant Host as Target Host
+    participant Host as 目标主机
 
-    User->>Console: Create build job (selected components)
-    Console->>Console: Run package script
-    Console->>Artifacts: Upload/Publish manifest + tar files
+    User->>Console: 创建构建任务（选择组件）
+    Console->>Console: 执行打包脚本
+    Console->>Artifacts: 发布 manifest 与 tar
     Console->>Agent: POST /deploy/hook (manifest_url)
-    Agent->>Artifacts: Download manifest/tars
+    Agent->>Artifacts: 下载 manifest/tar
     Agent->>Host: docker load / docker pull
     Agent->>Host: docker compose up -d ...
-    Agent-->>Console: GET /deploy/status (polled)
-    Console-->>User: Deployment status / logs / rollback entry
+    Agent-->>Console: GET /deploy/status（轮询）
+    Console-->>User: 返回部署状态/日志/回滚入口
 ```
 
-## Repository Layout
+## 仓库目录
 
-- `app/`: FastAPI application and templates
-- `docker-compose.yml`: local stack (`deploy-console` + `artifacts`)
-- `Dockerfile`: deploy-console image build
-- `requirements.txt`: Python dependencies
-- `data/`: local SQLite data
-- `dist/releases/`: local artifacts
-- `docs/`: supplementary docs
+- `app/`：FastAPI 应用与页面模板
+- `docker-compose.yml`：本地启动编排（`deploy-console` + `artifacts`）
+- `Dockerfile`：deploy-console 镜像构建文件
+- `requirements.txt`：Python 依赖
+- `data/`：本地 SQLite 数据
+- `dist/releases/`：本地制品目录
+- `docs/`：补充文档
 
-## Quick Start
+## 快速开始
 
-1. Create env file:
+1. 创建环境变量文件：
 
 ```bash
 cp .env.example .env
 ```
 
-2. Update required values in `.env`:
+2. 修改 `.env` 关键项：
 
 - `DEPLOY_CONSOLE_SECRET_KEY`
 - `DEPLOY_CONSOLE_ADMIN_USERNAME`
@@ -89,85 +87,66 @@ cp .env.example .env
 - `DEPLOY_CONSOLE_WORKSPACE_HOST_PATH`
 - `DEPLOY_CONSOLE_PACKAGE_ARTIFACT_PUBLIC_BASE_URL`
 
-3. Start DeployBox:
+3. 启动 DeployBox：
 
 ```bash
 docker compose up -d --build
 ```
 
-4. Open console:
+4. 访问控制台：
 
 ```text
 http://127.0.0.1:18101
 ```
 
-## Core Configuration
+## 关键配置说明
 
 - `DEPLOY_CONSOLE_WORKSPACE_HOST_PATH`
-  Host workspace root for onboarded projects (real folders or symlinks).
+  宿主机工作区根目录（可是真目录或软链接目录）。
 - `DEPLOY_CONSOLE_WORKSPACE_PATH`
-  Workspace path inside container. Default: `/workspace`.
+  容器内工作区路径，默认 `/workspace`。
 - `DEPLOY_CONSOLE_PACKAGE_SCRIPT`
-  Default package script relative to project workspace. Default: `deploy/scripts/package_release.sh`.
+  默认打包脚本（相对于项目工作区），默认 `deploy/scripts/package_release.sh`。
 - `DEPLOY_CONSOLE_PACKAGE_ARTIFACT_BASE_URL`
-  Internal URL from console to local artifact server.
+  控制台容器访问本地制品站的内部地址。
 - `DEPLOY_CONSOLE_PACKAGE_ARTIFACT_PUBLIC_BASE_URL`
-  Public URL reachable by remote `deploy-agent`.
+  远端 `deploy-agent` 可访问的公开地址。
 - `DEPLOY_CONSOLE_LOCAL_ARTIFACTS_PATH`
-  Local artifacts root inside deploy-console. Default: `/artifacts/releases`.
+  控制台容器内本地制品目录，默认 `/artifacts/releases`。
 - `USE_OSS`
-  Global artifact backend switch.
+  全局制品存储开关。
 
-## Artifact Modes
+## 制品模式
 
-- `auto`: follows global `USE_OSS`
-- `local`: force local artifact server
-- `oss`: force OSS upload
+- `auto`：跟随全局 `USE_OSS`
+- `local`：强制本地制品站
+- `oss`：强制 OSS
 
-Important:
+建议：
 
-- `artifact_public_base_url` is a project-level build setting, not an environment-level setting
-- it is only used when generating release URLs for `local` artifact mode
-- when `oss` is used, final manifest artifact URLs are rewritten to OSS locations
+- 开发/测试：`local`（或 `USE_OSS=false` 下使用 `auto`）
+- 生产：显式使用 `oss`
 
-Recommended:
+## 项目接入流程
 
-- dev / staging: `local` (or `auto` with `USE_OSS=false`)
-- production: explicit `oss`
+1. 创建项目（`name`、`slug`、工作区路径、镜像仓库前缀）
+2. 从 `docker-compose.yml` 导入组件候选
+3. 查看 Compose 规范检查，按需下载推荐 compose
+4. 维护组件元数据（`service_name`、image、dockerfile、context、构建模式）
+5. 配置环境（`webhook_url`、`status_url`、`shared_secret`）
+6. 生成 release 并异步部署
 
-## Onboarding Workflow
+## Compose 发布规范建议
 
-1. Create a project (`name`, `slug`, workspace path, registry prefix)
-2. Import component candidates from `docker-compose.yml`
-3. Review Compose readiness report and optional recommended compose
-4. Maintain component metadata (`service_name`, image, dockerfile, context, build mode)
-5. Configure environment endpoints (`webhook_url`, `status_url`, `shared_secret`)
-6. Build release and deploy asynchronously
+为确保容器实际切换到新镜像：
 
-Project detail behavior:
+- 可发布服务优先使用 `image:`
+- 生产发布链路尽量不依赖 `build:`
+- 用 `DEPLOY_IMAGE_<SERVICE>` 引用发布镜像
+- 避免源码挂载覆盖镜像文件系统（如 `./backend:/app`）
+- 业务镜像避免长期使用 `latest`
 
-- build jobs, deployment jobs, and releasable releases are independently paginated
-- starter preview is collapsed by default and can be expanded on demand
-- importing component candidates from compose requires confirmation before overwriting existing component settings
-
-## Compose Best Practices
-
-To ensure deployed containers actually switch to new release images:
-
-- Prefer `image:` for releasable services
-- Avoid release-time `build:` for production deployment
-- Wire image to `DEPLOY_IMAGE_<SERVICE>`
-- Avoid source bind mounts that override image filesystem (example: `./backend:/app`)
-- Avoid floating tags (`latest`) for business images
-
-Current DeployBox behavior:
-
-- build-enabled components are normalized toward versioned image tags
-- if a build-enabled component still uses `:latest`, DeployBox rewrites it to `:__VERSION__`
-- generated release versions use `YYYYMMDD-HHMM-<shortsha>` when Git is available
-- when Git metadata is unavailable, versions fall back to `YYYYMMDD-HHMM` without a `-local` suffix
-
-Example:
+示例：
 
 ```yaml
 services:
@@ -175,18 +154,18 @@ services:
     image: ${DEPLOY_IMAGE_BACKEND:-registry.example.com/myapp-backend:latest}
 ```
 
-`deploy-agent` injects `DEPLOY_IMAGE_<SERVICE>` automatically from release manifest.
+`deploy-agent` 会根据 manifest 自动注入 `DEPLOY_IMAGE_<SERVICE>`。
 
-## deploy-agent Setup
+## deploy-agent 接入
 
-Starter bundle includes:
+starter 包会生成：
 
 - `deploy/deploy-agent/Dockerfile`
 - `deploy/deploy-agent/deploy-agent.compose.yml`
 - `deploy/deploy-agent/deploy-agent.env.example`
 - `deploy/deploy-agent/bin/deploy-release.sh`
 
-Minimal startup:
+最小启动方式：
 
 ```bash
 cd deploy/deploy-agent
@@ -194,47 +173,26 @@ cp deploy-agent.env.example deploy-agent.env
 docker compose -f deploy-agent.compose.yml up -d --build
 ```
 
-Critical envs:
+关键变量：
 
 - `DEPLOY_PROJECT_ROOT=/workspace`
-- `DEPLOY_PROJECT_WORKSPACE_HOST_PATH=/absolute/host/project/path`
+- `DEPLOY_PROJECT_WORKSPACE_HOST_PATH=/宿主机项目绝对路径`
 
-For private OSS buckets:
+注意：
 
-- `DEPLOY_OSS_ACCESS_KEY_ID`
-- `DEPLOY_OSS_ACCESS_KEY_SECRET`
-- `DEPLOY_OSS_BUCKET_NAME`
-- `DEPLOY_OSS_ENDPOINT`
-- `DEPLOY_OSS_REGION`
+- 必须填写宿主机真实路径，不是容器内路径
+- Docker Desktop 需要把该目录加入 File Sharing
+- DeployBox 会用该路径做挂载和 `docker compose --project-directory`
 
-Notes:
+## 本地开发
 
-- Use the real host path, not a container path
-- On Docker Desktop, add this path to File Sharing
-- DeployBox uses it for both mount and `docker compose --project-directory`
-- New OSS releases include object-key metadata, and deploy-agent downloads tar files from private OSS with OSS SDK first
-- Older releases still fall back to `image_tar_url`
-
-Webhook behavior:
-
-- DeployBox sends both `manifest_url` and inline `manifest_json` to deploy-agent
-- this avoids requiring deploy-agent to fetch a private manifest before deployment starts
-
-## Deployment Trigger Timeout
-
-- Trigger requests to `webhook_url` now use a longer dedicated timeout than generic read requests
-- if the trigger request takes too long, DeployBox marks the deployment as submitted and continues status polling in the background
-- this is intended to reduce user confusion when deploy-agent eventually succeeds after a slow trigger phase
-
-## Development
-
-Normal:
+常规启动：
 
 ```bash
 docker compose up -d --build
 ```
 
-After dependency / Dockerfile changes:
+依赖或 Dockerfile 有变化时：
 
 ```bash
 docker compose build --no-cache deploy-console
@@ -243,19 +201,19 @@ docker compose up -d deploy-console
 
 ## Roadmap
 
-- Stronger Compose lint and compatibility checks
-- Kubernetes / Helm adapters
-- Richer audit and approval workflow
-- More storage backends and CDN integration
+- 更强的 Compose 规范检查与兼容性分析
+- Kubernetes / Helm 适配器
+- 更细粒度的审计与审批能力
+- 更多存储后端与 CDN 集成
 
-## Contributing
+## 参与贡献
 
-Issues and PRs are welcome. Focus areas:
+欢迎提交 Issue 与 PR，重点方向：
 
-- deployment reliability
-- onboarding UX
-- release observability
-- adapter extensibility
+- 部署可靠性
+- 接入体验
+- 可观测性
+- 适配器扩展能力
 
 ## License
 
