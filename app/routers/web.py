@@ -117,6 +117,42 @@ def _paginate_section(*, total: int, page: int, per_page: int, request: Request,
     }
 
 
+def _build_url(request: Request, base_url: str, **updates: int | str | None) -> str:
+    params = {key: value for key, value in request.query_params.items()}
+    for key, value in updates.items():
+        if value is None:
+            params.pop(key, None)
+        else:
+            params[key] = str(value)
+    query = urlencode(params)
+    return f"{base_url}?{query}" if query else base_url
+
+
+def _paginate_path(*, total: int, page: int, per_page: int, request: Request, base_url: str, param_name: str) -> dict:
+    total_pages = max((total - 1) // per_page + 1, 1)
+    current_page = min(max(page, 1), total_pages)
+    page_start = max(current_page - 2, 1)
+    page_end = min(page_start + 4, total_pages)
+    page_start = max(page_end - 4, 1)
+    return {
+        "page": current_page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": total_pages,
+        "offset": (current_page - 1) * per_page,
+        "pages": [
+            {
+                "number": number,
+                "url": _build_url(request, base_url, **{param_name: number}),
+                "current": number == current_page,
+            }
+            for number in range(page_start, page_end + 1)
+        ],
+        "prev_url": _build_url(request, base_url, **{param_name: current_page - 1}) if current_page > 1 else None,
+        "next_url": _build_url(request, base_url, **{param_name: current_page + 1}) if current_page < total_pages else None,
+    }
+
+
 @router.get("/console/fs/directories")
 def list_workspace_directories(
     path: str = "",
@@ -278,6 +314,16 @@ def projects_page(
     db: Session = Depends(get_db),
     current_user: OperatorUser = Depends(get_current_user),
 ):
+    per_page = 10
+    project_total = db.scalar(select(func.count(Project.id))) or 0
+    projects_pagination = _paginate_path(
+        total=project_total,
+        page=_parse_page(request.query_params.get("page")),
+        per_page=per_page,
+        request=request,
+        base_url="/console/projects",
+        param_name="page",
+    )
     projects = db.execute(
         select(Project)
         .options(
@@ -287,12 +333,31 @@ def projects_page(
             joinedload(Project.build_config),
         )
         .order_by(Project.created_at.desc())
+        .offset(projects_pagination["offset"])
+        .limit(per_page)
     ).unique().scalars().all()
+    selected_project = None
+    selected_project_id = request.query_params.get("project_id", "").strip()
+    if selected_project_id.isdigit():
+        selected_project = next((item for item in projects if item.id == int(selected_project_id)), None)
+        if not selected_project:
+            selected_project = db.execute(
+                select(Project)
+                .options(
+                    joinedload(Project.environments),
+                    joinedload(Project.releases),
+                    joinedload(Project.build_jobs),
+                    joinedload(Project.build_config),
+                )
+                .where(Project.id == int(selected_project_id))
+            ).unique().scalar_one_or_none()
+    if not selected_project and projects:
+        selected_project = projects[0]
     summary = {
-        "projects": len(projects),
-        "environments": sum(len(project.environments) for project in projects),
-        "releases": sum(len(project.releases) for project in projects),
-        "build_jobs": sum(len(project.build_jobs) for project in projects),
+        "projects": project_total,
+        "environments": db.scalar(select(func.count(Environment.id))) or 0,
+        "releases": db.scalar(select(func.count(Release.id))) or 0,
+        "build_jobs": db.scalar(select(func.count(BuildJob.id))) or 0,
     }
     return render(
         request,
@@ -300,6 +365,8 @@ def projects_page(
         title=tr(request, current_user, "项目与接入"),
         current_user=current_user,
         projects=projects,
+        selected_project=selected_project,
+        projects_pagination=projects_pagination,
         summary=summary,
         notice=request.query_params.get("notice"),
         error=request.query_params.get("error"),
@@ -1037,12 +1104,29 @@ def deployments_page(
     db: Session = Depends(get_db),
     current_user: OperatorUser = Depends(get_current_user),
 ):
+    per_page = 12
+    deployment_total = db.scalar(select(func.count(Deployment.id))) or 0
+    deployments_pagination = _paginate_path(
+        total=deployment_total,
+        page=_parse_page(request.query_params.get("page")),
+        per_page=per_page,
+        request=request,
+        base_url="/console/deployments",
+        param_name="page",
+    )
     deployments = db.execute(
         select(Deployment)
         .options(joinedload(Deployment.project), joinedload(Deployment.environment), joinedload(Deployment.release))
         .order_by(Deployment.created_at.desc())
-        .limit(100)
+        .offset(deployments_pagination["offset"])
+        .limit(per_page)
     ).unique().scalars().all()
+    selected_deployment = None
+    selected_deployment_id = request.query_params.get("deployment_id", "").strip()
+    if selected_deployment_id.isdigit():
+        selected_deployment = next((item for item in deployments if item.id == int(selected_deployment_id)), None)
+    if not selected_deployment and deployments:
+        selected_deployment = deployments[0]
     counts = db.execute(select(Deployment.status, func.count(Deployment.id)).group_by(Deployment.status)).all()
     summary = {status: count for status, count in counts}
     return render(
@@ -1051,7 +1135,11 @@ def deployments_page(
         title=tr(request, current_user, "部署任务"),
         current_user=current_user,
         deployments=deployments,
+        selected_deployment=selected_deployment,
+        deployments_pagination=deployments_pagination,
         summary=summary,
+        notice=request.query_params.get("notice"),
+        error=request.query_params.get("error"),
     )
 
 

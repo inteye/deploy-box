@@ -1,91 +1,92 @@
 {% extends "base.html" %}
-{% block content %}
-<section class="hero">
-  <h1>{{ _('构建') }} #{{ build_job.id }}</h1>
-  <p>{{ build_job.project.name }}{% if build_job.environment %} · {{ _('生成后自动发布到') }} {{ build_job.environment.name }}{% endif %}</p>
-</section>
 
-<section class="stats">
-  <article class="card stat"><strong id="build-status">{{ build_job.status }}</strong><span>{{ _('当前状态') }}</span></article>
-  <article class="card stat"><strong id="build-progress">{{ build_job.progress_percent or 0 }}%</strong><span>{{ _('进度') }}</span></article>
-  <article class="card stat"><strong id="build-version">{{ build_job.output_version or '-' }}</strong><span>{{ _('输出版本') }}</span></article>
-  <article class="card stat"><strong>{{ build_job.storage_mode or build_job.artifact_mode }}</strong><span>{{ _('制品模式') }}</span></article>
-</section>
-
-<section class="card">
-  <div class="section-head">
-    <div>
-      <h2>{{ _('构建进度') }}</h2>
-      <p id="build-stage">{{ build_job.current_stage or 'queued' }}</p>
-    </div>
-  </div>
-  <div class="progress-shell">
-    <div id="build-progress-bar" class="progress-bar" style="width:{{ build_job.progress_percent or 0 }}%;"></div>
+{% block left_panel_extra %}
+<section class="panel-card">
+  <div class="section-title">{{ _('构建导航') }}</div>
+  <p class="section-copy">{{ _('详情页左侧只保留路径感和返回动作。') }}</p>
+  <div class="mt-4 space-y-2">
+    <a class="workspace-nav-link" href="/console/projects/{{ build_job.project.id }}?tab=builds">
+      <span class="soft-badge !rounded-xl !px-2 !py-1">{{ _('返') }}</span>
+      <span class="truncate">{{ _('返回项目构建发布') }}</span>
+    </a>
+    <a class="workspace-nav-link" href="/console/projects/{{ build_job.project.id }}">
+      <span class="soft-badge !rounded-xl !px-2 !py-1">{{ _('项') }}</span>
+      <span class="truncate">{{ build_job.project.name }}</span>
+    </a>
   </div>
 </section>
+{% endblock %}
 
-<section class="grid two">
-  <article class="card">
-    <div class="section-head">
-      <div>
-        <h2>{{ _('基本信息') }}</h2>
-      </div>
+{% block center_panel %}
+<section class="panel-card">
+  <div class="soft-badge">{{ _('构建详情') }}</div>
+  <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-900">{{ _('构建') }} #{{ build_job.id }}</h1>
+  <p class="mt-2 break-words text-sm leading-7 text-slate-600">{{ build_job.project.name }}{% if build_job.environment %} · {{ _('生成后自动发布到') }} {{ build_job.environment.name }}{% endif %}</p>
+</section>
+
+<section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+  <article class="kpi-card"><strong id="build-status" class="kpi-value">{{ build_job.status }}</strong><span class="text-sm text-slate-500">{{ _('当前状态') }}</span></article>
+  <article class="kpi-card"><strong id="build-progress" class="kpi-value">{{ build_job.progress_percent or 0 }}%</strong><span class="text-sm text-slate-500">{{ _('进度') }}</span></article>
+  <article class="kpi-card"><strong id="build-version" class="kpi-value">{{ build_job.output_version or '-' }}</strong><span class="text-sm text-slate-500">{{ _('输出版本') }}</span></article>
+  <article class="kpi-card"><strong class="kpi-value">{{ build_job.storage_mode or build_job.artifact_mode }}</strong><span class="text-sm text-slate-500">{{ _('制品模式') }}</span></article>
+</section>
+
+<section class="panel-card">
+  <div class="section-title">{{ _('构建进度') }}</div>
+  <p id="build-stage" class="section-copy">{{ build_job.current_stage or 'queued' }}</p>
+  <div class="mt-4 h-3 overflow-hidden rounded-full bg-sand-200">
+    <div id="build-progress-bar" class="h-full rounded-full bg-pine-700 transition-all" style="width:{{ build_job.progress_percent or 0 }}%;"></div>
+  </div>
+</section>
+
+<section class="grid gap-4 xl:grid-cols-2">
+  <article class="panel-card">
+    <div class="section-title">{{ _('基本信息') }}</div>
+    <div class="mt-5 overflow-hidden rounded-3xl border border-sand-300/80">
+      <table class="min-w-full text-sm">
+        <tbody class="divide-y divide-sand-200">
+          <tr><th class="w-32 bg-sand-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">{{ _('项目') }}</th><td class="break-words px-4 py-3">{{ build_job.project.name }}</td></tr>
+          <tr><th class="bg-sand-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">{{ _('模板') }}</th><td class="break-words px-4 py-3">{{ _(build_job.template.name) if build_job.template else '-' }}</td></tr>
+          <tr><th class="bg-sand-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">{{ _('触发人') }}</th><td class="break-words px-4 py-3">{{ build_job.triggered_by or '-' }}</td></tr>
+          <tr><th class="bg-sand-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">Manifest</th><td id="build-manifest-url" class="break-words px-4 py-3">{{ build_job.manifest_url or '-' }}</td></tr>
+          <tr><th class="bg-sand-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">{{ _('开始时间') }}</th><td id="build-started-at" class="px-4 py-3">{{ build_job.started_at.strftime('%Y-%m-%d %H:%M:%S') if build_job.started_at else '-' }}</td></tr>
+          <tr><th class="bg-sand-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500">{{ _('完成时间') }}</th><td id="build-finished-at" class="px-4 py-3">{{ build_job.finished_at.strftime('%Y-%m-%d %H:%M:%S') if build_job.finished_at else '-' }}</td></tr>
+        </tbody>
+      </table>
     </div>
-    <table>
-      <tbody>
-        <tr><th>{{ _('项目') }}</th><td>{{ build_job.project.name }}</td></tr>
-        <tr><th>{{ _('模板') }}</th><td>{{ _(build_job.template.name) if build_job.template else '-' }}</td></tr>
-        <tr><th>{{ _('触发人') }}</th><td>{{ build_job.triggered_by or '-' }}</td></tr>
-        <tr><th>Manifest</th><td id="build-manifest-url" style="word-break:break-word;overflow-wrap:anywhere;">{{ build_job.manifest_url or '-' }}</td></tr>
-        <tr><th>{{ _('开始时间') }}</th><td id="build-started-at">{{ build_job.started_at.strftime('%Y-%m-%d %H:%M:%S') if build_job.started_at else '-' }}</td></tr>
-        <tr><th>{{ _('完成时间') }}</th><td id="build-finished-at">{{ build_job.finished_at.strftime('%Y-%m-%d %H:%M:%S') if build_job.finished_at else '-' }}</td></tr>
-      </tbody>
-    </table>
   </article>
 
-  <article class="card">
-    <div class="section-head">
-      <div>
-        <h2>{{ _('结果摘要') }}</h2>
-      </div>
-    </div>
-    <pre id="build-result" style="white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;overflow:auto;">{{ parsed_result | tojson(indent=2) if parsed_result else (build_job.result_json or _('暂无结果')) }}</pre>
+  <article class="panel-card">
+    <div class="section-title">{{ _('结果摘要') }}</div>
+    <pre id="build-result" class="mt-5 overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100">{{ parsed_result | tojson(indent=2) if parsed_result else (build_job.result_json or _('暂无结果')) }}</pre>
   </article>
 </section>
 
-<section class="card">
-  <div class="section-head">
-    <div>
-      <h2>{{ _('阶段事件') }}</h2>
-      <p>{{ _('页面会自动轮询更新，适合移动端实时查看构建和上传进度。') }}</p>
-    </div>
-  </div>
-  <div id="build-events" class="timeline">
+<section class="panel-card">
+  <div class="section-title">{{ _('阶段事件') }}</div>
+  <p class="section-copy">{{ _('页面会自动轮询更新。') }}</p>
+  <div id="build-events" class="mt-5 space-y-3">
     {% for event in events %}
-    <article class="timeline-item">
+    <article class="list-card">
       <div class="meta-line">
-        <span class="badge {% if event.event_type == 'error' %}failed{% elif event.event_type == 'success' %}{% else %}subtle{% endif %}">{{ event.event_type }}</span>
+        <span class="{% if event.event_type == 'error' %}status-badge-danger{% elif event.event_type == 'success' %}status-badge-success{% else %}status-badge-neutral{% endif %}">{{ event.event_type }}</span>
         <span>{{ event.stage or '-' }}</span>
         <span>{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
       </div>
-      <strong>{{ _(event.message) }}</strong>
+      <div class="mt-3 text-sm font-medium text-slate-900">{{ _(event.message) }}</div>
       {% if event.progress_percent is not none %}
-      <span class="muted small">{{ _('进度') }} {{ event.progress_percent }}%</span>
+      <span class="mt-2 block text-sm text-slate-500">{{ _('进度') }} {{ event.progress_percent }}%</span>
       {% endif %}
     </article>
     {% else %}
-    <div class="muted">{{ _('还没有阶段事件。') }}</div>
+    <div class="list-card text-sm text-slate-500">{{ _('还没有阶段事件。') }}</div>
     {% endfor %}
   </div>
 </section>
 
-<section class="card">
-  <div class="section-head">
-    <div>
-      <h2>{{ _('日志摘要') }}</h2>
-    </div>
-  </div>
-  <pre id="build-log" style="white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;overflow:auto;">{{ build_job.log_excerpt or _('暂无日志摘要') }}</pre>
+<section class="panel-card">
+  <div class="section-title">{{ _('日志摘要') }}</div>
+  <pre id="build-log" class="mt-5 overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100">{{ build_job.log_excerpt or _('暂无日志摘要') }}</pre>
 </section>
 
 <script>
@@ -105,18 +106,18 @@
 
     function renderEvents(events) {
       if (!Array.isArray(events) || !events.length) {
-        eventsNode.innerHTML = '<div class="muted">{{ _("还没有阶段事件。") }}</div>';
+        eventsNode.innerHTML = '<div class="list-card text-sm text-slate-500">{{ _("还没有阶段事件。") }}</div>';
         return;
       }
       eventsNode.innerHTML = events.map((event) => `
-        <article class="timeline-item">
+        <article class="list-card">
           <div class="meta-line">
-            <span class="badge ${event.event_type === "error" ? "failed" : event.event_type === "success" ? "" : "subtle"}">${event.event_type}</span>
+            <span class="${event.event_type === "error" ? "status-badge-danger" : event.event_type === "success" ? "status-badge-success" : "status-badge-neutral"}">${event.event_type}</span>
             <span>${event.stage || "-"}</span>
             <span>${event.created_at || "-"}</span>
           </div>
-          <strong>${event.message}</strong>
-          ${event.progress_percent !== null && event.progress_percent !== undefined ? `<span class="muted small">{{ _("进度") }} ${event.progress_percent}%</span>` : ""}
+          <div class="mt-3 text-sm font-medium text-slate-900">${event.message}</div>
+          ${event.progress_percent !== null && event.progress_percent !== undefined ? `<span class="mt-2 block text-sm text-slate-500">{{ _("进度") }} ${event.progress_percent}%</span>` : ""}
         </article>
       `).join("");
     }
@@ -162,4 +163,21 @@
     timer = setInterval(tick, 3000);
   })();
 </script>
+{% endblock %}
+
+{% block right_panel %}
+<section class="panel-card">
+  <div class="section-title">{{ _('构建摘要') }}</div>
+  <p class="section-copy">{{ _('把最关键的信息固定在右侧。') }}</p>
+  <div class="mt-5 space-y-3">
+    <div class="list-card">
+      <div class="meta-line">
+        <span class="{% if build_job.status == 'failed' %}status-badge-danger{% elif build_job.status in ['queued', 'running'] %}status-badge-warning{% else %}status-badge-neutral{% endif %}">{{ build_job.status }}</span>
+      </div>
+      <div class="mt-3 text-lg font-semibold tracking-tight text-slate-900 break-words">{{ build_job.output_version or '-' }}</div>
+      <p class="mt-2 break-words text-sm leading-6 text-slate-500">{{ build_job.storage_mode or build_job.artifact_mode }}</p>
+    </div>
+    <a class="button-primary w-full" href="/console/projects/{{ build_job.project.id }}?tab=builds">{{ _('返回构建发布') }}</a>
+  </div>
+</section>
 {% endblock %}

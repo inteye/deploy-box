@@ -1,0 +1,13 @@
+{
+  "name": "deploybox-console-ui",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:css": "node ./node_modules/tailwindcss/lib/cli.js -i ./app/static/src/app.css -o ./app/static/dist/app.css --minify"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  }
+}

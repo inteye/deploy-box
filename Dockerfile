@@ -1,3 +1,15 @@
+FROM node:20-alpine AS assets
+
+WORKDIR /ui
+
+COPY package.json package-lock.json postcss.config.js tailwind.config.js /ui/
+COPY app/templates /ui/app/templates
+COPY app/static/src /ui/app/static/src
+
+RUN npm install --no-audit --no-fund
+RUN node ./node_modules/tailwindcss/lib/cli.js -i ./app/static/src/app.css -o ./app/static/dist/app.css --minify
+
+
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -48,6 +60,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY app /app/app
 COPY babel.cfg /app/babel.cfg
+COPY --from=assets /ui/app/static/dist /app/app/static/dist
 
 # Compile .mo translation files
 RUN pybabel compile -d /app/app/locales

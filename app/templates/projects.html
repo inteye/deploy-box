@@ -1,179 +1,122 @@
 {% extends "base.html" %}
-{% block content %}
-<section class="hero">
-  <h1>{{ _('把构建与发布收敛成一套可复用的流程') }}</h1>
-  <p>{{ _('每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。') }}</p>
-</section>
 
-{% if notice %}
-<section class="notice">{{ notice }}</section>
-{% endif %}
-{% if error %}
-<section class="error">{{ error }}</section>
-{% endif %}
-
-<section class="stats">
-  <article class="card stat"><strong>{{ summary.projects }}</strong><span>{{ _('项目总数') }}</span></article>
-  <article class="card stat"><strong>{{ summary.environments }}</strong><span>{{ _('环境总数') }}</span></article>
-  <article class="card stat"><strong>{{ summary.releases }}</strong><span>{{ _('已登记 Release') }}</span></article>
-  <article class="card stat"><strong>{{ summary.build_jobs }}</strong><span>{{ _('构建任务') }}</span></article>
-</section>
-
-<section class="workflow-grid">
-  <a class="anchor-card" href="#create-project">
-    <span class="workflow-step">{{ _('入口 1') }}</span>
-    <strong style="font-size:18px;">{{ _('新项目接入') }}</strong>
-    <p class="muted small" style="margin:0;">{{ _('适合首次接入。创建项目后，继续在项目工作台里完成模板和环境配置。') }}</p>
-  </a>
-  <a class="anchor-card" href="#project-list">
-    <span class="workflow-step">{{ _('入口 2') }}</span>
-    <strong style="font-size:18px;">{{ _('继续构建与发布') }}</strong>
-    <p class="muted small" style="margin:0;">{{ _('已有项目直接进入工作台，主操作永远是"一键生成"或"一键生成并发布"。') }}</p>
-  </a>
-  <a class="anchor-card" href="/console/deployments">
-    <span class="workflow-step">{{ _('入口 3') }}</span>
-    <strong style="font-size:18px;">{{ _('异常排查') }}</strong>
-    <p class="muted small" style="margin:0;">{{ _('部署任务页集中查看超时、失败、回滚和状态轮询，不需要再翻多个页面。') }}</p>
-  </a>
-</section>
-
-<section class="grid two">
-  <article class="card" id="create-project">
-    <div class="section-head">
-      <div>
-        <h2>{{ _('新增项目') }}</h2>
-        <p>{{ _('创建项目时先填工作区路径。它相对于统一工作区根，可以是真目录，也可以是管理员提前放好的软链接目录。') }}</p>
-      </div>
-    </div>
-    <form method="post" action="/console/projects" class="grid">
-      <div class="form-grid">
-        <label>{{ _('项目名称') }}
-          <input type="text" name="name" placeholder="Sample Service" required>
-        </label>
-        <label>{{ _('项目标识') }}
-          <input type="text" name="slug" placeholder="sample-service" required>
-        </label>
-        <label>{{ _('项目工作区路径') }}
-          <div style="display:flex; gap:8px;">
-            <input type="text" name="workspace_path" placeholder="{{ _('sample-service 或 services/sample-service') }}" required>
-            <button type="button" class="secondary browse-directory-button" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
-          </div>
-        </label>
-        <label>{{ _('镜像仓库前缀') }}
-          <input type="text" name="image_registry_prefix" placeholder="{{ _('registry.example.com/team 或留空使用本地镜像名') }}">
-        </label>
-      </div>
-      <article class="list-card">
-        <div class="meta-line">
-          <span class="badge">{{ _('工作区模型') }}</span>
-          <span>{{ _('统一工作区根') }}</span>
-        </div>
-        <p class="muted small" style="margin:0;">{{ _('推荐把所有待发布项目聚合到同一个工作区根下。这里填写的是相对路径；如果你偏向软链接方案，可由管理员先在工作区根下创建软链接，再在这里选择该目录。') }}</p>
-      </article>
-      <article class="list-card">
-        <div class="meta-line">
-          <span class="badge">{{ _('发布协议') }}</span>
-          <span>Webhook Manifest v1</span>
-        </div>
-        <p class="muted small" style="margin:0;">{{ _('这是当前唯一支持的执行适配器，表示平台会把 `manifest_url` 通过 webhook 发给兼容的 `deploy-agent`。新用户不需要修改，先按默认值使用即可。') }}</p>
-      </article>
-      <label>{{ _('项目说明') }}
-        <textarea name="description" placeholder="{{ _('描述此项目如何接入、部署到哪里、谁负责。') }}"></textarea>
-      </label>
-      <div class="actions">
-        <button type="submit">{{ _('创建并进入接入流程') }}</button>
-      </div>
-    </form>
-  </article>
-
-  <article class="card" id="project-list">
-    <div class="section-head">
-      <div>
-        <h2>{{ _('已接入项目') }}</h2>
-        <p>{{ _('进入项目后可配置构建模板、环境、生成策略和一键发布入口。') }}</p>
-      </div>
-    </div>
-    <div class="list-stack">
-      {% for project in projects %}
-      <article class="list-card">
-        <div class="meta-line">
-          <span class="badge">{{ project.adapter_type }}</span>
-          <span>{{ project.slug }}</span>
-        </div>
-        <div>
-          <strong style="font-size:18px;">{{ project.name }}</strong>
-          <p class="muted small" style="margin:6px 0 0;">{{ project.description or _('尚未填写项目说明。') }}</p>
-          <p class="muted small" style="margin:6px 0 0;">{{ _('工作区路径：') }}{{ project.workspace_path or _('未设置，默认使用全局工作区根') }}</p>
-          <p class="muted small" style="margin:6px 0 0;">{{ _('镜像仓库前缀：') }}{{ project.image_registry_prefix or _('未设置，默认不拼接 registry 前缀') }}</p>
-        </div>
-        <div class="meta-line">
-          <span>{{ project.environments|length }} {{ _('个环境') }}</span>
-          <span>{{ project.releases|length }} {{ _('个 Release') }}</span>
-          <span>{{ project.build_jobs|length }} {{ _('个构建任务') }}</span>
-        </div>
-        <div class="actions">
-          <a class="button secondary" href="/console/projects/{{ project.id }}">{{ _('进入项目工作台') }}</a>
-        </div>
-        <details class="advanced">
-          <summary>{{ _('编辑或删除项目') }}</summary>
-          <form method="post" action="/console/projects/{{ project.id }}/update" class="grid" style="margin-top:12px;">
-            <div class="form-grid">
-              <label>{{ _('项目名称') }}
-                <input type="text" name="name" value="{{ project.name }}" required>
-              </label>
-              <label>{{ _('项目标识') }}
-                <input type="text" name="slug" value="{{ project.slug }}" required>
-              </label>
-              <label>{{ _('项目工作区路径') }}
-                <div style="display:flex; gap:8px;">
-                  <input type="text" name="workspace_path" value="{{ project.workspace_path or '' }}" placeholder="{{ _('sample-service 或 services/sample-service') }}" required>
-                  <button type="button" class="secondary browse-directory-button" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
-                </div>
-              </label>
-              <label>{{ _('镜像仓库前缀') }}
-                <input type="text" name="image_registry_prefix" value="{{ project.image_registry_prefix or '' }}" placeholder="{{ _('registry.example.com/team 或留空使用本地镜像名') }}">
-              </label>
+{% block left_panel_extra %}
+<section class="panel-card">
+  <div class="section-title">{{ _('项目操作') }}</div>
+  <p class="section-copy">{{ _('新增和编辑表单默认收起，列表区只负责浏览与选择。') }}</p>
+  <div class="mt-4 space-y-3">
+    <details class="group">
+      <summary class="summary-toggle">{{ _('点击展开新增项目') }}</summary>
+      <form method="post" action="/console/projects" class="mt-4 space-y-4">
+        <div class="grid gap-4">
+          <label class="field-label">{{ _('项目名称') }}
+            <input class="field-input" type="text" name="name" placeholder="Sample Service" required>
+          </label>
+          <label class="field-label">{{ _('项目标识') }}
+            <input class="field-input" type="text" name="slug" placeholder="sample-service" required>
+          </label>
+          <label class="field-label">{{ _('项目工作区路径') }}
+            <div class="flex gap-2">
+              <input class="field-input" type="text" name="workspace_path" placeholder="{{ _('sample-service 或 services/sample-service') }}" required>
+              <button type="button" class="button-secondary browse-directory-button whitespace-nowrap" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
             </div>
-            <label>{{ _('项目说明') }}
-              <textarea name="description">{{ project.description or '' }}</textarea>
-            </label>
-            <div class="actions">
-              <button type="button" class="secondary validate-workspace-button" data-project-id="{{ project.id }}">{{ _('校验路径') }}</button>
-            </div>
-            <pre id="workspace-validation-{{ project.id }}" class="muted small" style="display:none; margin:0; white-space:pre-wrap;"></pre>
-            <div class="actions">
-              <button type="submit" class="secondary">{{ _('保存项目信息') }}</button>
-            </div>
-          </form>
-          <form method="post" action="/console/projects/{{ project.id }}/delete" style="margin-top:10px;" onsubmit="return confirm('{{ _('确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。') }}');">
-            <button type="submit" class="danger">{{ _('删除项目') }}</button>
-          </form>
-        </details>
-      </article>
-      {% else %}
-      <div class="muted">{{ _('还没有项目，先创建一个项目开始接入。') }}</div>
-      {% endfor %}
-    </div>
-  </article>
+          </label>
+          <label class="field-label">{{ _('镜像仓库前缀') }}
+            <input class="field-input" type="text" name="image_registry_prefix" placeholder="{{ _('registry.example.com/team 或留空使用本地镜像名') }}">
+          </label>
+          <label class="field-label">{{ _('项目说明') }}
+            <textarea class="field-textarea" name="description" placeholder="{{ _('描述此项目如何接入、部署到哪里、谁负责。') }}"></textarea>
+          </label>
+        </div>
+        <button type="submit" class="button-primary w-full">{{ _('创建并进入接入流程') }}</button>
+      </form>
+    </details>
+  </div>
+</section>
+{% endblock %}
+
+{% block center_panel %}
+<section class="panel-card">
+  <div class="soft-badge">{{ _('项目管理') }}</div>
+  <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{{ _('把构建与发布收敛成一套可复用的流程') }}</h1>
+  <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{{ _('每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。') }}</p>
 </section>
 
-<dialog id="directory-picker" class="card" style="max-width:720px; width:min(92vw, 720px);">
-  <div class="section-head">
+<section class="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+  <article class="kpi-card"><strong class="kpi-value">{{ summary.projects }}</strong><span class="text-sm text-slate-500">{{ _('项目总数') }}</span></article>
+  <article class="kpi-card"><strong class="kpi-value">{{ summary.environments }}</strong><span class="text-sm text-slate-500">{{ _('环境总数') }}</span></article>
+  <article class="kpi-card"><strong class="kpi-value">{{ summary.releases }}</strong><span class="text-sm text-slate-500">{{ _('已登记 Release') }}</span></article>
+  <article class="kpi-card"><strong class="kpi-value">{{ summary.build_jobs }}</strong><span class="text-sm text-slate-500">{{ _('构建任务') }}</span></article>
+</section>
+
+<section class="panel-card">
+  <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h2>{{ _('选择项目工作区路径') }}</h2>
-      <p id="directory-picker-root" class="muted small" style="margin:4px 0 0;">-</p>
-      <p id="directory-picker-current" class="muted small" style="margin:4px 0 0;">-</p>
+      <div class="section-title">{{ _('已接入项目') }}</div>
+      <p class="section-copy">{{ _('中间区域负责列表浏览，右侧区域负责当前选中项目的详细操作。') }}</p>
     </div>
-    <div class="actions">
-      <button type="button" id="directory-picker-close" class="secondary">{{ _('关闭') }}</button>
+    <div class="soft-badge">{{ _('共') }} {{ projects_pagination.total }}</div>
+  </div>
+  <div class="mt-5 space-y-3">
+    {% for project in projects %}
+    <article class="list-card {% if selected_project and selected_project.id == project.id %}list-card-active{% endif %}">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          <div class="meta-line">
+            <span class="soft-badge">{{ project.adapter_type }}</span>
+            <span>{{ project.slug }}</span>
+          </div>
+          <div class="mt-3 truncate text-lg font-semibold tracking-tight text-slate-900">{{ project.name }}</div>
+          <p class="mt-1 break-words text-sm leading-6 text-slate-500">{{ project.description or _('尚未填写项目说明。') }}</p>
+          <div class="meta-line mt-3">
+            <span>{{ project.environments|length }} {{ _('个环境') }}</span>
+            <span>{{ project.releases|length }} {{ _('个 Release') }}</span>
+            <span>{{ project.build_jobs|length }} {{ _('个构建任务') }}</span>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a class="button-secondary" href="/console/projects?project_id={{ project.id }}{% if projects_pagination.page > 1 %}&page={{ projects_pagination.page }}{% endif %}">{{ _('查看详情') }}</a>
+          <a class="button-primary" href="/console/projects/{{ project.id }}">{{ _('进入工作台') }}</a>
+        </div>
+      </div>
+    </article>
+    {% else %}
+    <div class="list-card text-sm text-slate-500">{{ _('还没有项目，先创建一个项目开始接入。') }}</div>
+    {% endfor %}
+  </div>
+  {% if projects_pagination.total > 0 %}
+  <div class="mt-5 flex flex-wrap items-center gap-2">
+    <span class="mr-2 text-sm text-slate-500">{{ _('共') }} {{ projects_pagination.total }}</span>
+    {% if projects_pagination.prev_url %}
+    <a class="pagination-link" href="{{ projects_pagination.prev_url }}">{{ _('上一页') }}</a>
+    {% endif %}
+    {% for page_item in projects_pagination.pages %}
+    <a class="pagination-link {% if page_item.current %}pagination-link-active{% endif %}" href="{{ page_item.url }}">{{ page_item.number }}</a>
+    {% endfor %}
+    {% if projects_pagination.next_url %}
+    <a class="pagination-link" href="{{ projects_pagination.next_url }}">{{ _('下一页') }}</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<dialog id="directory-picker" class="w-[min(92vw,46rem)] rounded-[28px] border border-sand-300 bg-white p-0 shadow-shell backdrop:bg-slate-900/40">
+  <div class="space-y-4 p-6">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <div class="section-title">{{ _('选择项目工作区路径') }}</div>
+        <p id="directory-picker-root" class="mt-1 text-sm text-slate-500">-</p>
+        <p id="directory-picker-current" class="mt-1 text-sm text-slate-500">-</p>
+      </div>
+      <button type="button" id="directory-picker-close" class="button-secondary">{{ _('关闭') }}</button>
     </div>
+    <div class="flex flex-wrap gap-3">
+      <button type="button" id="directory-picker-up" class="button-secondary">{{ _('返回上级') }}</button>
+      <button type="button" id="directory-picker-select-current" class="button-primary">{{ _('使用当前目录') }}</button>
+    </div>
+    <div id="directory-picker-status" class="text-sm text-slate-500">{{ _('正在加载目录...') }}</div>
+    <div id="directory-picker-list" class="space-y-3"></div>
   </div>
-  <div class="actions" style="margin-bottom:12px;">
-    <button type="button" id="directory-picker-up" class="secondary">{{ _('返回上级') }}</button>
-    <button type="button" id="directory-picker-select-current">{{ _('使用当前目录') }}</button>
-  </div>
-  <div id="directory-picker-status" class="muted small" style="margin-bottom:12px;">{{ _('正在加载目录...') }}</div>
-  <div id="directory-picker-list" class="list-stack"></div>
 </dialog>
 
 <script>
@@ -191,10 +134,6 @@
     let currentPath = "";
     let parentPath = null;
 
-    function resolveCurrentPath() {
-      return currentPath || "";
-    }
-
     function setInputValue(path) {
       if (!activeInput) return;
       activeInput.value = path;
@@ -203,18 +142,18 @@
 
     function renderEntries(entries) {
       if (!entries.length) {
-        listNode.innerHTML = '<div class="muted">{{ _("当前目录下没有子目录。") }}</div>';
+        listNode.innerHTML = '<div class="list-card text-sm text-slate-500">{{ _("当前目录下没有子目录。") }}</div>';
         return;
       }
       listNode.innerHTML = entries.map((entry) => `
-        <article class="list-card">
-          <div>
-            <strong>${entry.name}</strong>
-            <p class="muted small" style="margin:6px 0 0;">${entry.path || "."}</p>
+        <article class="list-card flex flex-wrap items-center justify-between gap-3">
+          <div class="min-w-0">
+            <strong class="block truncate text-slate-900">${entry.name}</strong>
+            <p class="mt-1 break-words text-sm text-slate-500">${entry.path || "."}</p>
           </div>
-          <div class="actions">
-            <button type="button" class="secondary directory-open" data-path="${entry.path}">{{ _("进入") }}</button>
-            <button type="button" class="directory-select" data-path="${entry.path}">{{ _("选择") }}</button>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="button-secondary directory-open" data-path="${entry.path}">{{ _("进入") }}</button>
+            <button type="button" class="button-primary directory-select" data-path="${entry.path}">{{ _("选择") }}</button>
           </div>
         </article>
       `).join("");
@@ -260,7 +199,7 @@
         statusNode.textContent = "{{ _('目录加载失败') }}";
       });
     });
-    selectCurrentButton.addEventListener("click", () => setInputValue(resolveCurrentPath()));
+    selectCurrentButton.addEventListener("click", () => setInputValue(currentPath));
     listNode.addEventListener("click", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
@@ -273,36 +212,89 @@
         setInputValue(target.dataset.path || "");
       }
     });
+  })();
+</script>
+{% endblock %}
 
+{% block right_panel %}
+<section class="panel-card">
+  <div class="section-title">{{ _('当前选中项目') }}</div>
+  <p class="section-copy">{{ _('右侧保持单个对象的上下文，避免列表和表单混在一起。') }}</p>
+  {% if selected_project %}
+  <div class="mt-5 space-y-4">
+    <article class="list-card">
+      <div class="meta-line">
+        <span class="soft-badge">{{ selected_project.slug }}</span>
+        <span>{{ selected_project.adapter_type }}</span>
+      </div>
+      <div class="mt-3 text-xl font-semibold tracking-tight text-slate-900">{{ selected_project.name }}</div>
+      <p class="mt-2 break-words text-sm leading-6 text-slate-500">{{ selected_project.description or _('尚未填写项目说明。') }}</p>
+      <div class="meta-line mt-4">
+        <span>{{ _('工作区路径：') }}{{ selected_project.workspace_path or _('未设置，默认使用全局工作区根') }}</span>
+      </div>
+      <div class="meta-line mt-2">
+        <span>{{ _('镜像仓库前缀：') }}{{ selected_project.image_registry_prefix or _('未设置，默认不拼接 registry 前缀') }}</span>
+      </div>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <a class="button-primary" href="/console/projects/{{ selected_project.id }}">{{ _('进入项目工作台') }}</a>
+      </div>
+    </article>
+
+    <details>
+      <summary class="summary-toggle">{{ _('点击展开编辑项目') }}</summary>
+      <form method="post" action="/console/projects/{{ selected_project.id }}/update" class="mt-4 space-y-4">
+        <div class="grid gap-4">
+          <label class="field-label">{{ _('项目名称') }}
+            <input class="field-input" type="text" name="name" value="{{ selected_project.name }}" required>
+          </label>
+          <label class="field-label">{{ _('项目标识') }}
+            <input class="field-input" type="text" name="slug" value="{{ selected_project.slug }}" required>
+          </label>
+          <label class="field-label">{{ _('项目工作区路径') }}
+            <div class="flex gap-2">
+              <input class="field-input" type="text" name="workspace_path" value="{{ selected_project.workspace_path or '' }}" placeholder="{{ _('sample-service 或 services/sample-service') }}" required>
+              <button type="button" class="button-secondary browse-directory-button whitespace-nowrap" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
+            </div>
+          </label>
+          <label class="field-label">{{ _('镜像仓库前缀') }}
+            <input class="field-input" type="text" name="image_registry_prefix" value="{{ selected_project.image_registry_prefix or '' }}" placeholder="{{ _('registry.example.com/team 或留空使用本地镜像名') }}">
+          </label>
+          <label class="field-label">{{ _('项目说明') }}
+            <textarea class="field-textarea" name="description">{{ selected_project.description or '' }}</textarea>
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button type="button" class="button-secondary validate-workspace-button" data-project-id="{{ selected_project.id }}">{{ _('校验路径') }}</button>
+          <button type="submit" class="button-primary">{{ _('保存项目信息') }}</button>
+        </div>
+      </form>
+      <pre id="workspace-validation-{{ selected_project.id }}" class="mt-4 hidden overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100"></pre>
+    </details>
+
+    <form method="post" action="/console/projects/{{ selected_project.id }}/delete" data-confirm-message="{{ _('确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。') }}">
+      <button type="submit" class="button-danger w-full">{{ _('删除项目') }}</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="mt-4 list-card text-sm text-slate-500">{{ _('当前页还没有可选项目。') }}</div>
+  {% endif %}
+</section>
+
+<script>
+  (() => {
     document.querySelectorAll(".validate-workspace-button").forEach((button) => {
       button.addEventListener("click", async () => {
         const projectId = button.dataset.projectId;
         const output = document.getElementById(`workspace-validation-${projectId}`);
-        if (!output) return;
-        output.style.display = "block";
-        output.textContent = "{{ _('正在校验路径...') }}";
+        if (!projectId || !output) return;
+        output.classList.remove("hidden");
+        output.textContent = "{{ _('正在校验...') }}";
         try {
-          const response = await fetch(`/console/projects/${projectId}/workspace/validate`, {
-            credentials: "same-origin",
-          });
+          const response = await fetch(`/console/projects/${projectId}/workspace/validate`, { credentials: "same-origin" });
           const payload = await response.json();
-          if (!response.ok) {
-            output.textContent = payload.detail || "{{ _('路径校验失败') }}";
-            return;
-          }
-          output.textContent = [
-            `{{ _('工作区根') }}: ${payload.workspace_root}`,
-            `{{ _('配置路径') }}: ${payload.configured_path || "{{ _('(空)') }}"}`,
-            `{{ _('解析路径') }}: ${payload.resolved_path}`,
-            `{{ _('真实路径') }}: ${payload.real_path}`,
-            `{{ _('存在') }}: ${payload.exists ? "{{ _('是') }}" : "{{ _('否') }}"}`,
-            `{{ _('目录') }}: ${payload.is_dir ? "{{ _('是') }}" : "{{ _('否') }}"}`,
-            `{{ _('软链接') }}: ${payload.is_symlink ? "{{ _('是') }}" : "{{ _('否') }}"}`,
-            `docker-compose.yml: ${payload.docker_compose_exists ? "{{ _('存在') }}" : "{{ _('不存在') }}"}`,
-            `{{ _('打包脚本') }}: ${payload.package_script_exists ? payload.package_script : "{{ _('不存在') }}"}`,
-          ].join("\n");
+          output.textContent = JSON.stringify(payload, null, 2);
         } catch (_error) {
-          output.textContent = "{{ _('路径校验失败') }}";
+          output.textContent = "{{ _('校验失败') }}";
         }
       });
     });

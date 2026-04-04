@@ -1,24 +1,36 @@
 {% extends "base.html" %}
 {% block auth_content %}
-<main style="min-height:100vh;display:grid;place-items:center;padding:20px;">
-  <section class="card" style="width:min(100%, 460px);">
-    <div class="hero">
-      <span class="eyebrow">DeployBox</span>
-      <h1>{{ _('登录独立发布控制台') }}</h1>
-      <p>{{ _('统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。') }}</p>
-    </div>
-    {% if error %}
-      <div class="error" style="margin-top:12px;">{{ error }}</div>
-    {% endif %}
-    <form method="post" action="/login" class="grid" style="margin-top:16px;">
-      <label>{{ _('用户名') }}
-        <input type="text" name="username" required>
-      </label>
-      <label>{{ _('密码') }}
-        <input type="password" name="password" required>
-      </label>
-      <button type="submit">{{ _('登录') }}</button>
-    </form>
+<main class="flex min-h-screen items-center justify-center px-4 py-10">
+  <section class="grid w-full max-w-5xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+    <article class="panel-card flex flex-col justify-between">
+      <div>
+        <div class="soft-badge">DeployBox</div>
+        <h1 class="mt-4 text-4xl font-semibold tracking-tight text-slate-900">{{ _('登录独立发布控制台') }}</h1>
+        <p class="mt-3 max-w-xl text-sm leading-7 text-slate-600">{{ _('统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。') }}</p>
+      </div>
+      <div class="mt-8 grid gap-3 sm:grid-cols-3">
+        <div class="list-card"><div class="text-base font-semibold text-slate-900">{{ _('项目') }}</div><p class="mt-1 text-sm text-slate-500">{{ _('统一接入和模板配置') }}</p></div>
+        <div class="list-card"><div class="text-base font-semibold text-slate-900">{{ _('构建') }}</div><p class="mt-1 text-sm text-slate-500">{{ _('版本化制品与日志跟踪') }}</p></div>
+        <div class="list-card"><div class="text-base font-semibold text-slate-900">{{ _('部署') }}</div><p class="mt-1 text-sm text-slate-500">{{ _('异步发布与回滚') }}</p></div>
+      </div>
+    </article>
+
+    <section class="panel-card">
+      <div class="section-title">{{ _('登录') }}</div>
+      <p class="section-copy">{{ _('输入管理员账号进入控制台。') }}</p>
+      {% if error %}
+      <div class="error-card mt-4">{{ error }}</div>
+      {% endif %}
+      <form method="post" action="/login" class="mt-6 space-y-4">
+        <label class="field-label">{{ _('用户名') }}
+          <input class="field-input" type="text" name="username" required>
+        </label>
+        <label class="field-label">{{ _('密码') }}
+          <input class="field-input" type="password" name="password" required>
+        </label>
+        <button type="submit" class="button-primary w-full">{{ _('登录') }}</button>
+      </form>
+    </section>
   </section>
 </main>
 {% endblock %}
