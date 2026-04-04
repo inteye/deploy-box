@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     deployment_poll_interval_seconds: int = 5
     deployment_watch_timeout_seconds: int = 1800
     secret_key: str = "replace-me-in-production"
+    secret_encryption_key: str = "replace-me-in-production"
     admin_username: str = "admin"
     admin_password: str = "change-me-now"
     use_oss: bool = Field(default=False, validation_alias="USE_OSS")

@@ -17,6 +17,10 @@
       <span class="soft-badge !rounded-xl !px-2 !py-1">03</span>
       <span class="truncate">{{ _('高级操作') }}</span>
     </a>
+    <a class="workspace-nav-link {% if active_tab == 'governance' %}workspace-nav-link-active{% endif %}" href="/console/projects/{{ project.id }}?tab=governance">
+      <span class="soft-badge !rounded-xl !px-2 !py-1">04</span>
+      <span class="truncate">{{ _('质量治理') }}</span>
+    </a>
   </div>
 </section>
 
@@ -54,6 +58,7 @@
     </div>
     <a class="button-primary" href="/console/projects/{{ project.id }}/starter/download{% if starter_environment %}?environment_id={{ starter_environment.id }}{% endif %}">{{ _('下载当前 starter 包') }}</a>
   </div>
+  {% if has_project_manage_permission %}
   <form method="post" action="/console/projects/{{ project.id }}/components/import-compose" class="mt-5 space-y-4" data-confirm-message="{{ _('重新读取后将覆盖已有设置，请确认。') }}">
     <label class="field-label">{{ _('从 Compose 导入') }}
       <input class="field-input" type="text" name="compose_path" value="{{ compose_path_hint }}" placeholder="docker-compose.yml">
@@ -70,6 +75,9 @@
       <span>{{ _('当前解析目录：') }}{{ resolved_workspace_path }}</span>
     </div>
   </form>
+  {% else %}
+  <div class="mt-5 list-card text-sm text-slate-500">{{ _('你当前拥有只读权限，可浏览接入信息，但不能修改组件、环境或模板。') }}</div>
+  {% endif %}
   <pre id="project-workspace-validation" class="mt-4 hidden overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100"></pre>
   {% if compose_refresh %}
   <div class="notice-card mt-4">{{ _('组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。') }}</div>
@@ -108,6 +116,7 @@
         </div>
         <div class="mt-3 break-words text-sm font-medium text-slate-900">{{ component.image }}</div>
         <p class="mt-2 break-words text-sm leading-6 text-slate-500">Dockerfile: {{ component.dockerfile }} · Context: {{ component.context_path }} · Tar: {{ component.tar_name_pattern }}</p>
+        {% if has_project_manage_permission %}
         <details class="mt-4">
           <summary class="summary-toggle">{{ _('点击展开编辑组件') }}</summary>
           <form id="component-form-{{ component.id }}" method="post" action="/console/projects/{{ project.id }}/components" class="mt-4 space-y-4">
@@ -135,6 +144,7 @@
             <button type="submit" class="button-danger">{{ _('删除组件') }}</button>
           </form>
         </details>
+        {% endif %}
       </article>
       {% else %}
       <div class="list-card text-sm text-slate-500">{{ _('还没有组件，先手工新增一个，或者从 compose 文件导入。') }}</div>
@@ -158,6 +168,7 @@
             </div>
           </div>
         </div>
+        {% if has_project_manage_permission %}
         <details class="mt-4">
           <summary class="summary-toggle">{{ _('点击展开编辑环境') }}</summary>
           <form method="post" action="/console/projects/{{ project.id }}/environments/{{ env.id }}/update" class="mt-4 space-y-4">
@@ -180,6 +191,7 @@
             <button type="submit" class="button-danger">{{ _('删除环境') }}</button>
           </form>
         </details>
+        {% endif %}
       </article>
       {% else %}
       <div class="list-card text-sm text-slate-500">{{ _('还没有环境。') }}</div>
@@ -191,6 +203,7 @@
 
 {% if active_tab == 'builds' %}
 <section class="grid gap-4 xl:grid-cols-2">
+  {% if has_build_manage_permission %}
   <form method="post" action="/console/projects/{{ project.id }}/builds" class="panel-card space-y-4">
     <div class="section-title">{{ _('一键生成制品') }}</div>
     <p class="section-copy">{{ _('只保留一次正常构建所需的必要输入。') }}</p>
@@ -219,7 +232,14 @@
     </label>
     <button type="submit" class="button-primary">{{ _('开始构建') }}</button>
   </form>
+  {% else %}
+  <article class="panel-card">
+    <div class="section-title">{{ _('一键生成制品') }}</div>
+    <p class="section-copy">{{ _('你当前没有构建权限，但仍可查看构建记录与 Release。') }}</p>
+  </article>
+  {% endif %}
 
+  {% if has_build_manage_permission and has_release_manage_permission %}
   <form method="post" action="/console/projects/{{ project.id }}/builds" class="panel-card space-y-4">
     <div class="section-title">{{ _('一键生成并发布') }}</div>
     <p class="section-copy">{{ _('生成与发版在一条路径里完成。') }}</p>
@@ -257,6 +277,12 @@
     </label>
     <button type="submit" class="button-primary">{{ _('生成后自动发布') }}</button>
   </form>
+  {% else %}
+  <article class="panel-card">
+    <div class="section-title">{{ _('一键生成并发布') }}</div>
+    <p class="section-copy">{{ _('需要同时具备构建与发布权限，才会显示此快捷流程。') }}</p>
+  </article>
+  {% endif %}
 </section>
 
 <section class="grid gap-4 xl:grid-cols-2">
@@ -341,7 +367,7 @@
       {% if release.components %}
       <div class="mt-3 break-words text-sm text-slate-500">{{ _('组件：') }}{{ release.components|sort(attribute='position')|map(attribute='name')|join(', ') }}</div>
       {% endif %}
-      {% if project.environments %}
+      {% if project.environments and has_release_manage_permission %}
       <form method="post" action="/console/projects/{{ project.id }}/deploy" class="mt-4 flex flex-wrap items-center gap-2">
         <input type="hidden" name="release_id" value="{{ release.id }}">
         <select name="environment_id" aria-label="{{ _('选择发布环境') }}" class="field-select !w-28 !min-w-[7rem] !py-2">
@@ -351,6 +377,8 @@
         </select>
         <button type="submit" class="button-primary">{{ _('快速发布') }}</button>
       </form>
+      {% elif project.environments %}
+      <div class="mt-4 text-sm text-slate-500">{{ _('你当前没有发布权限。') }}</div>
       {% endif %}
     </article>
     {% else %}
@@ -372,6 +400,9 @@
 <section class="panel-card">
   <div class="section-title">{{ _('高级入口') }}</div>
   <p class="section-copy">{{ _('高阶操作默认折叠，避免挤占主路径空间。') }}</p>
+  {% if not has_release_manage_permission %}
+  <div class="mt-5 list-card text-sm text-slate-500">{{ _('你当前没有发布权限，手动登记、上传制品和同步 manifest 均不可用。') }}</div>
+  {% else %}
   <div class="mt-5 space-y-4">
     <details>
       <summary class="summary-toggle">{{ _('点击展开手动登记已有 Release') }}</summary>
@@ -428,6 +459,101 @@
       </form>
     </details>
   </div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if active_tab == 'governance' %}
+<section class="grid gap-4 xl:grid-cols-2">
+  <article class="panel-card">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <div class="section-title">{{ _('项目治理') }}</div>
+        <p class="section-copy">{{ _('维护负责人、风险级别和发布前检查项。') }}</p>
+      </div>
+      {% if has_project_manage_permission or has_build_manage_permission or has_release_manage_permission %}
+      <form method="post" action="/console/projects/{{ project.id }}/quality-checks">
+        <button type="submit" class="button-primary">{{ _('执行质量检查') }}</button>
+      </form>
+      {% endif %}
+    </div>
+    <div class="mt-5 grid gap-4 md:grid-cols-2">
+      <article class="list-card">
+        <div class="soft-badge">{{ _('项目负责人') }}</div>
+        <div class="mt-3 text-sm text-slate-900">{{ governance.owner_user.display_name or governance.owner_user.username if governance and governance.owner_user else '-' }}</div>
+      </article>
+      <article class="list-card">
+        <div class="soft-badge">{{ _('发布负责人') }}</div>
+        <div class="mt-3 text-sm text-slate-900">{{ governance.release_owner_user.display_name or governance.release_owner_user.username if governance and governance.release_owner_user else '-' }}</div>
+      </article>
+      <article class="list-card">
+        <div class="soft-badge">{{ _('风险级别') }}</div>
+        <div class="mt-3 text-sm text-slate-900">{{ governance.risk_level if governance else 'medium' }}</div>
+      </article>
+      <article class="list-card">
+        <div class="soft-badge">{{ _('发布检查项') }}</div>
+        <div class="mt-3 text-sm text-slate-900">{{ governance_checklist|length }}</div>
+      </article>
+    </div>
+    {% if governance_checklist %}
+    <div class="mt-5 space-y-3">
+      {% for item in governance_checklist %}
+      <article class="list-card text-sm text-slate-700">{{ item }}</article>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </article>
+
+  <article class="panel-card">
+    <div class="section-title">{{ _('质量趋势') }}</div>
+    <div class="mt-5">
+      <div class="meta-line">
+        <span>{{ _('通过') }} {{ project_quality_status_summary.passed }}</span>
+        <span>{{ _('警告') }} {{ project_quality_status_summary.warning }}</span>
+        <span>{{ _('失败') }} {{ project_quality_status_summary.failed }}</span>
+      </div>
+      <div class="mt-4 flex items-end gap-3 overflow-x-auto pb-2">
+        {% for point in project_quality_trend_points %}
+        <div class="min-w-[68px]">
+          <div class="flex h-32 items-end rounded-2xl bg-sand-100 px-2 py-2">
+            <div class="w-full rounded-xl {% if point.status == 'failed' %}bg-rose-500{% elif point.status == 'warning' %}bg-amber-400{% else %}bg-pine-700{% endif %}" style="height: {{ [point.score, 8]|max }}%;"></div>
+          </div>
+          <div class="mt-2 text-center text-xs text-slate-500">{{ point.label }}</div>
+          <div class="mt-1 text-center text-xs font-medium text-slate-700">{{ point.score }}</div>
+        </div>
+        {% else %}
+        <div class="text-sm text-slate-500">{{ _('还没有质量趋势数据。') }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="grid gap-4 xl:grid-cols-2">
+  <article class="panel-card">
+    <div class="section-title">{{ _('最近质量检查') }}</div>
+    <div class="mt-5 space-y-3">
+      {% for check in quality_checks %}
+      {% set result = check.result_json|tojson if false else none %}
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="{% if check.status == 'failed' %}status-badge-danger{% elif check.status == 'warning' %}status-badge-warning{% else %}status-badge-neutral{% endif %}">{{ check.status }}</span>
+          <span>{{ check.score }}</span>
+          <span>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+        </div>
+        <div class="mt-3 break-words text-sm text-slate-900">{{ check.summary }}</div>
+        {% if check.result_json %}
+        <details class="mt-3">
+          <summary class="summary-toggle">{{ _('点击展开检查结果') }}</summary>
+          <pre class="mt-3 overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100">{{ check.result_json }}</pre>
+        </details>
+        {% endif %}
+      </article>
+      {% else %}
+      <div class="list-card text-sm text-slate-500">{{ _('还没有质量检查记录。') }}</div>
+      {% endfor %}
+    </div>
+  </article>
 </section>
 {% endif %}
 {% endblock %}
@@ -438,6 +564,9 @@
   <div class="section-title">{{ _('接入配置') }}</div>
   <p class="section-copy">{{ _('新增和编辑表单默认收起，右侧只负责当前配置操作。') }}</p>
   <div class="mt-5 space-y-4">
+    {% if not has_project_manage_permission %}
+    <div class="list-card text-sm text-slate-500">{{ _('你当前没有接入配置修改权限，以下表单仅对接入管理员开放。') }}</div>
+    {% else %}
     <details>
       <summary class="summary-toggle">{{ _('点击展开编辑接入配置') }}</summary>
       <form method="post" action="/console/projects/{{ project.id }}/build-config" class="mt-4 space-y-4">
@@ -464,6 +593,11 @@
           <div class="meta-line"><span class="soft-badge">{{ _('覆盖说明') }}</span></div>
           <p class="mt-3 text-sm leading-6 text-slate-500">{{ _('这里保存的是当前项目对所选模板的覆盖项，不会自动按环境切换。') }}</p>
           <p class="mt-2 text-sm leading-6 text-slate-500">{{ _('其中 `artifact_public_base_url` 只用于本地制品模式下生成 release 访问地址；如果选择 OSS，最终 manifest 会改写成 OSS 地址。') }}</p>
+        </article>
+        <article class="list-card">
+          <div class="meta-line"><span class="soft-badge">{{ _('默认制品仓库') }}</span></div>
+          <p class="mt-3 text-sm leading-6 text-slate-500">{{ selected_repository.name if selected_repository else _('本地制品站') }}</p>
+          <p class="mt-2 text-sm leading-6 text-slate-500">{{ _('仓库创建与密钥维护统一在设置页处理；项目只绑定默认仓库。') }}</p>
         </article>
         <button type="submit" class="button-primary">{{ _('保存接入配置') }}</button>
       </form>
@@ -510,6 +644,7 @@
         <button type="submit" class="button-primary">{{ _('保存环境') }}</button>
       </form>
     </details>
+    {% endif %}
   </div>
 </section>
 
@@ -552,6 +687,47 @@
     </div>
     <a class="button-secondary w-full" href="/console/projects/{{ project.id }}/starter/download{% if starter_environment %}?environment_id={{ starter_environment.id }}{% endif %}">{{ _('下载当前 starter 包') }}</a>
   </div>
+</section>
+{% elif active_tab == 'governance' %}
+<section class="panel-card">
+  <div class="section-title">{{ _('治理配置') }}</div>
+  <p class="section-copy">{{ _('把负责人、风险和清单维护成项目级基线。') }}</p>
+  {% if has_project_manage_permission %}
+  <form method="post" action="/console/projects/{{ project.id }}/governance" class="mt-5 space-y-4">
+    <label class="field-label">{{ _('项目负责人') }}
+      <select name="owner_user_id" class="field-select">
+        <option value="">{{ _('未指定') }}</option>
+        {% for user in users %}
+        <option value="{{ user.id }}" {% if governance and governance.owner_user_id == user.id %}selected{% endif %}>{{ user.display_name or user.username }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field-label">{{ _('发布负责人') }}
+      <select name="release_owner_user_id" class="field-select">
+        <option value="">{{ _('未指定') }}</option>
+        {% for user in users %}
+        <option value="{{ user.id }}" {% if governance and governance.release_owner_user_id == user.id %}selected{% endif %}>{{ user.display_name or user.username }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field-label">{{ _('风险级别') }}
+      <select name="risk_level" class="field-select">
+        <option value="low" {% if governance and governance.risk_level == 'low' %}selected{% endif %}>low</option>
+        <option value="medium" {% if not governance or governance.risk_level == 'medium' %}selected{% endif %}>medium</option>
+        <option value="high" {% if governance and governance.risk_level == 'high' %}selected{% endif %}>high</option>
+      </select>
+    </label>
+    <label class="field-label">{{ _('发布检查清单') }}
+      <textarea class="field-textarea" name="checklist_text" placeholder="{{ _('每行一条，例如：确认数据库变更已执行') }}">{{ governance_checklist|join('\n') }}</textarea>
+    </label>
+    <label class="field-label">{{ _('治理备注') }}
+      <textarea class="field-textarea" name="notes" placeholder="{{ _('记录风险、发布窗口、依赖团队等信息') }}">{{ governance.notes if governance and governance.notes else '' }}</textarea>
+    </label>
+    <button type="submit" class="button-primary w-full">{{ _('保存治理配置') }}</button>
+  </form>
+  {% else %}
+  <div class="mt-5 list-card text-sm text-slate-500">{{ _('你当前没有项目治理修改权限。') }}</div>
+  {% endif %}
 </section>
 {% else %}
 <section class="panel-card">

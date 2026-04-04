@@ -9,6 +9,7 @@ class ProjectCreate(BaseModel):
     adapter_type: str = "webhook_manifest_v1"
     workspace_path: str | None = None
     image_registry_prefix: str | None = None
+    default_artifact_repository_id: int | None = None
     description: str | None = None
 
 
@@ -19,6 +20,7 @@ class ProjectRead(BaseModel):
     adapter_type: str
     workspace_path: str | None
     image_registry_prefix: str | None
+    default_artifact_repository_id: int | None
     description: str | None
     is_active: bool
     created_at: datetime
@@ -32,6 +34,7 @@ class ProjectUpdate(BaseModel):
     slug: str
     workspace_path: str | None = None
     image_registry_prefix: str | None = None
+    default_artifact_repository_id: int | None = None
     description: str | None = None
 
 

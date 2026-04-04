@@ -7,38 +7,578 @@ import tarfile
 import tempfile
 import time
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
 from textwrap import dedent
 
 import httpx
 import yaml
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
+from .auth import ROLE_DEFINITIONS, ensure_user_roles
 from .adapters import build_adapter
 from .config import get_settings
 from .database import SessionLocal
 from .models import (
+    ArtifactRepository,
+    AuditLog,
     BuildJob,
     BuildJobEvent,
     BuildTemplate,
     Deployment,
     Environment,
+    OperatorUser,
+    OperatorUserRole,
     Project,
     ProjectBuildConfig,
     ProjectComponent,
+    ProjectGovernance,
+    QualityCheckRun,
     Release,
     ReleaseComponent,
+    SystemSetting,
 )
+from .security import decrypt_secret, encrypt_secret
 from .storage import build_artifact_storage, build_oss_storage_descriptor
-from .task_runner import submit_background_job
+from .task_runner import start_background_scheduler, submit_background_job
 
 
 TERMINAL_DEPLOYMENT_STATUSES = {"succeeded", "failed", "timed_out_but_running"}
 SUCCESS_AGENT_STATUSES = {"deployed", "success", "succeeded"}
 FAILED_AGENT_STATUSES = {"failed"}
+SYSTEM_SETTING_KEYS = (
+    "deployment_trigger_timeout_seconds",
+    "deployment_poll_interval_seconds",
+    "deployment_watch_timeout_seconds",
+    "workspace_path",
+    "package_script",
+    "package_artifact_public_base_url",
+    "local_artifacts_path",
+    "quality_auto_check_enabled",
+    "quality_auto_check_interval_minutes",
+)
+
+
+def record_audit_log(
+    db: Session,
+    *,
+    actor: OperatorUser | None,
+    action: str,
+    target_type: str,
+    target_id: str | int | None,
+    summary: str,
+    detail: dict | None = None,
+    request=None,
+) -> AuditLog:
+    log = AuditLog(
+        actor_user_id=actor.id if actor else None,
+        actor_username=actor.username if actor else None,
+        action=action,
+        target_type=target_type,
+        target_id=str(target_id) if target_id is not None else None,
+        summary=summary,
+        detail_json=json.dumps(detail, ensure_ascii=True) if detail else None,
+        request_path=getattr(request, "url", None).path if request is not None else None,
+        request_method=getattr(request, "method", None) if request is not None else None,
+    )
+    db.add(log)
+    db.commit()
+    db.refresh(log)
+    return log
+
+
+def list_artifact_repositories(db: Session) -> list[ArtifactRepository]:
+    return db.scalars(select(ArtifactRepository).order_by(ArtifactRepository.is_default.desc(), ArtifactRepository.name.asc())).all()
+
+
+def get_default_artifact_repository(db: Session) -> ArtifactRepository | None:
+    return db.scalar(
+        select(ArtifactRepository)
+        .where(ArtifactRepository.is_active.is_(True), ArtifactRepository.is_default.is_(True))
+        .order_by(ArtifactRepository.updated_at.desc())
+    )
+
+
+def get_project_artifact_repository(db: Session, project: Project) -> ArtifactRepository | None:
+    if project.default_artifact_repository_id:
+        repository = db.get(ArtifactRepository, project.default_artifact_repository_id)
+        if repository and repository.is_active:
+            return repository
+    return get_default_artifact_repository(db)
+
+
+def resolve_project_artifact_mode(
+    db: Session,
+    *,
+    project: Project,
+    artifact_mode: str,
+) -> tuple[str, ArtifactRepository | None]:
+    settings = get_settings()
+    normalized_mode = (artifact_mode or "auto").strip().lower()
+    repository = get_project_artifact_repository(db, project)
+    if normalized_mode == "local":
+        return "local", None
+    if normalized_mode == "oss":
+        if repository is None:
+            if settings.use_oss:
+                return "aliyun_oss", None
+            raise RuntimeError("当前项目未绑定制品仓库")
+        return repository.provider, repository
+    if normalized_mode != "auto":
+        raise RuntimeError("不支持的制品模式，只能是 auto、oss 或 local")
+    if repository is not None:
+        return repository.provider, repository
+    if settings.use_oss:
+        return "aliyun_oss", None
+    return "local", None
+
+
+def save_artifact_repository(
+    db: Session,
+    *,
+    repository_id: int | None,
+    name: str,
+    slug: str,
+    provider: str,
+    bucket_name: str,
+    region: str | None,
+    endpoint: str | None,
+    custom_domain: str | None,
+    path_prefix: str | None,
+    access_key_id: str,
+    secret_access_key: str,
+    is_active: bool,
+    is_default: bool,
+) -> ArtifactRepository:
+    normalized_provider = provider.strip().lower()
+    if normalized_provider not in {"aliyun_oss", "amazon_s3"}:
+        raise RuntimeError("unsupported_repository_provider")
+    repository = db.get(ArtifactRepository, repository_id) if repository_id else None
+    if repository_id and not repository:
+        raise RuntimeError("artifact_repository_not_found")
+    normalized_name = name.strip()
+    normalized_slug = slug.strip()
+    duplicate = db.scalar(
+        select(ArtifactRepository).where(
+            ArtifactRepository.slug == normalized_slug,
+            ArtifactRepository.id != (repository.id if repository else 0),
+        )
+    )
+    if duplicate:
+        raise RuntimeError(f"artifact_repository_slug_exists: {normalized_slug}")
+    duplicate_name = db.scalar(
+        select(ArtifactRepository).where(
+            ArtifactRepository.name == normalized_name,
+            ArtifactRepository.id != (repository.id if repository else 0),
+        )
+    )
+    if duplicate_name:
+        raise RuntimeError(f"artifact_repository_name_exists: {normalized_name}")
+    if not repository:
+        repository = ArtifactRepository(
+            access_key_id_encrypted="",
+            secret_access_key_encrypted="",
+        )
+    repository.name = normalized_name
+    repository.slug = normalized_slug
+    repository.provider = normalized_provider
+    repository.bucket_name = bucket_name.strip()
+    repository.region = region.strip() if region else None
+    repository.endpoint = endpoint.strip() if endpoint else None
+    repository.custom_domain = custom_domain.strip() if custom_domain else None
+    repository.path_prefix = path_prefix.strip().strip("/") if path_prefix else None
+    repository.is_active = is_active
+    repository.is_default = is_default
+    if access_key_id.strip():
+        repository.access_key_id_encrypted = encrypt_secret(access_key_id.strip())
+    elif not repository.access_key_id_encrypted:
+        raise RuntimeError("artifact_repository_access_key_required")
+    if secret_access_key.strip():
+        repository.secret_access_key_encrypted = encrypt_secret(secret_access_key.strip())
+    elif not repository.secret_access_key_encrypted:
+        raise RuntimeError("artifact_repository_secret_key_required")
+    db.add(repository)
+    db.commit()
+    if is_default:
+        db.execute(
+            ArtifactRepository.__table__.update()
+            .where(ArtifactRepository.id != repository.id)
+            .values(is_default=False)
+        )
+        db.commit()
+    db.refresh(repository)
+    return repository
+
+
+def list_users(db: Session) -> list[OperatorUser]:
+    return db.execute(
+        select(OperatorUser)
+        .options(joinedload(OperatorUser.role_assignments).joinedload(OperatorUserRole.project))
+        .order_by(OperatorUser.created_at.desc())
+    ).unique().scalars().all()
+
+
+def save_operator_user(
+    db: Session,
+    *,
+    user_id: int | None,
+    username: str,
+    password: str,
+    display_name: str | None,
+    preferred_lang: str | None,
+    is_active: bool,
+    is_superuser: bool,
+    role_codes: list[str],
+    scoped_role_bindings: list[str],
+) -> OperatorUser:
+    from .auth import hash_password
+
+    user = db.get(OperatorUser, user_id) if user_id else None
+    if user_id and not user:
+        raise RuntimeError("operator_user_not_found")
+    normalized_username = username.strip()
+    duplicate = db.scalar(
+        select(OperatorUser).where(OperatorUser.username == normalized_username, OperatorUser.id != (user.id if user else 0))
+    )
+    if duplicate:
+        raise RuntimeError(f"operator_username_exists: {normalized_username}")
+    if not user:
+        if not password.strip():
+            raise RuntimeError("operator_password_required")
+        user = OperatorUser(username=normalized_username, password_hash=hash_password(password.strip()))
+    user.username = normalized_username
+    user.display_name = display_name.strip() if display_name else None
+    user.preferred_lang = preferred_lang.strip() if preferred_lang else None
+    user.is_active = is_active
+    user.is_superuser = is_superuser
+    if password.strip():
+        user.password_hash = hash_password(password.strip())
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    normalized_bindings: list[str | tuple[str, int | None]] = []
+    if is_superuser:
+        normalized_bindings = ["system_admin"]
+    else:
+        normalized_bindings.extend(role_codes)
+        for binding in scoped_role_bindings:
+            role_code, _separator, raw_project_id = binding.partition(":")
+            if role_code not in ROLE_DEFINITIONS or not raw_project_id.isdigit():
+                continue
+            normalized_bindings.append((role_code, int(raw_project_id)))
+    ensure_user_roles(db, user, normalized_bindings)
+    return db.execute(
+        select(OperatorUser).options(joinedload(OperatorUser.role_assignments)).where(OperatorUser.id == user.id)
+    ).unique().scalar_one()
+
+
+def save_system_settings(db: Session, values: dict[str, str | None]) -> None:
+    for key, value in values.items():
+        if key not in SYSTEM_SETTING_KEYS:
+            continue
+        setting = db.get(SystemSetting, key) or SystemSetting(key=key)
+        setting.value = value
+        db.add(setting)
+    db.commit()
+
+
+def get_system_settings_map(db: Session) -> dict[str, str | None]:
+    items = db.scalars(select(SystemSetting).where(SystemSetting.key.in_(SYSTEM_SETTING_KEYS))).all()
+    return {item.key: item.value for item in items}
+
+
+def get_system_setting_value(db: Session, key: str, default: str | None = None) -> str | None:
+    if key not in SYSTEM_SETTING_KEYS:
+        return default
+    setting = db.get(SystemSetting, key)
+    if not setting or setting.value in (None, ""):
+        return default
+    return setting.value
+
+
+def artifact_repository_public_summary(repository: ArtifactRepository) -> dict:
+    return {
+        "id": repository.id,
+        "name": repository.name,
+        "slug": repository.slug,
+        "provider": repository.provider,
+        "bucket_name": repository.bucket_name,
+        "region": repository.region,
+        "endpoint": repository.endpoint,
+        "custom_domain": repository.custom_domain,
+        "path_prefix": repository.path_prefix,
+        "is_active": repository.is_active,
+        "is_default": repository.is_default,
+    }
+
+
+def ensure_project_governance(db: Session, project: Project) -> ProjectGovernance:
+    governance = db.scalar(select(ProjectGovernance).where(ProjectGovernance.project_id == project.id))
+    if governance:
+        return governance
+    governance = ProjectGovernance(project_id=project.id, risk_level="medium")
+    db.add(governance)
+    db.commit()
+    db.refresh(governance)
+    return governance
+
+
+def save_project_governance(
+    db: Session,
+    *,
+    project: Project,
+    owner_user_id: int | None,
+    release_owner_user_id: int | None,
+    risk_level: str,
+    checklist_items: list[str],
+    notes: str,
+) -> ProjectGovernance:
+    governance = ensure_project_governance(db, project)
+    governance.owner_user_id = owner_user_id
+    governance.release_owner_user_id = release_owner_user_id
+    governance.risk_level = (risk_level or "medium").strip().lower() or "medium"
+    governance.release_checklist_json = json.dumps(
+        [item.strip() for item in checklist_items if item and item.strip()],
+        ensure_ascii=False,
+    )
+    governance.notes = notes.strip() or None
+    db.add(governance)
+    db.commit()
+    return (
+        db.execute(
+            select(ProjectGovernance)
+            .options(
+                joinedload(ProjectGovernance.owner_user),
+                joinedload(ProjectGovernance.release_owner_user),
+            )
+            .where(ProjectGovernance.id == governance.id)
+        )
+        .unique()
+        .scalar_one()
+    )
+
+
+def parse_release_checklist(governance: ProjectGovernance | None) -> list[str]:
+    if not governance or not governance.release_checklist_json:
+        return []
+    try:
+        items = json.loads(governance.release_checklist_json)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(items, list):
+        return []
+    return [str(item).strip() for item in items if str(item).strip()]
+
+
+def list_recent_quality_checks(db: Session, *, project_id: int | None = None, limit: int = 10) -> list[QualityCheckRun]:
+    stmt = select(QualityCheckRun).options(joinedload(QualityCheckRun.project)).order_by(QualityCheckRun.created_at.desc()).limit(limit)
+    if project_id is not None:
+        stmt = stmt.where(QualityCheckRun.project_id == project_id)
+    return db.execute(stmt).unique().scalars().all()
+
+
+def build_quality_trend_points(
+    db: Session,
+    *,
+    project_id: int | None = None,
+    project_ids: set[int] | None = None,
+    limit: int = 8,
+) -> list[dict]:
+    stmt = select(QualityCheckRun).order_by(QualityCheckRun.created_at.desc()).limit(limit)
+    if project_id is not None:
+        stmt = stmt.where(QualityCheckRun.project_id == project_id)
+    elif project_ids is not None:
+        if not project_ids:
+            return []
+        stmt = stmt.where(QualityCheckRun.project_id.in_(project_ids))
+    runs = list(reversed(db.scalars(stmt).all()))
+    return [
+        {
+            "label": run.created_at.strftime("%m-%d %H:%M"),
+            "score": run.score,
+            "status": run.status,
+            "summary": run.summary or "",
+        }
+        for run in runs
+    ]
+
+
+def build_quality_status_summary(
+    db: Session,
+    *,
+    project_id: int | None = None,
+    project_ids: set[int] | None = None,
+    days: int = 7,
+) -> dict[str, int]:
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    stmt = select(QualityCheckRun.status, func.count(QualityCheckRun.id)).where(QualityCheckRun.created_at >= since).group_by(
+        QualityCheckRun.status
+    )
+    if project_id is not None:
+        stmt = stmt.where(QualityCheckRun.project_id == project_id)
+    elif project_ids is not None:
+        if not project_ids:
+            return {"passed": 0, "warning": 0, "failed": 0}
+        stmt = stmt.where(QualityCheckRun.project_id.in_(project_ids))
+    counts = {status: count for status, count in db.execute(stmt).all()}
+    return {
+        "passed": counts.get("passed", 0),
+        "warning": counts.get("warning", 0),
+        "failed": counts.get("failed", 0),
+    }
+
+
+def summarize_quality_result(result: dict) -> tuple[str, int]:
+    checks = result.get("checks") or []
+    failed = sum(1 for item in checks if item.get("status") == "failed")
+    warnings = sum(1 for item in checks if item.get("status") == "warning")
+    passed = sum(1 for item in checks if item.get("status") == "passed")
+    score = max(0, min(100, passed * 12 + warnings * 6 - failed * 18 + 40))
+    if failed:
+        summary = f"{failed} 项失败，{warnings} 项警告"
+        status = "failed"
+    elif warnings:
+        summary = f"{warnings} 项警告，建议修正后再发布"
+        status = "warning"
+    else:
+        summary = "关键检查全部通过"
+        status = "passed"
+    return f"[{status}] {summary}", score
+
+
+def run_project_quality_check(db: Session, *, project: Project, triggered_by: str | None) -> QualityCheckRun:
+    governance = ensure_project_governance(db, project)
+    build_config = ensure_project_build_config(db, project)
+    components = list_project_components(db, project)
+    workspace = resolve_project_workspace(project)
+    checks: list[dict[str, str]] = []
+
+    def add_check(key: str, label: str, status: str, detail: str) -> None:
+        checks.append({"key": key, "label": label, "status": status, "detail": detail})
+
+    if governance.owner_user_id:
+        add_check("project_owner", "项目负责人", "passed", "已指定项目负责人")
+    else:
+        add_check("project_owner", "项目负责人", "failed", "未指定项目负责人")
+
+    if governance.release_owner_user_id:
+        add_check("release_owner", "发布负责人", "passed", "已指定发布负责人")
+    else:
+        add_check("release_owner", "发布负责人", "warning", "建议指定发布负责人，便于变更追踪")
+
+    checklist_items = parse_release_checklist(governance)
+    if checklist_items:
+        add_check("release_checklist", "发布检查清单", "passed", f"已维护 {len(checklist_items)} 条发布检查项")
+    else:
+        add_check("release_checklist", "发布检查清单", "warning", "建议补充发布前检查清单")
+
+    if workspace.exists() and workspace.is_dir():
+        add_check("workspace", "项目工作区", "passed", str(workspace))
+    else:
+        add_check("workspace", "项目工作区", "failed", f"工作区不可用: {workspace}")
+
+    if build_config.template_id:
+        add_check("build_template", "构建模板", "passed", "已配置构建模板")
+    else:
+        add_check("build_template", "构建模板", "failed", "未配置构建模板")
+
+    enabled_components = [component for component in components if component.enabled]
+    if enabled_components:
+        add_check("components", "启用组件", "passed", f"当前启用 {len(enabled_components)} 个组件")
+    else:
+        add_check("components", "启用组件", "failed", "没有启用中的组件")
+
+    build_components = [component for component in enabled_components if component.build_enabled]
+    if build_components:
+        add_check("build_components", "构建型组件", "passed", f"当前有 {len(build_components)} 个构建型组件")
+    else:
+        add_check("build_components", "构建型组件", "warning", "当前没有构建型组件，默认依赖外部镜像")
+
+    if project.environments:
+        add_check("environments", "部署环境", "passed", f"已配置 {len(project.environments)} 个环境")
+    else:
+        add_check("environments", "部署环境", "failed", "尚未配置部署环境")
+
+    if project.default_artifact_repository_id:
+        add_check("artifact_repository", "默认制品仓库", "passed", "已绑定项目默认制品仓库")
+    else:
+        add_check("artifact_repository", "默认制品仓库", "warning", "未绑定项目默认制品仓库，将回退全局存储模式")
+
+    result = {
+        "project_id": project.id,
+        "project_slug": project.slug,
+        "workspace": str(workspace),
+        "checks": checks,
+        "risk_level": governance.risk_level,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+    summary, score = summarize_quality_result(result)
+    failed = any(item["status"] == "failed" for item in checks)
+    warning = any(item["status"] == "warning" for item in checks)
+    final_status = "failed" if failed else "warning" if warning else "passed"
+    run = QualityCheckRun(
+        project_id=project.id,
+        status=final_status,
+        score=score,
+        summary=summary,
+        result_json=json.dumps(result, ensure_ascii=False),
+        triggered_by=triggered_by,
+    )
+    db.add(run)
+    db.commit()
+    db.refresh(run)
+    return run
+
+
+def run_due_quality_checks(*, triggered_by: str = "system:auto") -> int:
+    db = SessionLocal()
+    try:
+        enabled = (get_system_setting_value(db, "quality_auto_check_enabled", "true") or "true").strip().lower()
+        if enabled not in {"1", "true", "yes", "on"}:
+            return 0
+        try:
+            interval_minutes = int(get_system_setting_value(db, "quality_auto_check_interval_minutes", "180") or "180")
+        except ValueError:
+            interval_minutes = 180
+        interval_minutes = max(interval_minutes, 15)
+        now = datetime.now(timezone.utc)
+        projects = db.scalars(select(Project).where(Project.is_active.is_(True)).order_by(Project.id.asc())).all()
+        ran = 0
+        for project in projects:
+            latest = db.scalar(
+                select(QualityCheckRun).where(QualityCheckRun.project_id == project.id).order_by(QualityCheckRun.created_at.desc()).limit(1)
+            )
+            if latest and latest.created_at and (now - latest.created_at) < timedelta(minutes=interval_minutes):
+                continue
+            run = run_project_quality_check(db, project=project, triggered_by=triggered_by)
+            record_audit_log(
+                db,
+                actor=None,
+                action="quality_check.auto_run",
+                target_type="project",
+                target_id=project.id,
+                summary=f"自动执行项目 {project.name} 的质量检查",
+                detail={"quality_check_id": run.id, "status": run.status, "score": run.score},
+            )
+            ran += 1
+        return ran
+    finally:
+        db.close()
+
+
+def quality_scheduler_loop(stop_event) -> None:
+    while not stop_event.is_set():
+        try:
+            run_due_quality_checks()
+        except Exception:
+            pass
+        stop_event.wait(300)
+
+
+def start_quality_scheduler() -> None:
+    start_background_scheduler(quality_scheduler_loop, name="deploy-console-quality-scheduler")
 
 
 def ensure_builtin_templates(db: Session) -> None:
@@ -827,19 +1367,13 @@ def _run_manifest_script_build(
     if not package_script.exists():
         raise RuntimeError(f"打包脚本不存在: {package_script}")
 
-    use_oss = settings.use_oss
-    normalized_mode = (job.artifact_mode or "auto").strip().lower()
-    if normalized_mode == "oss":
-        use_oss = True
-    elif normalized_mode == "local":
-        use_oss = False
-    elif normalized_mode != "auto":
-        raise RuntimeError("不支持的制品模式，只能是 auto、oss 或 local")
+    resolved_storage_mode, repository = resolve_project_artifact_mode(db, project=project, artifact_mode=job.artifact_mode)
+    use_remote_storage = resolved_storage_mode != "local"
 
     env = os.environ.copy()
     env["ARTIFACT_BASE_URL"] = artifact_base_url
     local_release_root = Path(settings.local_artifacts_path).resolve()
-    if not use_oss:
+    if not use_remote_storage:
         local_output_dir = local_release_root / str(job.id)
         env["OUTPUT_DIR"] = str(local_output_dir)
     for key, value in (resolved.get("extra_env") or {}).items():
@@ -926,7 +1460,7 @@ def _run_manifest_script_build(
     if not version or not output_dir:
         raise RuntimeError("打包脚本输出缺少 Version 或 Release package created at")
     output_path = Path(output_dir).resolve()
-    if not use_oss:
+    if not use_remote_storage:
         final_output_path = local_release_root / version
         if output_path != final_output_path:
             final_output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -942,12 +1476,11 @@ def _run_manifest_script_build(
     manifest_payload = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest_payload["version"] = version
 
-    storage_mode = "oss" if use_oss else "local"
     remote_prefix = f"{project.slug}/releases/{version}"
-    if use_oss:
+    if use_remote_storage:
         _record_build_event(db, job, "info", "upload", "开始上传到 OSS", 70)
-        storage = build_artifact_storage(settings)
-        manifest_payload["artifact_storage"] = build_oss_storage_descriptor(settings)
+        storage = build_artifact_storage(settings, repository)
+        manifest_payload["artifact_storage"] = build_oss_storage_descriptor(settings, repository)
         components = _validated_components(manifest_payload)
         total = len(components)
         for index, component in enumerate(components, start=1):
@@ -1026,11 +1559,11 @@ def _run_manifest_script_build(
         payload_json=job.payload_json,
         created_by=job.triggered_by,
         source_type="generated",
-        storage_mode=storage_mode,
+        storage_mode=resolved_storage_mode,
     )
     job.output_version = release.version
     job.manifest_url = release.manifest_url
-    job.storage_mode = storage_mode
+    job.storage_mode = resolved_storage_mode
     db.commit()
     return release
 
@@ -2089,6 +2622,7 @@ def _render_deploy_agent_requirements() -> str:
         fastapi==0.116.1
         uvicorn==0.35.0
         httpx==0.28.1
+        boto3==1.39.8
         oss2==2.19.1
         """
     )
@@ -2271,6 +2805,7 @@ def _render_deploy_release_script() -> str:
         from pathlib import Path
         from urllib.request import urlretrieve
 
+        import boto3
         import oss2
 
 
@@ -2295,9 +2830,34 @@ def _render_deploy_release_script() -> str:
             return f"https://{raw.rstrip('/')}"
 
 
-        def build_oss_bucket(storage_info: dict):
+        def build_remote_storage_client(storage_info: dict):
             provider = str(storage_info.get("provider") or os.environ.get("DEPLOY_ARTIFACT_PROVIDER") or "").strip()
-            if provider and provider != "aliyun_oss":
+            provider = provider or "aliyun_oss"
+            if provider == "amazon_s3":
+                access_key_id = str(os.environ.get("DEPLOY_S3_ACCESS_KEY_ID") or "").strip()
+                secret_access_key = str(os.environ.get("DEPLOY_S3_SECRET_ACCESS_KEY") or "").strip()
+                bucket_name = str(storage_info.get("bucket") or os.environ.get("DEPLOY_S3_BUCKET_NAME") or "").strip()
+                endpoint = normalize_endpoint(storage_info.get("endpoint") or os.environ.get("DEPLOY_S3_ENDPOINT") or "")
+                region = str(storage_info.get("region") or os.environ.get("DEPLOY_S3_REGION") or "").strip() or None
+                required = {
+                    "DEPLOY_S3_ACCESS_KEY_ID": access_key_id,
+                    "DEPLOY_S3_SECRET_ACCESS_KEY": secret_access_key,
+                    "DEPLOY_S3_BUCKET_NAME": bucket_name,
+                }
+                missing = [name for name, value in required.items() if not value]
+                if missing:
+                    raise RuntimeError(
+                        "manifest requires private S3 download, missing deploy-agent config: " + ", ".join(missing)
+                    )
+                client = boto3.client(
+                    "s3",
+                    aws_access_key_id=access_key_id,
+                    aws_secret_access_key=secret_access_key,
+                    region_name=region,
+                    endpoint_url=endpoint or None,
+                )
+                return provider, client, bucket_name
+            if provider != "aliyun_oss":
                 raise RuntimeError(f"unsupported artifact storage provider: {provider}")
             access_key_id = str(os.environ.get("DEPLOY_OSS_ACCESS_KEY_ID") or "").strip()
             access_key_secret = str(os.environ.get("DEPLOY_OSS_ACCESS_KEY_SECRET") or "").strip()
@@ -2316,7 +2876,7 @@ def _render_deploy_release_script() -> str:
                     "manifest requires private OSS download, missing deploy-agent config: " + ", ".join(missing)
                 )
             auth = oss2.Auth(access_key_id, access_key_secret)
-            return oss2.Bucket(auth, endpoint, bucket_name, region=region)
+            return provider, oss2.Bucket(auth, endpoint, bucket_name, region=region), bucket_name
 
 
         manifest_path = Path(os.environ["DEPLOY_MANIFEST_PATH"])
@@ -2332,7 +2892,8 @@ def _render_deploy_release_script() -> str:
         compose_env = os.environ.copy()
         compose_cmd = compose_base_command()
         artifact_storage = payload.get("artifact_storage") if isinstance(payload.get("artifact_storage"), dict) else {}
-        oss_bucket = None
+        storage_client = None
+        storage_provider = None
 
         for component in payload.get("components", []):
             image = str(component.get("image") or "").strip()
@@ -2348,10 +2909,13 @@ def _render_deploy_release_script() -> str:
             if object_key:
                 tar_name = Path(object_key).name
                 local_tar = manifest_path.parent / tar_name
-                if oss_bucket is None:
-                    oss_bucket = build_oss_bucket(artifact_storage)
-                print(f"downloading private oss object: {object_key}")
-                oss_bucket.get_object_to_file(object_key, str(local_tar))
+                if storage_client is None:
+                    storage_provider, storage_client, _bucket_name = build_remote_storage_client(artifact_storage)
+                print(f"downloading private object: {storage_provider}:{object_key}")
+                if storage_provider == "amazon_s3":
+                    storage_client.download_file(_bucket_name, object_key, str(local_tar))
+                else:
+                    storage_client.get_object_to_file(object_key, str(local_tar))
                 subprocess.run(["docker", "load", "-i", str(local_tar)], check=True)
             elif tar_url:
                 tar_name = Path(tar_url).name
@@ -2421,6 +2985,11 @@ def _render_deploy_agent_env(
             DEPLOY_OSS_BUCKET_NAME=
             DEPLOY_OSS_ENDPOINT=
             DEPLOY_OSS_REGION=
+            DEPLOY_S3_ACCESS_KEY_ID=
+            DEPLOY_S3_SECRET_ACCESS_KEY=
+            DEPLOY_S3_BUCKET_NAME=
+            DEPLOY_S3_ENDPOINT=
+            DEPLOY_S3_REGION=
 
             # This must be the real project path on the target host.
             # It is used for mounting the project into /workspace.
@@ -2457,6 +3026,11 @@ def _render_deploy_agent_env(
         DEPLOY_OSS_BUCKET_NAME=
         DEPLOY_OSS_ENDPOINT=
         DEPLOY_OSS_REGION=
+        DEPLOY_S3_ACCESS_KEY_ID=
+        DEPLOY_S3_SECRET_ACCESS_KEY=
+        DEPLOY_S3_BUCKET_NAME=
+        DEPLOY_S3_ENDPOINT=
+        DEPLOY_S3_REGION=
 
         # 必须填写目标机宿主机上的真实项目目录。
         # 这个值会用于挂载到容器内的 /workspace。

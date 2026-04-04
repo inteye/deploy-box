@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-04 00:28+0800\n"
+"POT-Creation-Date: 2026-04-04 22:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -17,61 +17,165 @@ msgstr ""
 #: app/i18n.py:102
 #, python-brace-format
 msgid "本次将处理组件: {components}"
-msgstr "Components to process: {components}"
+msgstr ""
 
 #: app/i18n.py:103
 #, python-brace-format
 msgid "使用模板 {template}"
-msgstr "Using template {template}"
+msgstr ""
 
 #: app/i18n.py:104
 #, python-brace-format
 msgid "工作目录不存在: {path}"
-msgstr "Workspace does not exist: {path}"
+msgstr ""
 
 #: app/i18n.py:105
 #, python-brace-format
 msgid "打包脚本不存在: {path}"
-msgstr "Package script not found: {path}"
+msgstr ""
 
 #: app/i18n.py:106
 #, python-brace-format
 msgid "未找到 manifest 文件: {path}"
-msgstr "Manifest file not found: {path}"
+msgstr ""
 
 #: app/i18n.py:107
 #, python-brace-format
 msgid "未找到组件文件: {name}"
-msgstr "Component artifact not found: {name}"
+msgstr ""
 
 #: app/i18n.py:114
 #, python-brace-format
 msgid "Release {version} 已生成"
-msgstr "Release {version} created"
+msgstr ""
 
 #: app/i18n.py:117
 #, python-brace-format
 msgid "组件 {component} 为外部镜像，跳过 tar 上传"
-msgstr "Component {component} is an external image. Skipping tar upload"
+msgstr ""
 
 #: app/i18n.py:121
 #, python-brace-format
 msgid "正在构建组件 {current}/{total}: {name}"
-msgstr "Building component {current}/{total}: {name}"
+msgstr ""
 
 #: app/i18n.py:125
 #, python-brace-format
 msgid "已完成组件 {current}/{total}: {name}"
-msgstr "Completed component {current}/{total}: {name}"
+msgstr ""
 
 #: app/i18n.py:129
 #, python-brace-format
 msgid "已上传组件 {current}/{total}: {name}"
-msgstr "Uploaded component {current}/{total}: {name}"
+msgstr ""
+
+#: app/templates/base.html:18
+msgid "构建、制品与发布统一工作台"
+msgstr ""
+
+#: app/templates/base.html:22 app/templates/base.html:67
+msgid "总览"
+msgstr ""
+
+#: app/templates/base.html:23 app/templates/build_job_detail.html:48
+#: app/templates/dashboard.html:28 app/templates/deployment_detail.html:55
+#: app/templates/login.html:15
+#, fuzzy
+msgid "项目"
+msgstr "Project Governance"
+
+#: app/templates/base.html:24 app/templates/deployment_detail.html:23
+#: app/templates/deployments.html:47 app/templates/login.html:17
+msgid "部署"
+msgstr ""
+
+#: app/templates/base.html:26 app/templates/base.html:89
+msgid "设置"
+msgstr ""
+
+#: app/templates/base.html:30
+msgid "当前用户："
+msgstr ""
+
+#: app/templates/base.html:38
+msgid "退出登录"
+msgstr ""
+
+#: app/templates/base.html:47
+msgid "主路径：接入 → 生成 → 发布"
+msgstr ""
+
+#: app/templates/base.html:61
+msgid "入口导航"
+msgstr ""
+
+#: app/templates/base.html:62
+msgid "保持当前阶段聚焦，避免在长页面里来回找入口。"
+msgstr ""
+
+#: app/templates/base.html:68
+msgid "系统概览与最近动作"
+msgstr ""
+
+#: app/templates/base.html:74
+msgid "项目与构建"
+msgstr ""
+
+#: app/templates/base.html:75
+msgid "接入、模板、制品生成"
+msgstr ""
+
+#: app/templates/base.html:81 app/templates/dashboard.html:30
+msgid "部署任务"
+msgstr ""
+
+#: app/templates/base.html:82
+msgid "状态、日志、回滚"
+msgstr ""
+
+#: app/templates/base.html:90
+msgid "用户、仓库、审计"
+msgstr ""
+
+#: app/templates/base.html:109
+msgid "当前页面"
+msgstr ""
+
+#: app/templates/base.html:110
+msgid "右侧保留给当前对象的上下文信息、表单和快捷操作。"
+msgstr ""
+
+#: app/templates/base.html:121
+msgid "开源的独立发布平台，面向项目接入、制品生成与自动部署。"
+msgstr ""
+
+#: app/templates/base.html:124
+msgid "声明：本系统仅负责发布编排与可观测性，不替代你的代码审查与变更治理。"
+msgstr ""
+
+#: app/templates/base.html:128
+msgid "仓库地址："
+msgstr ""
+
+#: app/templates/base.html:129
+msgid "欢迎基于此项目二次开发、接入更多部署适配器并反馈问题。"
+msgstr ""
+
+#: app/templates/base.html:138
+msgid "请确认操作"
+msgstr ""
+
+#: app/templates/base.html:142
+msgid "取消"
+msgstr ""
+
+#: app/templates/base.html:143
+msgid "确认"
+msgstr ""
 
 #: app/templates/build_job_detail.html:5
 msgid "构建导航"
-msgstr "Build Navigation"
+msgstr ""
 
 #: app/templates/build_job_detail.html:6
 msgid "详情页左侧只保留路径感和返回动作。"
@@ -83,126 +187,120 @@ msgstr ""
 
 #: app/templates/build_job_detail.html:10
 msgid "返回项目构建发布"
-msgstr "Back to Project Build & Deploy"
+msgstr ""
 
 #: app/templates/build_job_detail.html:13 app/templates/dashboard.html:9
 #: app/templates/deployment_detail.html:13
 msgid "项"
-msgstr "P"
+msgstr ""
 
 #: app/templates/build_job_detail.html:22
 msgid "构建详情"
-msgstr "Build Details"
+msgstr ""
 
-#: app/templates/build_job_detail.html:23 app/templates/dashboard.html:68
-#: app/templates/login.html:13 app/templates/project_detail.html:210
-#: app/templates/project_detail.html:248 app/templates/project_detail.html:273
+#: app/templates/build_job_detail.html:23 app/templates/dashboard.html:70
+#: app/templates/login.html:16 app/templates/project_detail.html:223
+#: app/templates/project_detail.html:268 app/templates/project_detail.html:299
 msgid "构建"
-msgstr "Build"
+msgstr ""
 
 #: app/templates/build_job_detail.html:24
 msgid "生成后自动发布到"
-msgstr "Auto-deploy to"
+msgstr ""
 
 #: app/templates/build_job_detail.html:28
 #: app/templates/deployment_detail.html:28
 msgid "当前状态"
-msgstr "Status"
+msgstr ""
 
 #: app/templates/build_job_detail.html:29
 #: app/templates/build_job_detail.html:78
 #: app/templates/build_job_detail.html:120
 #: app/templates/deployment_detail.html:30
 msgid "进度"
-msgstr "Progress"
+msgstr ""
 
 #: app/templates/build_job_detail.html:30
 msgid "输出版本"
-msgstr "Output Version"
+msgstr ""
 
-#: app/templates/build_job_detail.html:31 app/templates/project_detail.html:197
-#: app/templates/project_detail.html:234
+#: app/templates/build_job_detail.html:31 app/templates/project_detail.html:210
+#: app/templates/project_detail.html:254
 msgid "制品模式"
-msgstr "Artifact Mode"
+msgstr ""
 
 #: app/templates/build_job_detail.html:35
 msgid "构建进度"
-msgstr "Build Progress"
+msgstr ""
 
 #: app/templates/build_job_detail.html:44
 #: app/templates/deployment_detail.html:51
 msgid "基本信息"
-msgstr "Details"
-
-#: app/templates/build_job_detail.html:48 app/templates/dashboard.html:28
-#: app/templates/deployment_detail.html:55 app/templates/login.html:12
-msgid "项目"
-msgstr "Project"
+msgstr ""
 
 #: app/templates/build_job_detail.html:49
 msgid "模板"
-msgstr "Template"
+msgstr ""
 
 #: app/templates/build_job_detail.html:50
 #: app/templates/deployment_detail.html:29
 msgid "触发人"
-msgstr "Triggered by"
+msgstr ""
 
 #: app/templates/build_job_detail.html:52
 msgid "开始时间"
-msgstr "Started at"
+msgstr ""
 
 #: app/templates/build_job_detail.html:53
 #: app/templates/deployment_detail.html:31
 msgid "完成时间"
-msgstr "Finished at"
+msgstr ""
 
 #: app/templates/build_job_detail.html:60
 msgid "结果摘要"
-msgstr "Result Summary"
+msgstr ""
 
 #: app/templates/build_job_detail.html:61
 #: app/templates/build_job_detail.html:146
 msgid "暂无结果"
-msgstr "No result"
+msgstr ""
 
 #: app/templates/build_job_detail.html:66
 msgid "阶段事件"
-msgstr "Stage Events"
+msgstr ""
 
 #: app/templates/build_job_detail.html:67
 msgid "页面会自动轮询更新。"
-msgstr "This page updates automatically by polling."
+msgstr ""
 
 #: app/templates/build_job_detail.html:82
 #: app/templates/build_job_detail.html:109
 msgid "还没有阶段事件。"
-msgstr "No stage events yet."
+msgstr ""
 
 #: app/templates/build_job_detail.html:88
 #: app/templates/deployment_detail.html:92
 msgid "日志摘要"
-msgstr "Log Excerpt"
+msgstr ""
 
 #: app/templates/build_job_detail.html:89
 #: app/templates/build_job_detail.html:147
 #: app/templates/deployment_detail.html:93
 #: app/templates/deployment_detail.html:142
 msgid "暂无日志摘要"
-msgstr "No log excerpt"
+msgstr ""
 
 #: app/templates/build_job_detail.html:170
 msgid "构建摘要"
-msgstr "Build Summary"
+msgstr ""
 
 #: app/templates/build_job_detail.html:171
 msgid "把最关键的信息固定在右侧。"
 msgstr ""
 
 #: app/templates/build_job_detail.html:180
-#, fuzzy
 msgid "返回构建发布"
-msgstr "Back to Project Build & Deploy"
+msgstr ""
 
 #: app/templates/dashboard.html:5
 msgid "快捷菜单"
@@ -212,340 +310,375 @@ msgstr ""
 msgid "从总览直接进入最近最常用的动作。"
 msgstr ""
 
-#: app/templates/dashboard.html:10 app/templates/projects.html:239
+#: app/templates/dashboard.html:10 app/templates/projects.html:255
 msgid "进入项目工作台"
-msgstr "Open Workspace"
+msgstr ""
 
 #: app/templates/dashboard.html:13
 msgid "发"
-msgstr "D"
+msgstr ""
 
-#: app/templates/dashboard.html:14 app/templates/dashboard.html:113
+#: app/templates/dashboard.html:14 app/templates/dashboard.html:169
 msgid "查看部署任务"
-msgstr "View Deployments"
+msgstr ""
 
 #: app/templates/dashboard.html:22
 msgid "控制台总览"
-msgstr "Console Overview"
+msgstr ""
 
 #: app/templates/dashboard.html:23
 msgid "从这里进入你真正要做的下一步"
-msgstr "Start Here"
+msgstr ""
 
 #: app/templates/dashboard.html:24
 msgid "先看项目接入是否完成，再决定是生成制品、直接发布，还是进入部署任务排查异常。"
-msgstr "Check onboarding, then build, deploy, or troubleshoot."
+msgstr ""
 
-#: app/templates/dashboard.html:29 app/templates/projects.html:49
+#: app/templates/dashboard.html:29 app/templates/projects.html:61
 msgid "构建任务"
-msgstr "Build Jobs"
-
-#: app/templates/dashboard.html:30
-msgid "部署任务"
-msgstr "Deployments"
+msgstr ""
 
 #: app/templates/dashboard.html:31
 msgid "进行中的部署"
-msgstr "Running Deployments"
+msgstr ""
 
-#: app/templates/dashboard.html:36
+#: app/templates/dashboard.html:32
+msgid "待补齐治理项目"
+msgstr "Projects Needing Governance"
+
+#: app/templates/dashboard.html:33
+msgid "近 7 天失败巡检"
+msgstr ""
+
+#: app/templates/dashboard.html:38
 msgid "最近项目"
-msgstr "Recent Projects"
+msgstr ""
 
-#: app/templates/dashboard.html:37
-#, fuzzy
+#: app/templates/dashboard.html:39
 msgid "优先进入项目工作台，不要从杂乱表单开始。"
-msgstr "Go to the project workspace instead of starting from forms."
+msgstr ""
 
-#: app/templates/dashboard.html:43 app/templates/projects.html:72
+#: app/templates/dashboard.html:45 app/templates/projects.html:84
 msgid "个环境"
-msgstr "environments"
+msgstr ""
 
-#: app/templates/dashboard.html:47 app/templates/projects.html:70
-#: app/templates/projects.html:231
+#: app/templates/dashboard.html:49 app/templates/projects.html:82
+#: app/templates/projects.html:244
 msgid "尚未填写项目说明。"
-msgstr "No description provided."
+msgstr ""
 
-#: app/templates/dashboard.html:50 app/templates/project_detail.html:10
-#: app/templates/project_detail.html:438
+#: app/templates/dashboard.html:52 app/templates/project_detail.html:10
+#: app/templates/project_detail.html:564
 msgid "接入配置"
-msgstr "Onboarding"
+msgstr ""
 
-#: app/templates/dashboard.html:51 app/templates/project_detail.html:14
+#: app/templates/dashboard.html:53 app/templates/project_detail.html:14
 msgid "构建发布"
-msgstr "Build & Deploy"
+msgstr ""
 
-#: app/templates/dashboard.html:55
+#: app/templates/dashboard.html:57
 msgid "还没有项目，先去项目页创建一个。"
-msgstr "No projects yet. Create one on the Projects page."
+msgstr ""
 
-#: app/templates/dashboard.html:61
+#: app/templates/dashboard.html:63
 msgid "最近动作"
-msgstr "Recent Activity"
+msgstr ""
 
-#: app/templates/dashboard.html:62
-#, fuzzy
+#: app/templates/dashboard.html:64
 msgid "构建和部署都在这里快速回看。"
-msgstr "Review recent builds and deployments at a glance."
+msgstr ""
 
-#: app/templates/dashboard.html:69 app/templates/project_detail.html:274
+#: app/templates/dashboard.html:71 app/templates/project_detail.html:300
 msgid "生成中"
-msgstr "Building..."
+msgstr ""
 
-#: app/templates/dashboard.html:72 app/templates/project_detail.html:278
+#: app/templates/dashboard.html:74 app/templates/project_detail.html:304
 msgid "查看构建详情"
-msgstr "View Build"
+msgstr ""
 
-#: app/templates/dashboard.html:84 app/templates/project_detail.html:307
+#: app/templates/dashboard.html:86 app/templates/project_detail.html:333
 msgid "查看部署详情"
-msgstr "View Deployment"
+msgstr ""
 
-#: app/templates/dashboard.html:89
+#: app/templates/dashboard.html:91
 msgid "还没有构建或部署记录。"
-msgstr "No builds or deployments yet."
+msgstr ""
 
-#: app/templates/dashboard.html:98
+#: app/templates/dashboard.html:100 app/templates/project_detail.html:534
+msgid "最近质量检查"
+msgstr "Recent Quality Checks"
+
+#: app/templates/dashboard.html:101
+msgid "质量检查聚焦负责人、环境、组件、工作区和仓库配置。"
+msgstr ""
+"Quality checks focus on owners, environments, components, workspace, and "
+"artifact repository readiness."
+
+#: app/templates/dashboard.html:105
+msgid "立即执行到期巡检"
+msgstr ""
+
+#: app/templates/dashboard.html:112 app/templates/project_detail.html:508
+msgid "质量趋势"
+msgstr ""
+
+#: app/templates/dashboard.html:113 app/templates/project_detail.html:511
+msgid "通过"
+msgstr ""
+
+#: app/templates/dashboard.html:114 app/templates/project_detail.html:512
+msgid "警告"
+msgstr ""
+
+#: app/templates/dashboard.html:115 app/templates/deployments.html:9
+#: app/templates/deployments.html:24 app/templates/project_detail.html:513
+msgid "失败"
+msgstr ""
+
+#: app/templates/dashboard.html:127 app/templates/project_detail.html:525
+#, fuzzy
+msgid "还没有质量趋势数据。"
+msgstr "No quality check records yet."
+
+#: app/templates/dashboard.html:141
+msgid "查看治理面板"
+msgstr "Open Governance Panel"
+
+#: app/templates/dashboard.html:145 app/templates/project_detail.html:553
+msgid "还没有质量检查记录。"
+msgstr "No quality check records yet."
+
+#: app/templates/dashboard.html:154
 msgid "下一步建议"
 msgstr ""
 
-#: app/templates/dashboard.html:99
+#: app/templates/dashboard.html:155
 msgid "让当前页始终给出下一步，而不是只堆展示信息。"
 msgstr ""
 
-#: app/templates/dashboard.html:102
+#: app/templates/dashboard.html:158
 msgid "推荐入口"
-msgstr "Recommended"
+msgstr ""
 
-#: app/templates/dashboard.html:103
+#: app/templates/dashboard.html:159
 msgid "项目接入与构建"
-msgstr "Projects & Builds"
+msgstr ""
 
-#: app/templates/dashboard.html:104
+#: app/templates/dashboard.html:160
 msgid "新增项目、配置构建模板、查看最近构建，统一从这里开始。"
-msgstr "Add projects, configure templates, and view recent builds."
+msgstr ""
 
-#: app/templates/dashboard.html:107
+#: app/templates/dashboard.html:163
 msgid "快速生成"
-msgstr "Quick Build"
+msgstr ""
 
-#: app/templates/dashboard.html:108
+#: app/templates/dashboard.html:164
 msgid "进入最近项目工作台"
-msgstr "Go to Recent Project"
+msgstr ""
 
-#: app/templates/dashboard.html:109
+#: app/templates/dashboard.html:165
 msgid "如果你正在连续发版，直接回到最近项目的构建发布区继续操作。"
-msgstr "Continue building from your most recent project."
+msgstr ""
 
-#: app/templates/dashboard.html:112
+#: app/templates/dashboard.html:168
 msgid "异常处理"
-msgstr "Troubleshoot"
+msgstr ""
 
-#: app/templates/dashboard.html:114
+#: app/templates/dashboard.html:170
 msgid "超时、失败、回滚和最终状态收敛都统一在部署任务页处理。"
-msgstr "Handle timeouts, failures, rollbacks and status convergence."
+msgstr ""
 
 #: app/templates/deployment_detail.html:5
 msgid "部署导航"
-msgstr "Deployment Navigation"
+msgstr ""
 
 #: app/templates/deployment_detail.html:6
 msgid "保留返回和任务定位。"
-msgstr "Keep the way back and task context visible."
+msgstr ""
 
 #: app/templates/deployment_detail.html:10
 msgid "返回部署列表"
-msgstr "Back to Deployment List"
+msgstr ""
 
 #: app/templates/deployment_detail.html:22
 msgid "部署详情"
-msgstr "Deployment Details"
-
-#: app/templates/deployment_detail.html:23 app/templates/deployments.html:47
-#: app/templates/login.html:14
-msgid "部署"
-msgstr "Deployment"
+msgstr ""
 
 #: app/templates/deployment_detail.html:37
 msgid "执行进度"
-msgstr "Progress"
+msgstr ""
 
 #: app/templates/deployment_detail.html:38
 #: app/templates/deployment_detail.html:139 app/templates/deployments.html:49
 #: app/templates/deployments.html:91
 msgid "等待状态更新"
-msgstr "Waiting for status update"
+msgstr ""
 
 #: app/templates/deployment_detail.html:41
 msgid "手动刷新状态"
-msgstr "Refresh Status"
+msgstr ""
 
-#: app/templates/deployment_detail.html:56 app/templates/project_detail.html:26
-#: app/templates/project_detail.html:42
+#: app/templates/deployment_detail.html:56 app/templates/project_detail.html:30
+#: app/templates/project_detail.html:46
 msgid "环境"
-msgstr "Environment"
+msgstr ""
 
 #: app/templates/deployment_detail.html:57
 msgid "版本"
-msgstr "Version"
+msgstr ""
 
 #: app/templates/deployment_detail.html:59
 msgid "状态"
-msgstr "Status"
+msgstr ""
 
 #: app/templates/deployment_detail.html:60
 msgid "提交时间"
-msgstr "Submitted at"
+msgstr ""
 
 #: app/templates/deployment_detail.html:61
 msgid "最近轮询"
-msgstr "Last polled"
+msgstr ""
 
 #: app/templates/deployment_detail.html:69
 msgid "暂无 manifest 数据"
-msgstr "No manifest data"
+msgstr ""
 
 #: app/templates/deployment_detail.html:75
 msgid "Release 组件"
-msgstr "Release Components"
+msgstr ""
 
 #: app/templates/deployment_detail.html:86
 msgid "当前 release 没有已解析组件。"
-msgstr "No resolved components in this release."
+msgstr ""
 
 #: app/templates/deployment_detail.html:99
 msgid "适配器返回"
-msgstr "Adapter Response"
+msgstr ""
 
 #: app/templates/deployment_detail.html:100
 #: app/templates/deployment_detail.html:104
 #: app/templates/deployment_detail.html:140
 #: app/templates/deployment_detail.html:141
 msgid "暂无数据"
-msgstr "No data"
+msgstr ""
 
 #: app/templates/deployment_detail.html:103
 msgid "目标状态"
-msgstr "Target Status"
+msgstr ""
 
 #: app/templates/deployment_detail.html:164
 msgid "回滚"
-msgstr "Rollback"
+msgstr ""
 
 #: app/templates/deployment_detail.html:165
 msgid "高风险操作放在右侧，统一走确认弹层。"
-msgstr "High-risk actions stay on the right and always use the confirmation modal."
+msgstr ""
 
 #: app/templates/deployment_detail.html:167
 msgid "回滚目标版本"
-msgstr "Rollback to version"
+msgstr ""
 
 #: app/templates/deployment_detail.html:175
 msgid "将影响的组件"
-msgstr "Affected Components"
+msgstr ""
 
 #: app/templates/deployment_detail.html:178
 msgid "按所选 Release 的组件版本重新发布"
-msgstr "Redeploy Using the Selected Release Components"
+msgstr ""
 
 #: app/templates/deployment_detail.html:193
 #: app/templates/deployment_detail.html:206
 msgid "该 Release 未解析出组件"
-msgstr "No components resolved for this release"
+msgstr ""
 
 #: app/templates/deployment_detail.html:206
 msgid "影响组件："
-msgstr "Affected components: "
+msgstr ""
 
 #: app/templates/deployment_detail.html:207
 msgid "确认按 Release"
-msgstr "Confirm redeploy with Release"
+msgstr ""
 
 #: app/templates/deployment_detail.html:207
 msgid "中记录的组件版本重新发布？"
-msgstr "recorded component versions?"
+msgstr ""
 
 #: app/templates/deployments.html:5
 msgid "状态概览"
-msgstr "Status Overview"
+msgstr ""
 
 #: app/templates/deployments.html:6
 msgid "左侧保留筛选思路和状态说明，主列表放在中间。"
 msgstr ""
-"The left panel keeps status context and filtering hints, while the main "
-"list stays in the center."
 
 #: app/templates/deployments.html:8 app/templates/deployments.html:23
 msgid "成功"
-msgstr "Succeeded"
-
-#: app/templates/deployments.html:9 app/templates/deployments.html:24
-msgid "失败"
-msgstr "Failed"
+msgstr ""
 
 #: app/templates/deployments.html:10 app/templates/deployments.html:25
 msgid "执行中"
-msgstr "Running"
+msgstr ""
 
 #: app/templates/deployments.html:17
 msgid "部署中心"
-msgstr "Deployment Center"
+msgstr ""
 
 #: app/templates/deployments.html:18
 msgid "发布过程默认异步执行"
-msgstr "Deployments Run Asynchronously"
+msgstr ""
 
 #: app/templates/deployments.html:19
 msgid "大制品场景下，控制台不再要求页面一直等待 webhook 返回。提交后进入任务详情页，自动轮询状态并聚合日志摘要。"
-msgstr "For large artifacts, track status automatically after submitting."
+msgstr ""
 
 #: app/templates/deployments.html:26
 msgid "最近任务"
-msgstr "Recent Jobs"
+msgstr ""
 
 #: app/templates/deployments.html:32
 msgid "最近部署记录"
-msgstr "Recent Deployments"
+msgstr ""
 
 #: app/templates/deployments.html:33
 msgid "中间列表负责选择任务，右侧展示当前任务摘要。"
 msgstr ""
-"The center list is for choosing tasks, and the right panel shows the "
-"current task summary."
 
 #: app/templates/deployments.html:35 app/templates/deployments.html:63
-#: app/templates/project_detail.html:286 app/templates/project_detail.html:315
-#: app/templates/project_detail.html:362 app/templates/projects.html:58
-#: app/templates/projects.html:89
+#: app/templates/project_detail.html:312 app/templates/project_detail.html:341
+#: app/templates/project_detail.html:390 app/templates/projects.html:70
+#: app/templates/projects.html:102
 msgid "共"
-msgstr "Total"
+msgstr ""
 
 #: app/templates/deployments.html:52
 msgid "查看摘要"
-msgstr "View Summary"
+msgstr ""
 
-#: app/templates/deployments.html:53 app/templates/projects.html:78
+#: app/templates/deployments.html:53 app/templates/projects.html:91
+#: app/templates/settings.html:53 app/templates/settings.html:81
 msgid "查看详情"
-msgstr "View Details"
+msgstr ""
 
 #: app/templates/deployments.html:58
+#, fuzzy
 msgid "还没有部署记录。"
-msgstr "No deployments yet."
+msgstr "No quality check records yet."
 
-#: app/templates/deployments.html:65 app/templates/project_detail.html:287
-#: app/templates/project_detail.html:316 app/templates/project_detail.html:363
-#: app/templates/projects.html:91
+#: app/templates/deployments.html:65 app/templates/project_detail.html:313
+#: app/templates/project_detail.html:342 app/templates/project_detail.html:391
+#: app/templates/projects.html:104
 msgid "上一页"
-msgstr "Previous"
+msgstr ""
 
-#: app/templates/deployments.html:71 app/templates/project_detail.html:289
-#: app/templates/project_detail.html:318 app/templates/project_detail.html:365
-#: app/templates/projects.html:97
+#: app/templates/deployments.html:71 app/templates/project_detail.html:315
+#: app/templates/project_detail.html:344 app/templates/project_detail.html:393
+#: app/templates/projects.html:110
 msgid "下一页"
-msgstr "Next"
+msgstr ""
 
 #: app/templates/deployments.html:80
 msgid "当前部署摘要"
-msgstr "Current Deployment Summary"
+msgstr ""
 
 #: app/templates/deployments.html:81
 msgid "右侧保持当前任务的重点信息和跳转。"
@@ -557,845 +690,1179 @@ msgstr ""
 
 #: app/templates/deployments.html:98
 msgid "当前页还没有可选部署任务。"
-msgstr "There is no selectable deployment on this page yet."
+msgstr ""
 
-#: app/templates/login.html:8
+#: app/templates/login.html:11
 msgid "登录独立发布控制台"
-msgstr "Sign in to DeployBox"
-
-#: app/templates/login.html:9
-msgid "统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。"
-msgstr "Manage onboarding, build templates, artifacts, deployments and rollbacks."
+msgstr ""
 
 #: app/templates/login.html:12
-#, fuzzy
-msgid "统一接入和模板配置"
-msgstr "Onboarding"
+msgid "统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。"
+msgstr ""
 
-#: app/templates/login.html:13
+#: app/templates/login.html:15
+msgid "统一接入和模板配置"
+msgstr ""
+
+#: app/templates/login.html:16
 msgid "版本化制品与日志跟踪"
 msgstr ""
 
-#: app/templates/login.html:14
+#: app/templates/login.html:17
 msgid "异步发布与回滚"
 msgstr ""
 
-#: app/templates/login.html:19 app/templates/login.html:31
+#: app/templates/login.html:22 app/templates/login.html:34
 msgid "登录"
-msgstr "Sign In"
+msgstr ""
 
-#: app/templates/login.html:20
+#: app/templates/login.html:23
 msgid "输入管理员账号进入控制台。"
 msgstr ""
 
-#: app/templates/login.html:25
+#: app/templates/login.html:28 app/templates/settings.html:157
 msgid "用户名"
-msgstr "Username"
+msgstr ""
 
-#: app/templates/login.html:28
+#: app/templates/login.html:31 app/templates/settings.html:159
 msgid "密码"
-msgstr "Password"
+msgstr ""
 
-#: app/templates/project_detail.html:6 app/templates/project_detail.html:38
+#: app/templates/project_detail.html:6 app/templates/project_detail.html:42
 msgid "当前项目已接入独立发布平台，可直接配置模板、生成制品并发版。"
-msgstr "This project is onboarded. Configure templates, build and deploy."
+msgstr ""
 
 #: app/templates/project_detail.html:18
 msgid "高级操作"
-msgstr "Advanced"
-
-#: app/templates/project_detail.html:24
-msgid "当前接入摘要"
-msgstr "Onboarding Summary"
-
-#: app/templates/project_detail.html:27 app/templates/project_detail.html:43
-msgid "Release"
-msgstr "Releases"
-
-#: app/templates/project_detail.html:28 app/templates/project_detail.html:44
-#: app/templates/project_detail.html:264
-msgid "最近构建任务"
-msgstr "Recent Builds"
-
-#: app/templates/project_detail.html:29 app/templates/project_detail.html:45
-#: app/templates/project_detail.html:295
-msgid "最近部署任务"
-msgstr "Recent Deployments"
-
-#: app/templates/project_detail.html:36
-msgid "项目工作台"
-msgstr "Project Workspace"
-
-#: app/templates/project_detail.html:52
-msgid "Starter 模板中心"
-msgstr "Starter Template Center"
-
-#: app/templates/project_detail.html:53
-msgid "中间区域展示组件、环境和推荐接入信息，右侧区域负责新增或编辑表单。"
 msgstr ""
-"The center column shows components, environments, and onboarding "
-"guidance; the right panel handles create and edit forms."
 
-#: app/templates/project_detail.html:55 app/templates/project_detail.html:553
-msgid "下载当前 starter 包"
-msgstr "Download Starter Bundle"
+#: app/templates/project_detail.html:22
+msgid "质量治理"
+msgstr "Quality & Governance"
+
+#: app/templates/project_detail.html:28
+msgid "当前接入摘要"
+msgstr ""
+
+#: app/templates/project_detail.html:31 app/templates/project_detail.html:47
+msgid "Release"
+msgstr ""
+
+#: app/templates/project_detail.html:32 app/templates/project_detail.html:48
+#: app/templates/project_detail.html:290
+msgid "最近构建任务"
+msgstr ""
+
+#: app/templates/project_detail.html:33 app/templates/project_detail.html:49
+#: app/templates/project_detail.html:321
+msgid "最近部署任务"
+msgstr ""
+
+#: app/templates/project_detail.html:40
+msgid "项目工作台"
+msgstr ""
+
+#: app/templates/project_detail.html:56
+msgid "Starter 模板中心"
+msgstr ""
 
 #: app/templates/project_detail.html:57
+msgid "中间区域展示组件、环境和推荐接入信息，右侧区域负责新增或编辑表单。"
+msgstr ""
+
+#: app/templates/project_detail.html:59 app/templates/project_detail.html:688
+msgid "下载当前 starter 包"
+msgstr ""
+
+#: app/templates/project_detail.html:62
 msgid "重新读取后将覆盖已有设置，请确认。"
-msgstr "Reloading will overwrite the current settings. Please confirm."
-
-#: app/templates/project_detail.html:58
-msgid "从 Compose 导入"
-msgstr "Import from Compose"
-
-#: app/templates/project_detail.html:62 app/templates/projects.html:267
-msgid "校验路径"
-msgstr "Validate Path"
+msgstr ""
 
 #: app/templates/project_detail.html:63
+msgid "从 Compose 导入"
+msgstr ""
+
+#: app/templates/project_detail.html:67 app/templates/projects.html:292
+msgid "校验路径"
+msgstr ""
+
+#: app/templates/project_detail.html:68
 msgid "从 compose 读取组件候选"
-msgstr "Import component candidates"
-
-#: app/templates/project_detail.html:65
-msgid "下载推荐 docker-compose.yml"
-msgstr "Download recommended docker-compose.yml"
-
-#: app/templates/project_detail.html:69
-msgid "当前工作区路径："
-msgstr "Workspace path: "
-
-#: app/templates/project_detail.html:69
-msgid "(空，表示直接使用全局工作区根)"
-msgstr "(empty, uses workspace root)"
+msgstr ""
 
 #: app/templates/project_detail.html:70
-msgid "当前解析目录："
-msgstr "Resolved directory: "
+msgid "下载推荐 docker-compose.yml"
+msgstr ""
+
+#: app/templates/project_detail.html:74
+msgid "当前工作区路径："
+msgstr ""
+
+#: app/templates/project_detail.html:74
+msgid "(空，表示直接使用全局工作区根)"
+msgstr ""
 
 #: app/templates/project_detail.html:75
+msgid "当前解析目录："
+msgstr ""
+
+#: app/templates/project_detail.html:79
+msgid "你当前拥有只读权限，可浏览接入信息，但不能修改组件、环境或模板。"
+msgstr ""
+
+#: app/templates/project_detail.html:83
 msgid "组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。"
 msgstr ""
-"Component settings have changed. The recommended `docker-compose.yml` has"
-" been recalculated from the current component config. Download and merge "
-"it again."
 
-#: app/templates/project_detail.html:81
+#: app/templates/project_detail.html:89
 msgid "点击展开 Compose 规范检查"
-msgstr "Expand Compose Readiness Check"
+msgstr ""
 
-#: app/templates/project_detail.html:98
+#: app/templates/project_detail.html:106
 msgid "组件列表"
-msgstr "Component List"
+msgstr ""
 
-#: app/templates/project_detail.html:99
+#: app/templates/project_detail.html:107
 msgid "列表区只保留浏览和进入编辑，不直接展开长表单。"
 msgstr ""
-"The list area focuses on browsing and entering edit mode instead of "
-"expanding long forms inline."
 
-#: app/templates/project_detail.html:106 app/templates/project_detail.html:125
-#: app/templates/project_detail.html:486
+#: app/templates/project_detail.html:114 app/templates/project_detail.html:134
+#: app/templates/project_detail.html:620
 msgid "需要构建"
-msgstr "Build required"
-
-#: app/templates/project_detail.html:106 app/templates/project_detail.html:210
-#: app/templates/project_detail.html:248
-msgid "外部镜像"
-msgstr "External image"
-
-#: app/templates/project_detail.html:107
-msgid "默认勾选"
-msgstr "Selected by default"
-
-#: app/templates/project_detail.html:107
-msgid "手动勾选"
-msgstr "Manual selection"
-
-#: app/templates/project_detail.html:112
-msgid "点击展开编辑组件"
-msgstr "Expand Edit Component"
-
-#: app/templates/project_detail.html:117 app/templates/project_detail.html:478
-msgid "组件名"
-msgstr "Component Name"
-
-#: app/templates/project_detail.html:118 app/templates/project_detail.html:479
-msgid "Compose service 名"
-msgstr "Compose service name"
-
-#: app/templates/project_detail.html:119 app/templates/project_detail.html:480
-msgid "镜像名"
-msgstr "Image"
-
-#: app/templates/project_detail.html:122 app/templates/project_detail.html:483
-msgid "Tar 文件名模板"
-msgstr "Tar filename pattern"
-
-#: app/templates/project_detail.html:126 app/templates/project_detail.html:487
-msgid "启用"
-msgstr "Enabled"
-
-#: app/templates/project_detail.html:127 app/templates/project_detail.html:488
-msgid "默认参与发版"
-msgstr "Selected by default"
-
-#: app/templates/project_detail.html:130
-msgid "保存组件"
-msgstr "Save Component"
-
-#: app/templates/project_detail.html:133
-#, fuzzy
-msgid "确认删除该组件？"
-msgstr "Delete Component"
-
-#: app/templates/project_detail.html:135
-msgid "删除组件"
-msgstr "Delete Component"
-
-#: app/templates/project_detail.html:140
-msgid "还没有组件，先手工新增一个，或者从 compose 文件导入。"
-msgstr "No components yet. Add one manually or import from Compose."
-
-#: app/templates/project_detail.html:146
-msgid "环境列表"
-msgstr "Environment List"
-
-#: app/templates/project_detail.html:147
-msgid "环境编辑默认折叠，避免主流程被打断。"
 msgstr ""
-"Environment editing is collapsed by default to avoid interrupting the "
-"main flow."
 
-#: app/templates/project_detail.html:154
-msgid "未设置显示域名"
-msgstr "No display URL"
+#: app/templates/project_detail.html:114 app/templates/project_detail.html:223
+#: app/templates/project_detail.html:268
+msgid "外部镜像"
+msgstr ""
+
+#: app/templates/project_detail.html:115
+msgid "默认勾选"
+msgstr ""
+
+#: app/templates/project_detail.html:115
+msgid "手动勾选"
+msgstr ""
+
+#: app/templates/project_detail.html:121
+msgid "点击展开编辑组件"
+msgstr ""
+
+#: app/templates/project_detail.html:126 app/templates/project_detail.html:612
+msgid "组件名"
+msgstr ""
+
+#: app/templates/project_detail.html:127 app/templates/project_detail.html:613
+msgid "Compose service 名"
+msgstr ""
+
+#: app/templates/project_detail.html:128 app/templates/project_detail.html:614
+msgid "镜像名"
+msgstr ""
+
+#: app/templates/project_detail.html:131 app/templates/project_detail.html:617
+msgid "Tar 文件名模板"
+msgstr ""
+
+#: app/templates/project_detail.html:135 app/templates/project_detail.html:621
+#: app/templates/settings.html:40 app/templates/settings.html:168
+#: app/templates/settings.html:223
+msgid "启用"
+msgstr ""
+
+#: app/templates/project_detail.html:136 app/templates/project_detail.html:622
+msgid "默认参与发版"
+msgstr ""
+
+#: app/templates/project_detail.html:139
+msgid "保存组件"
+msgstr ""
+
+#: app/templates/project_detail.html:142
+msgid "确认删除该组件？"
+msgstr ""
+
+#: app/templates/project_detail.html:144
+msgid "删除组件"
+msgstr ""
+
+#: app/templates/project_detail.html:150
+msgid "还没有组件，先手工新增一个，或者从 compose 文件导入。"
+msgstr ""
 
 #: app/templates/project_detail.html:156
-msgid "Webhook："
-msgstr "Webhook: "
+msgid "环境列表"
+msgstr ""
 
 #: app/templates/project_detail.html:157
+msgid "环境编辑默认折叠，避免主流程被打断。"
+msgstr ""
+
+#: app/templates/project_detail.html:164
+msgid "未设置显示域名"
+msgstr ""
+
+#: app/templates/project_detail.html:166
+msgid "Webhook："
+msgstr ""
+
+#: app/templates/project_detail.html:167
 msgid "Status："
-msgstr "Status: "
+msgstr ""
 
-#: app/templates/project_detail.html:162
+#: app/templates/project_detail.html:173
 msgid "点击展开编辑环境"
-msgstr "Expand Edit Environment"
+msgstr ""
 
-#: app/templates/project_detail.html:165 app/templates/project_detail.html:498
+#: app/templates/project_detail.html:176 app/templates/project_detail.html:632
 msgid "环境名"
-msgstr "Environment Name"
+msgstr ""
 
-#: app/templates/project_detail.html:166 app/templates/project_detail.html:499
+#: app/templates/project_detail.html:177 app/templates/project_detail.html:633
 msgid "显示域名"
-msgstr "Display URL"
+msgstr ""
 
-#: app/templates/project_detail.html:167 app/templates/project_detail.html:500
+#: app/templates/project_detail.html:178 app/templates/project_detail.html:634
 msgid "逻辑环境名"
-msgstr "Logical env name"
+msgstr ""
 
-#: app/templates/project_detail.html:168 app/templates/project_detail.html:501
+#: app/templates/project_detail.html:179 app/templates/project_detail.html:635
 msgid "Webhook URL"
-msgstr "Webhook URL"
+msgstr ""
 
-#: app/templates/project_detail.html:169 app/templates/project_detail.html:502
+#: app/templates/project_detail.html:180 app/templates/project_detail.html:636
 msgid "Status URL"
-msgstr "Status URL"
+msgstr ""
 
-#: app/templates/project_detail.html:170 app/templates/project_detail.html:503
+#: app/templates/project_detail.html:181 app/templates/project_detail.html:637
 msgid "共享密钥"
-msgstr "Shared Secret"
+msgstr ""
 
-#: app/templates/project_detail.html:173 app/templates/project_detail.html:506
+#: app/templates/project_detail.html:184 app/templates/project_detail.html:640
 msgid "生成密钥"
-msgstr "Generate Secret"
+msgstr ""
 
-#: app/templates/project_detail.html:177
+#: app/templates/project_detail.html:188
 msgid "保存修改"
-msgstr "Save Changes"
+msgstr ""
 
-#: app/templates/project_detail.html:179
-#, fuzzy
+#: app/templates/project_detail.html:190
 msgid "确认删除该环境？"
-msgstr "Delete Environment"
+msgstr ""
 
-#: app/templates/project_detail.html:180
+#: app/templates/project_detail.html:191
 msgid "删除环境"
-msgstr "Delete Environment"
+msgstr ""
 
-#: app/templates/project_detail.html:185
+#: app/templates/project_detail.html:197
 msgid "还没有环境。"
-msgstr "No environments yet."
+msgstr ""
 
-#: app/templates/project_detail.html:195
+#: app/templates/project_detail.html:208 app/templates/project_detail.html:237
 msgid "一键生成制品"
-msgstr "Build Artifacts"
+msgstr ""
 
-#: app/templates/project_detail.html:196
+#: app/templates/project_detail.html:209
 msgid "只保留一次正常构建所需的必要输入。"
 msgstr ""
 
-#: app/templates/project_detail.html:199 app/templates/project_detail.html:236
-#: app/templates/project_detail.html:397
+#: app/templates/project_detail.html:212 app/templates/project_detail.html:256
+#: app/templates/project_detail.html:428
 msgid "自动"
-msgstr "Auto"
+msgstr ""
 
-#: app/templates/project_detail.html:200 app/templates/project_detail.html:237
-#: app/templates/project_detail.html:398
+#: app/templates/project_detail.html:213 app/templates/project_detail.html:257
+#: app/templates/project_detail.html:429 app/templates/project_detail.html:599
+#: app/templates/projects.html:87 app/templates/projects.html:252
 msgid "本地制品站"
-msgstr "Local"
+msgstr ""
 
-#: app/templates/project_detail.html:214 app/templates/project_detail.html:252
+#: app/templates/project_detail.html:227 app/templates/project_detail.html:272
 msgid "没有启用中的组件，先到“接入配置”维护组件。"
 msgstr ""
-"There are no enabled components. Go to Onboarding Config first and "
-"maintain the component list."
 
-#: app/templates/project_detail.html:217 app/templates/project_detail.html:255
-#: app/templates/project_detail.html:384 app/templates/project_detail.html:424
+#: app/templates/project_detail.html:230 app/templates/project_detail.html:275
+#: app/templates/project_detail.html:415 app/templates/project_detail.html:455
 msgid "附加 payload"
-msgstr "Extra payload"
+msgstr ""
 
-#: app/templates/project_detail.html:218
+#: app/templates/project_detail.html:231
 msgid "可选，保存本次构建说明或附加信息"
-msgstr "Optional. Save notes or extra metadata for this build"
+msgstr ""
 
-#: app/templates/project_detail.html:220
+#: app/templates/project_detail.html:233
 msgid "开始构建"
-msgstr "Start Build"
+msgstr ""
 
-#: app/templates/project_detail.html:224
+#: app/templates/project_detail.html:238
+msgid "你当前没有构建权限，但仍可查看构建记录与 Release。"
+msgstr ""
+
+#: app/templates/project_detail.html:244 app/templates/project_detail.html:282
 msgid "一键生成并发布"
-msgstr "Build & Deploy"
+msgstr ""
 
-#: app/templates/project_detail.html:225
+#: app/templates/project_detail.html:245
 msgid "生成与发版在一条路径里完成。"
 msgstr ""
 
-#: app/templates/project_detail.html:227
+#: app/templates/project_detail.html:247
 msgid "目标环境"
-msgstr "Target Environment"
+msgstr ""
 
-#: app/templates/project_detail.html:256
+#: app/templates/project_detail.html:276
 msgid "可选，保存本次构建与发布说明"
-msgstr "Optional. Save notes for this build and deployment."
+msgstr ""
 
-#: app/templates/project_detail.html:258
+#: app/templates/project_detail.html:278
 msgid "生成后自动发布"
-msgstr "Build then Deploy"
+msgstr ""
 
-#: app/templates/project_detail.html:274
+#: app/templates/project_detail.html:283
+msgid "需要同时具备构建与发布权限，才会显示此快捷流程。"
+msgstr ""
+
+#: app/templates/project_detail.html:300
 msgid "版本："
-msgstr "Version: "
+msgstr ""
 
-#: app/templates/project_detail.html:274
+#: app/templates/project_detail.html:300
 msgid "存储："
-msgstr "Storage: "
+msgstr ""
 
-#: app/templates/project_detail.html:281
+#: app/templates/project_detail.html:307
 msgid "还没有构建任务。"
-msgstr "No build jobs yet."
+msgstr ""
 
-#: app/templates/project_detail.html:310
+#: app/templates/project_detail.html:336
 msgid "还没有部署任务。"
-msgstr "No deployments yet."
+msgstr ""
 
-#: app/templates/project_detail.html:325
+#: app/templates/project_detail.html:351
 msgid "可发布 Release"
-msgstr "Releasable Versions"
+msgstr ""
 
-#: app/templates/project_detail.html:337
+#: app/templates/project_detail.html:363
 msgid "个组件"
-msgstr "components"
+msgstr ""
 
-#: app/templates/project_detail.html:342
+#: app/templates/project_detail.html:368
 msgid "组件："
-msgstr "Components: "
+msgstr ""
 
-#: app/templates/project_detail.html:347
+#: app/templates/project_detail.html:373
 msgid "选择发布环境"
 msgstr ""
 
-#: app/templates/project_detail.html:352
+#: app/templates/project_detail.html:378
 msgid "快速发布"
-msgstr "Deploy Now"
-
-#: app/templates/project_detail.html:357
-msgid "还没有 Release。"
-msgstr "No releases yet."
-
-#: app/templates/project_detail.html:373
-msgid "高级入口"
-msgstr "Advanced Entry"
-
-#: app/templates/project_detail.html:374
-msgid "高阶操作默认折叠，避免挤占主路径空间。"
 msgstr ""
-"Advanced actions stay collapsed by default to avoid crowding the main "
-"path."
 
-#: app/templates/project_detail.html:377
-msgid "点击展开手动登记已有 Release"
-msgstr "Expand Manual Release Registration"
-
-#: app/templates/project_detail.html:380 app/templates/project_detail.html:393
-msgid "版本号"
-msgstr "Version"
-
-#: app/templates/project_detail.html:382
-msgid "Manifest URL"
-msgstr "Manifest URL"
+#: app/templates/project_detail.html:381
+#, fuzzy
+msgid "你当前没有发布权限。"
+msgstr ""
+"You do not currently have permission to modify project governance "
+"settings."
 
 #: app/templates/project_detail.html:385
-msgid "登记版本"
-msgstr "Register"
+msgid "还没有 Release。"
+msgstr ""
 
-#: app/templates/project_detail.html:390
-msgid "点击展开上传已有制品"
-msgstr "Expand Upload Existing Artifacts"
-
-#: app/templates/project_detail.html:395
-msgid "存储模式"
-msgstr "Storage Mode"
+#: app/templates/project_detail.html:401
+msgid "高级入口"
+msgstr ""
 
 #: app/templates/project_detail.html:402
-msgid "Manifest 文件"
-msgstr "Manifest file"
+msgid "高阶操作默认折叠，避免挤占主路径空间。"
+msgstr ""
 
-#: app/templates/project_detail.html:405 app/templates/project_detail.html:412
-#: app/templates/project_detail.html:419
-msgid "选择文件"
-msgstr "Choose file"
+#: app/templates/project_detail.html:404
+msgid "你当前没有发布权限，手动登记、上传制品和同步 manifest 均不可用。"
+msgstr ""
 
-#: app/templates/project_detail.html:406 app/templates/project_detail.html:413
-#: app/templates/project_detail.html:420 app/templates/project_detail.html:593
-msgid "未选择文件"
-msgstr "No file selected"
+#: app/templates/project_detail.html:408
+msgid "点击展开手动登记已有 Release"
+msgstr ""
 
-#: app/templates/project_detail.html:409
-msgid "组件 tar 文件"
-msgstr "Component tar files"
+#: app/templates/project_detail.html:411 app/templates/project_detail.html:424
+msgid "版本号"
+msgstr ""
+
+#: app/templates/project_detail.html:413
+msgid "Manifest URL"
+msgstr ""
 
 #: app/templates/project_detail.html:416
-msgid "SHA256 文件"
-msgstr "SHA256 file"
+msgid "登记版本"
+msgstr ""
+
+#: app/templates/project_detail.html:421
+msgid "点击展开上传已有制品"
+msgstr ""
 
 #: app/templates/project_detail.html:426
-msgid "尚未开始上传"
-msgstr "Upload has not started yet"
-
-#: app/templates/project_detail.html:427
-msgid "上传并登记"
-msgstr "Upload & Register"
-
-#: app/templates/project_detail.html:439
-msgid "新增和编辑表单默认收起，右侧只负责当前配置操作。"
+msgid "存储模式"
 msgstr ""
-"Create and edit forms are collapsed by default, and the right panel only "
-"handles current configuration actions."
 
-#: app/templates/project_detail.html:442
-msgid "点击展开编辑接入配置"
-msgstr "Expand Onboarding Configuration"
+#: app/templates/project_detail.html:433
+msgid "Manifest 文件"
+msgstr ""
 
-#: app/templates/project_detail.html:444
-msgid "构建模板"
-msgstr "Build Template"
+#: app/templates/project_detail.html:436 app/templates/project_detail.html:443
+#: app/templates/project_detail.html:450
+msgid "选择文件"
+msgstr ""
 
-#: app/templates/project_detail.html:448
-msgid "（推荐）"
-msgstr " (recommended)"
+#: app/templates/project_detail.html:437 app/templates/project_detail.html:444
+#: app/templates/project_detail.html:451 app/templates/project_detail.html:769
+msgid "未选择文件"
+msgstr ""
 
-#: app/templates/project_detail.html:448
-msgid "（高级）"
-msgstr " (advanced)"
+#: app/templates/project_detail.html:440
+msgid "组件 tar 文件"
+msgstr ""
 
-#: app/templates/project_detail.html:455 app/templates/project_detail.html:619
-msgid "主路径"
-msgstr "Main path"
+#: app/templates/project_detail.html:447
+msgid "SHA256 文件"
+msgstr ""
+
+#: app/templates/project_detail.html:457
+msgid "尚未开始上传"
+msgstr ""
 
 #: app/templates/project_detail.html:458
+msgid "上传并登记"
+msgstr ""
+
+#: app/templates/project_detail.html:471
+msgid "项目治理"
+msgstr "Project Governance"
+
+#: app/templates/project_detail.html:472
+msgid "维护负责人、风险级别和发布前检查项。"
+msgstr "Maintain owners, risk level, and pre-release checklist items."
+
+#: app/templates/project_detail.html:476
+msgid "执行质量检查"
+msgstr "Run Quality Check"
+
+#: app/templates/project_detail.html:482 app/templates/project_detail.html:697
+msgid "项目负责人"
+msgstr "Project Owner"
+
+#: app/templates/project_detail.html:486 app/templates/project_detail.html:705
+msgid "发布负责人"
+msgstr "Release Owner"
+
+#: app/templates/project_detail.html:490 app/templates/project_detail.html:713
+msgid "风险级别"
+msgstr "Risk Level"
+
+#: app/templates/project_detail.html:494
+#, fuzzy
+msgid "发布检查项"
+msgstr "Release Checklist"
+
+#: app/templates/project_detail.html:547
+msgid "点击展开检查结果"
+msgstr ""
+
+#: app/templates/project_detail.html:565
+msgid "新增和编辑表单默认收起，右侧只负责当前配置操作。"
+msgstr ""
+
+#: app/templates/project_detail.html:568
+msgid "你当前没有接入配置修改权限，以下表单仅对接入管理员开放。"
+msgstr ""
+
+#: app/templates/project_detail.html:571
+msgid "点击展开编辑接入配置"
+msgstr ""
+
+#: app/templates/project_detail.html:573
+msgid "构建模板"
+msgstr ""
+
+#: app/templates/project_detail.html:577
+msgid "（推荐）"
+msgstr ""
+
+#: app/templates/project_detail.html:577
+msgid "（高级）"
+msgstr ""
+
+#: app/templates/project_detail.html:584 app/templates/project_detail.html:795
+msgid "主路径"
+msgstr ""
+
+#: app/templates/project_detail.html:587
 msgid "优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。"
 msgstr ""
-"Prefer the script-based packaging template. Use the upload-existing-"
-"artifacts template only when your external system has already produced a "
-"full manifest and component artifacts."
 
-#: app/templates/project_detail.html:460
+#: app/templates/project_detail.html:589
 msgid "配置覆盖(JSON)"
-msgstr "Config Override (JSON)"
+msgstr ""
 
-#: app/templates/project_detail.html:464
+#: app/templates/project_detail.html:593
 msgid "覆盖说明"
-msgstr "Override Notes"
+msgstr ""
 
-#: app/templates/project_detail.html:465
+#: app/templates/project_detail.html:594
 msgid "这里保存的是当前项目对所选模板的覆盖项，不会自动按环境切换。"
 msgstr ""
-"This stores project-level overrides for the selected template. It does "
-"not switch automatically by environment."
 
-#: app/templates/project_detail.html:466
+#: app/templates/project_detail.html:595
 msgid ""
 "其中 `artifact_public_base_url` 只用于本地制品模式下生成 release 访问地址；如果选择 OSS，最终 "
 "manifest 会改写成 OSS 地址。"
 msgstr ""
-"`artifact_public_base_url` is only used to generate release URLs in local"
-" artifact mode. When OSS is used, the manifest is rewritten to OSS URLs."
 
-#: app/templates/project_detail.html:468
-msgid "保存接入配置"
-msgstr "Save Build Config"
+#: app/templates/project_detail.html:598 app/templates/projects.html:30
+#: app/templates/projects.html:279
+msgid "默认制品仓库"
+msgstr ""
 
-#: app/templates/project_detail.html:474
-msgid "点击展开手工新增组件"
-msgstr "Expand Manual Component Creation"
+#: app/templates/project_detail.html:600
+msgid "仓库创建与密钥维护统一在设置页处理；项目只绑定默认仓库。"
+msgstr ""
 
-#: app/templates/project_detail.html:490
-msgid "新增组件"
-msgstr "Add Component"
-
-#: app/templates/project_detail.html:495
-msgid "点击展开新增环境"
-msgstr "Expand Create Environment"
-
-#: app/templates/project_detail.html:510
-msgid "保存环境"
-msgstr "Save Environment"
-
-#: app/templates/project_detail.html:517
-msgid "远端 deploy-agent 接入"
-msgstr "Remote deploy-agent Onboarding"
-
-#: app/templates/project_detail.html:521
-msgid "用于生成示例的目标环境"
-msgstr "Target environment for generated examples"
-
-#: app/templates/project_detail.html:536
-msgid "点击展开 Starter 预览"
-msgstr "Expand Starter Preview"
-
-#: app/templates/project_detail.html:546
+#: app/templates/project_detail.html:602
 #, fuzzy
-msgid "发布提示"
-msgstr "Deploy"
+msgid "保存接入配置"
+msgstr "Save Governance Settings"
 
-#: app/templates/project_detail.html:547
+#: app/templates/project_detail.html:608
+msgid "点击展开手工新增组件"
+msgstr ""
+
+#: app/templates/project_detail.html:624
+msgid "新增组件"
+msgstr ""
+
+#: app/templates/project_detail.html:629
+msgid "点击展开新增环境"
+msgstr ""
+
+#: app/templates/project_detail.html:644
+msgid "保存环境"
+msgstr ""
+
+#: app/templates/project_detail.html:652
+msgid "远端 deploy-agent 接入"
+msgstr ""
+
+#: app/templates/project_detail.html:656
+msgid "用于生成示例的目标环境"
+msgstr ""
+
+#: app/templates/project_detail.html:671
+msgid "点击展开 Starter 预览"
+msgstr ""
+
+#: app/templates/project_detail.html:681
+msgid "发布提示"
+msgstr ""
+
+#: app/templates/project_detail.html:682
 msgid "右侧只保留当前阶段提示，主操作都集中在中间。"
 msgstr ""
 
-#: app/templates/project_detail.html:550
+#: app/templates/project_detail.html:685
 msgid "当前组件"
-msgstr "Components"
+msgstr ""
 
-#: app/templates/project_detail.html:551
+#: app/templates/project_detail.html:686
 msgid "暂无启用组件"
-msgstr "No enabled components"
+msgstr ""
 
-#: app/templates/project_detail.html:558
+#: app/templates/project_detail.html:693
+msgid "治理配置"
+msgstr "Governance Settings"
+
+#: app/templates/project_detail.html:694
+msgid "把负责人、风险和清单维护成项目级基线。"
+msgstr "Keep owners, risk level, and checklist as a project baseline."
+
+#: app/templates/project_detail.html:699 app/templates/project_detail.html:707
+msgid "未指定"
+msgstr "Unassigned"
+
+#: app/templates/project_detail.html:720
+msgid "发布检查清单"
+msgstr "Release Checklist"
+
+#: app/templates/project_detail.html:721
+msgid "每行一条，例如：确认数据库变更已执行"
+msgstr ""
+"One item per line, for example: Confirm database migrations have been "
+"applied"
+
+#: app/templates/project_detail.html:723
+msgid "治理备注"
+msgstr "Governance Notes"
+
+#: app/templates/project_detail.html:724
+msgid "记录风险、发布窗口、依赖团队等信息"
+msgstr "Record risks, release windows, dependent teams, and related notes"
+
+#: app/templates/project_detail.html:726
+msgid "保存治理配置"
+msgstr "Save Governance Settings"
+
+#: app/templates/project_detail.html:729
+msgid "你当前没有项目治理修改权限。"
+msgstr ""
+"You do not currently have permission to modify project governance "
+"settings."
+
+#: app/templates/project_detail.html:734
 msgid "高级说明"
-msgstr "Advanced Notes"
+msgstr ""
 
-#: app/templates/project_detail.html:559
+#: app/templates/project_detail.html:735
 msgid "这里只有兼容旧流程或外部制品系统的入口。"
-msgstr "This area is only for legacy flows or external artifact systems."
+msgstr ""
 
-#: app/templates/project_detail.html:594
+#: app/templates/project_detail.html:770
 msgid "已选择文件数："
-msgstr "Files selected: "
+msgstr ""
 
-#: app/templates/project_detail.html:617
+#: app/templates/project_detail.html:793
 msgid "未提供模板说明。"
-msgstr "No template description."
+msgstr ""
 
-#: app/templates/project_detail.html:619
+#: app/templates/project_detail.html:795
 msgid "高级场景"
-msgstr "Advanced"
+msgstr ""
 
-#: app/templates/project_detail.html:633
+#: app/templates/project_detail.html:809
 msgid "正在校验路径..."
-msgstr "Validating workspace path..."
+msgstr ""
 
-#: app/templates/project_detail.html:638 app/templates/project_detail.html:653
+#: app/templates/project_detail.html:814 app/templates/project_detail.html:829
 msgid "路径校验失败"
-msgstr "Workspace validation failed"
+msgstr ""
 
-#: app/templates/project_detail.html:642
+#: app/templates/project_detail.html:818
 msgid "工作区根"
-msgstr "Workspace Root"
+msgstr ""
 
-#: app/templates/project_detail.html:643
+#: app/templates/project_detail.html:819
 msgid "配置路径"
-msgstr "Configured Path"
+msgstr ""
 
-#: app/templates/project_detail.html:643
+#: app/templates/project_detail.html:819
 msgid "(空)"
-msgstr "(empty)"
+msgstr ""
 
-#: app/templates/project_detail.html:644
+#: app/templates/project_detail.html:820
 msgid "解析路径"
-msgstr "Resolved Path"
+msgstr ""
 
-#: app/templates/project_detail.html:645
+#: app/templates/project_detail.html:821
 msgid "真实路径"
-msgstr "Real Path"
+msgstr ""
 
-#: app/templates/project_detail.html:646 app/templates/project_detail.html:649
+#: app/templates/project_detail.html:822 app/templates/project_detail.html:825
 msgid "存在"
-msgstr "Exists"
+msgstr ""
 
-#: app/templates/project_detail.html:646 app/templates/project_detail.html:647
-#: app/templates/project_detail.html:648
+#: app/templates/project_detail.html:822 app/templates/project_detail.html:823
+#: app/templates/project_detail.html:824
 msgid "是"
-msgstr "Yes"
+msgstr ""
 
-#: app/templates/project_detail.html:646 app/templates/project_detail.html:647
-#: app/templates/project_detail.html:648
+#: app/templates/project_detail.html:822 app/templates/project_detail.html:823
+#: app/templates/project_detail.html:824
 msgid "否"
-msgstr "No"
+msgstr ""
 
-#: app/templates/project_detail.html:647
+#: app/templates/project_detail.html:823
 msgid "目录"
-msgstr "Directory"
+msgstr ""
 
-#: app/templates/project_detail.html:648
+#: app/templates/project_detail.html:824
 msgid "软链接"
-msgstr "Symlink"
+msgstr ""
 
-#: app/templates/project_detail.html:649 app/templates/project_detail.html:650
+#: app/templates/project_detail.html:825 app/templates/project_detail.html:826
 msgid "不存在"
-msgstr "Not found"
+msgstr ""
 
-#: app/templates/project_detail.html:650
+#: app/templates/project_detail.html:826
 msgid "打包脚本"
-msgstr "Package Script"
+msgstr ""
 
-#: app/templates/project_detail.html:672
+#: app/templates/project_detail.html:848
 msgid "正在上传制品："
-msgstr "Uploading artifacts: "
+msgstr ""
 
-#: app/templates/project_detail.html:680
+#: app/templates/project_detail.html:856
 msgid "上传完成，正在跳转。"
-msgstr "Upload complete, redirecting."
+msgstr ""
 
-#: app/templates/project_detail.html:684 app/templates/project_detail.html:686
+#: app/templates/project_detail.html:860 app/templates/project_detail.html:862
 msgid "上传失败"
-msgstr "Upload failed"
+msgstr ""
 
-#: app/templates/project_detail.html:691
+#: app/templates/project_detail.html:867
 msgid "上传失败，请检查网络或服务器状态。"
-msgstr "Upload failed. Check network or server status."
+msgstr ""
 
 #: app/templates/projects.html:5
 msgid "项目操作"
-msgstr "Project Actions"
+msgstr ""
 
 #: app/templates/projects.html:6
 msgid "新增和编辑表单默认收起，列表区只负责浏览与选择。"
 msgstr ""
-"Create and edit forms are collapsed by default so the list stays focused "
-"on browsing and selection."
 
-#: app/templates/projects.html:9
+#: app/templates/projects.html:8
+msgid "你当前拥有只读权限，可浏览项目，但不能新增或编辑。"
+msgstr ""
+
+#: app/templates/projects.html:12
 msgid "点击展开新增项目"
-msgstr "Expand New Project"
+msgstr ""
 
-#: app/templates/projects.html:12 app/templates/projects.html:247
+#: app/templates/projects.html:15 app/templates/projects.html:264
 msgid "项目名称"
-msgstr "Project Name"
+msgstr ""
 
-#: app/templates/projects.html:15 app/templates/projects.html:250
+#: app/templates/projects.html:18 app/templates/projects.html:267
 msgid "项目标识"
-msgstr "Slug"
+msgstr ""
 
-#: app/templates/projects.html:18 app/templates/projects.html:253
+#: app/templates/projects.html:21 app/templates/projects.html:270
 msgid "项目工作区路径"
-msgstr "Workspace Path"
+msgstr ""
 
-#: app/templates/projects.html:20 app/templates/projects.html:255
+#: app/templates/projects.html:23 app/templates/projects.html:272
 msgid "sample-service 或 services/sample-service"
-msgstr "sample-service or services/sample-service"
+msgstr ""
 
-#: app/templates/projects.html:21 app/templates/projects.html:256
+#: app/templates/projects.html:24 app/templates/projects.html:273
 msgid "浏览选择"
-msgstr "Browse"
+msgstr ""
 
-#: app/templates/projects.html:24 app/templates/projects.html:259
+#: app/templates/projects.html:27 app/templates/projects.html:276
 msgid "镜像仓库前缀"
-msgstr "Registry Prefix"
+msgstr ""
 
-#: app/templates/projects.html:25 app/templates/projects.html:260
+#: app/templates/projects.html:28 app/templates/projects.html:277
 msgid "registry.example.com/team 或留空使用本地镜像名"
-msgstr "registry.example.com/team or leave empty for local image names"
+msgstr ""
 
-#: app/templates/projects.html:27 app/templates/projects.html:262
+#: app/templates/projects.html:32 app/templates/projects.html:281
+msgid "本地制品站 / 默认"
+msgstr ""
+
+#: app/templates/projects.html:38 app/templates/projects.html:287
 msgid "项目说明"
-msgstr "Description"
+msgstr ""
 
-#: app/templates/projects.html:28
+#: app/templates/projects.html:39
 msgid "描述此项目如何接入、部署到哪里、谁负责。"
-msgstr "Describe how this project is onboarded, where it deploys, and who owns it."
-
-#: app/templates/projects.html:31
-msgid "创建并进入接入流程"
-msgstr "Create & Start Onboarding"
-
-#: app/templates/projects.html:40
-msgid "项目管理"
-msgstr "Project Management"
-
-#: app/templates/projects.html:41
-msgid "把构建与发布收敛成一套可复用的流程"
-msgstr "Standardize Your Build & Release Flow"
+msgstr ""
 
 #: app/templates/projects.html:42
+msgid "创建并进入接入流程"
+msgstr ""
+
+#: app/templates/projects.html:52
+#, fuzzy
+msgid "项目管理"
+msgstr "Project Governance"
+
+#: app/templates/projects.html:53
+msgid "把构建与发布收敛成一套可复用的流程"
+msgstr ""
+
+#: app/templates/projects.html:54
 msgid "每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。"
 msgstr ""
-"Define the workspace path, environments, and build template for each "
-"project first. The project path is relative to the shared workspace root "
-"and can point to a real directory or an admin-managed symlink."
 
-#: app/templates/projects.html:46
+#: app/templates/projects.html:58
 msgid "项目总数"
-msgstr "Total Projects"
+msgstr ""
 
-#: app/templates/projects.html:47
+#: app/templates/projects.html:59
 msgid "环境总数"
-msgstr "Total Environments"
+msgstr ""
 
-#: app/templates/projects.html:48
+#: app/templates/projects.html:60
 msgid "已登记 Release"
-msgstr "Registered Releases"
+msgstr ""
 
-#: app/templates/projects.html:55
+#: app/templates/projects.html:67
 msgid "已接入项目"
-msgstr "Onboarded Projects"
+msgstr ""
 
-#: app/templates/projects.html:56
+#: app/templates/projects.html:68
 msgid "中间区域负责列表浏览，右侧区域负责当前选中项目的详细操作。"
 msgstr ""
-"The center column is for browsing the list, and the right panel is for "
-"the selected project's details and actions."
 
-#: app/templates/projects.html:73
+#: app/templates/projects.html:85
 msgid "个 Release"
-msgstr "releases"
+msgstr ""
 
-#: app/templates/projects.html:74
+#: app/templates/projects.html:86
 msgid "个构建任务"
-msgstr "builds"
+msgstr ""
 
-#: app/templates/projects.html:79
-#, fuzzy
+#: app/templates/projects.html:92
 msgid "进入工作台"
-msgstr "Open Workspace"
+msgstr ""
 
-#: app/templates/projects.html:84
+#: app/templates/projects.html:97
 msgid "还没有项目，先创建一个项目开始接入。"
-msgstr "No projects yet. Create one to get started."
+msgstr ""
 
-#: app/templates/projects.html:107
+#: app/templates/projects.html:120
 msgid "选择项目工作区路径"
-msgstr "Select Workspace Path"
+msgstr ""
 
-#: app/templates/projects.html:111
+#: app/templates/projects.html:124
 msgid "关闭"
-msgstr "Close"
+msgstr ""
 
-#: app/templates/projects.html:114
+#: app/templates/projects.html:127
 msgid "返回上级"
-msgstr "Go Up"
+msgstr ""
 
-#: app/templates/projects.html:115
+#: app/templates/projects.html:128
 msgid "使用当前目录"
-msgstr "Use Current Directory"
+msgstr ""
 
-#: app/templates/projects.html:117 app/templates/projects.html:163
+#: app/templates/projects.html:130 app/templates/projects.html:176
 msgid "正在加载目录..."
-msgstr "Loading..."
+msgstr ""
 
-#: app/templates/projects.html:145
+#: app/templates/projects.html:158
 msgid "当前目录下没有子目录。"
-msgstr "No subdirectories in the current directory."
+msgstr ""
 
-#: app/templates/projects.html:155
+#: app/templates/projects.html:168
 msgid "进入"
-msgstr "Open"
+msgstr ""
 
-#: app/templates/projects.html:156
+#: app/templates/projects.html:169
 msgid "选择"
-msgstr "Select"
+msgstr ""
 
-#: app/templates/projects.html:170 app/templates/projects.html:190
-#: app/templates/projects.html:199 app/templates/projects.html:208
+#: app/templates/projects.html:183 app/templates/projects.html:203
+#: app/templates/projects.html:212 app/templates/projects.html:221
 msgid "目录加载失败"
-msgstr "Failed to load directory"
+msgstr ""
 
-#: app/templates/projects.html:175
+#: app/templates/projects.html:188
 msgid "浏览根目录："
-msgstr "Root: "
+msgstr ""
 
-#: app/templates/projects.html:176
+#: app/templates/projects.html:189
 msgid "当前目录："
-msgstr "Current: "
+msgstr ""
 
-#: app/templates/projects.html:177
+#: app/templates/projects.html:190
 msgid "选择一个目录，或直接使用当前目录。"
-msgstr "Select a directory or use the current one."
+msgstr ""
 
-#: app/templates/projects.html:221
+#: app/templates/projects.html:234
 msgid "当前选中项目"
-msgstr "Selected Project"
+msgstr ""
 
-#: app/templates/projects.html:222
+#: app/templates/projects.html:235
 msgid "右侧保持单个对象的上下文，避免列表和表单混在一起。"
 msgstr ""
 
-#: app/templates/projects.html:233
+#: app/templates/projects.html:246
 msgid "工作区路径："
-msgstr "Workspace: "
+msgstr ""
 
-#: app/templates/projects.html:233
+#: app/templates/projects.html:246
 msgid "未设置，默认使用全局工作区根"
-msgstr "Not set, defaults to workspace root"
+msgstr ""
 
-#: app/templates/projects.html:236
+#: app/templates/projects.html:249
 msgid "镜像仓库前缀："
-msgstr "Registry Prefix: "
+msgstr ""
 
-#: app/templates/projects.html:236
+#: app/templates/projects.html:249
 msgid "未设置，默认不拼接 registry 前缀"
-msgstr "Not set, no registry prefix"
+msgstr ""
 
-#: app/templates/projects.html:244
+#: app/templates/projects.html:252
+msgid "默认制品仓库："
+msgstr ""
+
+#: app/templates/projects.html:261
 msgid "点击展开编辑项目"
-msgstr "Expand Edit Project"
+msgstr ""
 
-#: app/templates/projects.html:268
+#: app/templates/projects.html:293
 msgid "保存项目信息"
-msgstr "Save Project"
+msgstr ""
 
-#: app/templates/projects.html:274
+#: app/templates/projects.html:299
 msgid "确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。"
 msgstr ""
-"Delete this project? This also deletes its environments, releases, build "
-"jobs, and deployment records."
 
-#: app/templates/projects.html:275
+#: app/templates/projects.html:300
 msgid "删除项目"
-msgstr "Delete Project"
+msgstr ""
 
-#: app/templates/projects.html:279
+#: app/templates/projects.html:305
 msgid "当前页还没有可选项目。"
-msgstr "There is no selectable project on this page yet."
+msgstr ""
 
-#: app/templates/projects.html:291
+#: app/templates/projects.html:317
 msgid "正在校验..."
-msgstr "Validating..."
+msgstr ""
 
-#: app/templates/projects.html:297
+#: app/templates/projects.html:323
 msgid "校验失败"
-msgstr "Validation failed"
+msgstr ""
+
+#: app/templates/settings.html:5
+msgid "设置导航"
+msgstr ""
+
+#: app/templates/settings.html:7
+msgid "用户与权限"
+msgstr ""
+
+#: app/templates/settings.html:8
+msgid "制品仓库"
+msgstr ""
+
+#: app/templates/settings.html:9 app/templates/settings.html:91
+msgid "界面与语言"
+msgstr ""
+
+#: app/templates/settings.html:10 app/templates/settings.html:107
+msgid "系统与安全"
+msgstr ""
+
+#: app/templates/settings.html:11 app/templates/settings.html:128
+msgid "审计日志"
+msgstr ""
+
+#: app/templates/settings.html:18
+msgid "系统设置"
+msgstr ""
+
+#: app/templates/settings.html:19
+msgid "统一管理账户、仓库、语言与审计"
+msgstr ""
+
+#: app/templates/settings.html:20
+msgid "设置页承担多人协作的基础设施管理，不再把权限和系统配置散落在各个页面里。"
+msgstr ""
+
+#: app/templates/settings.html:22
+msgid "系统首次启动时，会自动按启动配置创建默认管理员，并确保其带有 system_admin 角色。"
+msgstr ""
+
+#: app/templates/settings.html:29
+msgid "用户列表"
+msgstr ""
+
+#: app/templates/settings.html:30 app/templates/settings.html:154
+msgid "新建用户"
+msgstr ""
+
+#: app/templates/settings.html:40
+msgid "停用"
+msgstr ""
+
+#: app/templates/settings.html:57
+msgid "还没有用户。"
+msgstr ""
+
+#: app/templates/settings.html:64
+msgid "制品仓库列表"
+msgstr ""
+
+#: app/templates/settings.html:65 app/templates/settings.html:204
+msgid "新建仓库"
+msgstr ""
+
+#: app/templates/settings.html:76 app/templates/settings.html:162
+msgid "默认"
+msgstr ""
+
+#: app/templates/settings.html:85
+msgid "还没有制品仓库。"
+msgstr ""
+
+#: app/templates/settings.html:93
+msgid "当前语言"
+msgstr ""
+
+#: app/templates/settings.html:95
+msgid "页头的语言下拉与这里操作的是同一套用户偏好。"
+msgstr ""
+
+#: app/templates/settings.html:101
+msgid "保存语言偏好"
+msgstr ""
+
+#: app/templates/settings.html:109
+msgid "部署触发超时秒数"
+msgstr ""
+
+#: app/templates/settings.html:110
+msgid "部署轮询间隔秒数"
+msgstr ""
+
+#: app/templates/settings.html:111
+msgid "部署观察超时秒数"
+msgstr ""
+
+#: app/templates/settings.html:112
+msgid "启用自动质量巡检"
+msgstr ""
+
+#: app/templates/settings.html:115
+msgid "按周期自动为到期项目执行质量检查"
+msgstr ""
+
+#: app/templates/settings.html:118
+msgid "自动巡检间隔（分钟）"
+msgstr ""
+
+#: app/templates/settings.html:119
+msgid "工作区根路径"
+msgstr ""
+
+#: app/templates/settings.html:120
+msgid "默认打包脚本"
+msgstr ""
+
+#: app/templates/settings.html:121
+msgid "公开制品地址"
+msgstr ""
+
+#: app/templates/settings.html:122
+msgid "本地制品目录"
+msgstr ""
+
+#: app/templates/settings.html:123
+msgid "保存系统设置"
+msgstr ""
+
+#: app/templates/settings.html:144
+msgid "还没有审计日志。"
+msgstr ""
+
+#: app/templates/settings.html:154
+msgid "编辑用户"
+msgstr ""
+
+#: app/templates/settings.html:158
+msgid "显示名"
+msgstr ""
+
+#: app/templates/settings.html:159
+msgid "新建用户必填；编辑时留空表示不修改"
+msgstr ""
+
+#: app/templates/settings.html:160
+msgid "语言"
+msgstr ""
+
+#: app/templates/settings.html:169
+msgid "超级管理员"
+msgstr ""
+
+#: app/templates/settings.html:184
+msgid "绑定到项目"
+msgstr ""
+
+#: app/templates/settings.html:199
+msgid "保存用户"
+msgstr ""
+
+#: app/templates/settings.html:204
+msgid "编辑仓库"
+msgstr ""
+
+#: app/templates/settings.html:207
+msgid "名称"
+msgstr ""
+
+#: app/templates/settings.html:208
+msgid "标识"
+msgstr ""
+
+#: app/templates/settings.html:209
+msgid "提供商"
+msgstr ""
+
+#: app/templates/settings.html:215
+msgid "Bucket"
+msgstr ""
+
+#: app/templates/settings.html:216
+msgid "Region"
+msgstr ""
+
+#: app/templates/settings.html:217
+msgid "Endpoint"
+msgstr ""
+
+#: app/templates/settings.html:218
+msgid "自定义域名"
+msgstr ""
+
+#: app/templates/settings.html:219
+msgid "路径前缀"
+msgstr ""
+
+#: app/templates/settings.html:220
+msgid "Access Key ID"
+msgstr ""
+
+#: app/templates/settings.html:220 app/templates/settings.html:221
+msgid "留空表示不修改"
+msgstr ""
+
+#: app/templates/settings.html:221
+msgid "Secret Access Key"
+msgstr ""
+
+#: app/templates/settings.html:224
+msgid "设为默认"
+msgstr ""
+
+#: app/templates/settings.html:226
+msgid "保存仓库"
+msgstr ""
+
+#: app/templates/settings.html:231
+msgid "当前用户偏好"
+msgstr ""
+
+#: app/templates/settings.html:234
+msgid "语言切换可以在这里保存，也可以直接从页头下拉快速切换。"
+msgstr ""
+
+#: app/templates/settings.html:239
+msgid "系统说明"
+msgstr ""
+
+#: app/templates/settings.html:241
+msgid "这些设置优先用于平台级行为控制，不会替代项目内的构建模板覆盖项。"
+msgstr ""
+
+#: app/templates/settings.html:246
+msgid "审计说明"
+msgstr ""
+
+#: app/templates/settings.html:248
+msgid "所有关键写操作都会留下责任人、对象和时间。"
+msgstr ""
 
 #~ msgid "收起或展开侧边栏"
 #~ msgstr "Toggle sidebar"
@@ -1413,22 +1880,22 @@ msgstr "Validation failed"
 #~ msgstr "Onboard, Build, Upload"
 
 #~ msgid "状态、日志、回滚"
-#~ msgstr "Status, Logs, Rollback"
+#~ msgstr ""
 
 #~ msgid "当前用户："
-#~ msgstr "Current user: "
+#~ msgstr "Current: "
 
 #~ msgid "当前系统会保留你的侧栏展开状态。"
 #~ msgstr "Sidebar state is saved locally."
 
 #~ msgid "退出登录"
-#~ msgstr "Logout"
+#~ msgstr "Sign In"
 
 #~ msgid "当前系统：独立部署控制台"
 #~ msgstr "System: Deploy Console"
 
 #~ msgid "主路径：接入 → 生成 → 发布"
-#~ msgstr "Flow: Onboard → Build → Deploy"
+#~ msgstr ""
 
 #~ msgid "页面会自动轮询更新，适合移动端实时查看构建和上传进度。"
 #~ msgstr "Auto-polls for updates. Good for mobile real-time monitoring."
@@ -1524,63 +1991,49 @@ msgstr "Validation failed"
 #~ "running image remains traceable."
 
 #~ msgid "构建、制品与发布统一工作台"
-#~ msgstr "Unified Workspace for Build, Artifacts, and Deploy"
+#~ msgstr ""
 
 #~ msgid "总览"
-#~ msgstr "Overview"
+#~ msgstr ""
 
 #~ msgid "系统概览与最近动作"
-#~ msgstr "System overview and recent actions"
+#~ msgstr "Recent Activity"
 
 #~ msgid "接入、模板、制品生成"
-#~ msgstr "Onboarding, templates, and artifact generation"
+#~ msgstr ""
 
 #~ msgid "入口导航"
-#~ msgstr "Navigation"
+#~ msgstr ""
 
 #~ msgid "保持当前阶段聚焦，避免在长页面里来回找入口。"
 #~ msgstr ""
-#~ "Stay focused on the current stage "
-#~ "instead of hunting through long pages."
 
 #~ msgid "当前页面"
-#~ msgstr "Current Page"
+#~ msgstr ""
 
 #~ msgid "右侧保留给当前对象的上下文信息、表单和快捷操作。"
 #~ msgstr ""
-#~ "The right panel is reserved for "
-#~ "context, forms, and quick actions for"
-#~ " the current item."
 
 #~ msgid "开源的独立发布平台，面向项目接入、制品生成与自动部署。"
 #~ msgstr ""
-#~ "An open-source release platform for "
-#~ "project onboarding, artifact generation, and"
-#~ " automated deployment."
 
 #~ msgid "声明：本系统仅负责发布编排与可观测性，不替代你的代码审查与变更治理。"
 #~ msgstr ""
-#~ "Disclaimer: this system handles release "
-#~ "orchestration and observability, not code "
-#~ "review or change governance."
 
 #~ msgid "仓库地址："
-#~ msgstr "Repository:"
+#~ msgstr ""
 
 #~ msgid "欢迎基于此项目二次开发、接入更多部署适配器并反馈问题。"
 #~ msgstr ""
-#~ "You are welcome to extend this "
-#~ "project, add more deployment adapters, "
-#~ "and report issues."
 
 #~ msgid "请确认操作"
-#~ msgstr "Please confirm"
+#~ msgstr ""
 
 #~ msgid "取消"
-#~ msgstr "Cancel"
+#~ msgstr ""
 
 #~ msgid "确认"
-#~ msgstr "Confirm"
+#~ msgstr ""
 
 #~ msgid "这里回滚的是\"所选 Release 中记录的组件版本\"，不是整套项目的全量时间倒流。"
 #~ msgstr ""
@@ -1897,4 +2350,1304 @@ msgstr "Validation failed"
 #~ "the upper-left section to add one"
 #~ " manually or import candidates from "
 #~ "compose."
+
+#~ msgid "当前项目已接入独立发布平台，可直接配置模板、生成制品并发版。"
+#~ msgstr "This project is onboarded. Configure templates, build and deploy."
+
+#~ msgid "高级操作"
+#~ msgstr "Advanced"
+
+#~ msgid "当前接入摘要"
+#~ msgstr "Onboarding Summary"
+
+#~ msgid "Release"
+#~ msgstr "Releases"
+
+#~ msgid "最近构建任务"
+#~ msgstr "Recent Builds"
+
+#~ msgid "最近部署任务"
+#~ msgstr "Recent Deployments"
+
+#~ msgid "项目工作台"
+#~ msgstr "Project Workspace"
+
+#~ msgid "Starter 模板中心"
+#~ msgstr "Starter Template Center"
+
+#~ msgid "中间区域展示组件、环境和推荐接入信息，右侧区域负责新增或编辑表单。"
+#~ msgstr ""
+#~ "The center column shows components, "
+#~ "environments, and onboarding guidance; the "
+#~ "right panel handles create and edit "
+#~ "forms."
+
+#~ msgid "下载当前 starter 包"
+#~ msgstr "Download Starter Bundle"
+
+#~ msgid "重新读取后将覆盖已有设置，请确认。"
+#~ msgstr "Reloading will overwrite the current settings. Please confirm."
+
+#~ msgid "从 Compose 导入"
+#~ msgstr "Import from Compose"
+
+#~ msgid "从 compose 读取组件候选"
+#~ msgstr "Import component candidates"
+
+#~ msgid "下载推荐 docker-compose.yml"
+#~ msgstr "Download recommended docker-compose.yml"
+
+#~ msgid "当前工作区路径："
+#~ msgstr "Workspace path: "
+
+#~ msgid "(空，表示直接使用全局工作区根)"
+#~ msgstr "(empty, uses workspace root)"
+
+#~ msgid "当前解析目录："
+#~ msgstr "Resolved directory: "
+
+#~ msgid "组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。"
+#~ msgstr ""
+#~ "Component settings have changed. The "
+#~ "recommended `docker-compose.yml` has been "
+#~ "recalculated from the current component "
+#~ "config. Download and merge it again."
+
+#~ msgid "点击展开 Compose 规范检查"
+#~ msgstr "Expand Compose Readiness Check"
+
+#~ msgid "组件列表"
+#~ msgstr "Component List"
+
+#~ msgid "列表区只保留浏览和进入编辑，不直接展开长表单。"
+#~ msgstr ""
+#~ "The list area focuses on browsing "
+#~ "and entering edit mode instead of "
+#~ "expanding long forms inline."
+
+#~ msgid "需要构建"
+#~ msgstr "Build required"
+
+#~ msgid "外部镜像"
+#~ msgstr "External image"
+
+#~ msgid "默认勾选"
+#~ msgstr "Selected by default"
+
+#~ msgid "手动勾选"
+#~ msgstr "Manual selection"
+
+#~ msgid "点击展开编辑组件"
+#~ msgstr "Expand Edit Component"
+
+#~ msgid "组件名"
+#~ msgstr "Component Name"
+
+#~ msgid "Compose service 名"
+#~ msgstr "Compose service name"
+
+#~ msgid "镜像名"
+#~ msgstr "Image"
+
+#~ msgid "Tar 文件名模板"
+#~ msgstr "Tar filename pattern"
+
+#~ msgid "默认参与发版"
+#~ msgstr "Selected by default"
+
+#~ msgid "保存组件"
+#~ msgstr "Save Component"
+
+#~ msgid "确认删除该组件？"
+#~ msgstr "Delete Component"
+
+#~ msgid "删除组件"
+#~ msgstr "Delete Component"
+
+#~ msgid "还没有组件，先手工新增一个，或者从 compose 文件导入。"
+#~ msgstr "No components yet. Add one manually or import from Compose."
+
+#~ msgid "环境列表"
+#~ msgstr "Environment List"
+
+#~ msgid "环境编辑默认折叠，避免主流程被打断。"
+#~ msgstr ""
+#~ "Environment editing is collapsed by "
+#~ "default to avoid interrupting the main"
+#~ " flow."
+
+#~ msgid "未设置显示域名"
+#~ msgstr "No display URL"
+
+#~ msgid "Webhook："
+#~ msgstr "Webhook: "
+
+#~ msgid "Status："
+#~ msgstr "Status: "
+
+#~ msgid "点击展开编辑环境"
+#~ msgstr "Expand Edit Environment"
+
+#~ msgid "环境名"
+#~ msgstr "Environment Name"
+
+#~ msgid "显示域名"
+#~ msgstr "Display URL"
+
+#~ msgid "逻辑环境名"
+#~ msgstr "Logical env name"
+
+#~ msgid "Webhook URL"
+#~ msgstr "Webhook URL"
+
+#~ msgid "Status URL"
+#~ msgstr "Status URL"
+
+#~ msgid "共享密钥"
+#~ msgstr "Shared Secret"
+
+#~ msgid "生成密钥"
+#~ msgstr "Generate Secret"
+
+#~ msgid "保存修改"
+#~ msgstr "Save Changes"
+
+#~ msgid "确认删除该环境？"
+#~ msgstr "Delete Environment"
+
+#~ msgid "删除环境"
+#~ msgstr "Delete Environment"
+
+#~ msgid "还没有环境。"
+#~ msgstr "No environments yet."
+
+#~ msgid "一键生成制品"
+#~ msgstr "Build Artifacts"
+
+#~ msgid "只保留一次正常构建所需的必要输入。"
+#~ msgstr ""
+
+#~ msgid "自动"
+#~ msgstr "Auto"
+
+#~ msgid "没有启用中的组件，先到“接入配置”维护组件。"
+#~ msgstr ""
+#~ "There are no enabled components. Go "
+#~ "to Onboarding Config first and maintain"
+#~ " the component list."
+
+#~ msgid "附加 payload"
+#~ msgstr "Extra payload"
+
+#~ msgid "可选，保存本次构建说明或附加信息"
+#~ msgstr "Optional. Save notes or extra metadata for this build"
+
+#~ msgid "开始构建"
+#~ msgstr "Start Build"
+
+#~ msgid "一键生成并发布"
+#~ msgstr "Build & Deploy"
+
+#~ msgid "生成与发版在一条路径里完成。"
+#~ msgstr ""
+
+#~ msgid "目标环境"
+#~ msgstr "Target Environment"
+
+#~ msgid "可选，保存本次构建与发布说明"
+#~ msgstr "Optional. Save notes for this build and deployment."
+
+#~ msgid "生成后自动发布"
+#~ msgstr "Build then Deploy"
+
+#~ msgid "版本："
+#~ msgstr "Version: "
+
+#~ msgid "存储："
+#~ msgstr "Storage: "
+
+#~ msgid "还没有构建任务。"
+#~ msgstr "No build jobs yet."
+
+#~ msgid "还没有部署任务。"
+#~ msgstr "No deployments yet."
+
+#~ msgid "可发布 Release"
+#~ msgstr "Releasable Versions"
+
+#~ msgid "个组件"
+#~ msgstr "components"
+
+#~ msgid "组件："
+#~ msgstr "Components: "
+
+#~ msgid "选择发布环境"
+#~ msgstr ""
+
+#~ msgid "快速发布"
+#~ msgstr "Deploy Now"
+
+#~ msgid "还没有 Release。"
+#~ msgstr "No releases yet."
+
+#~ msgid "高级入口"
+#~ msgstr "Advanced Entry"
+
+#~ msgid "高阶操作默认折叠，避免挤占主路径空间。"
+#~ msgstr ""
+#~ "Advanced actions stay collapsed by "
+#~ "default to avoid crowding the main "
+#~ "path."
+
+#~ msgid "点击展开手动登记已有 Release"
+#~ msgstr "Expand Manual Release Registration"
+
+#~ msgid "版本号"
+#~ msgstr "Version"
+
+#~ msgid "Manifest URL"
+#~ msgstr "Manifest URL"
+
+#~ msgid "登记版本"
+#~ msgstr "Register"
+
+#~ msgid "点击展开上传已有制品"
+#~ msgstr "Expand Upload Existing Artifacts"
+
+#~ msgid "存储模式"
+#~ msgstr "Storage Mode"
+
+#~ msgid "Manifest 文件"
+#~ msgstr "Manifest file"
+
+#~ msgid "选择文件"
+#~ msgstr "Choose file"
+
+#~ msgid "未选择文件"
+#~ msgstr "No file selected"
+
+#~ msgid "组件 tar 文件"
+#~ msgstr "Component tar files"
+
+#~ msgid "SHA256 文件"
+#~ msgstr "SHA256 file"
+
+#~ msgid "尚未开始上传"
+#~ msgstr "Upload has not started yet"
+
+#~ msgid "上传并登记"
+#~ msgstr "Upload & Register"
+
+#~ msgid "新增和编辑表单默认收起，右侧只负责当前配置操作。"
+#~ msgstr ""
+#~ "Create and edit forms are collapsed "
+#~ "by default, and the right panel "
+#~ "only handles current configuration actions."
+
+#~ msgid "点击展开编辑接入配置"
+#~ msgstr "Expand Onboarding Configuration"
+
+#~ msgid "构建模板"
+#~ msgstr "Build Template"
+
+#~ msgid "（推荐）"
+#~ msgstr " (recommended)"
+
+#~ msgid "（高级）"
+#~ msgstr " (advanced)"
+
+#~ msgid "主路径"
+#~ msgstr "Main path"
+
+#~ msgid "优先使用脚本打包模板；只有你已经在外部系统产出了完整 manifest 和组件制品时，才需要上传已有制品模板。"
+#~ msgstr ""
+#~ "Prefer the script-based packaging "
+#~ "template. Use the upload-existing-"
+#~ "artifacts template only when your "
+#~ "external system has already produced a"
+#~ " full manifest and component artifacts."
+
+#~ msgid "配置覆盖(JSON)"
+#~ msgstr "Config Override (JSON)"
+
+#~ msgid "覆盖说明"
+#~ msgstr "Override Notes"
+
+#~ msgid "这里保存的是当前项目对所选模板的覆盖项，不会自动按环境切换。"
+#~ msgstr ""
+#~ "This stores project-level overrides for"
+#~ " the selected template. It does not"
+#~ " switch automatically by environment."
+
+#~ msgid ""
+#~ "其中 `artifact_public_base_url` 只用于本地制品模式下生成 release"
+#~ " 访问地址；如果选择 OSS，最终 manifest 会改写成 OSS "
+#~ "地址。"
+#~ msgstr ""
+#~ "`artifact_public_base_url` is only used to "
+#~ "generate release URLs in local artifact"
+#~ " mode. When OSS is used, the "
+#~ "manifest is rewritten to OSS URLs."
+
+#~ msgid "仓库创建与密钥维护统一在设置页处理；项目只绑定默认仓库。"
+#~ msgstr ""
+
+#~ msgid "保存接入配置"
+#~ msgstr "Save Build Config"
+
+#~ msgid "点击展开手工新增组件"
+#~ msgstr "Expand Manual Component Creation"
+
+#~ msgid "新增组件"
+#~ msgstr "Add Component"
+
+#~ msgid "点击展开新增环境"
+#~ msgstr "Expand Create Environment"
+
+#~ msgid "保存环境"
+#~ msgstr "Save Environment"
+
+#~ msgid "远端 deploy-agent 接入"
+#~ msgstr "Remote deploy-agent Onboarding"
+
+#~ msgid "用于生成示例的目标环境"
+#~ msgstr "Target environment for generated examples"
+
+#~ msgid "点击展开 Starter 预览"
+#~ msgstr "Expand Starter Preview"
+
+#~ msgid "发布提示"
+#~ msgstr "Deploy"
+
+#~ msgid "右侧只保留当前阶段提示，主操作都集中在中间。"
+#~ msgstr ""
+
+#~ msgid "当前组件"
+#~ msgstr "Components"
+
+#~ msgid "暂无启用组件"
+#~ msgstr "No enabled components"
+
+#~ msgid "高级说明"
+#~ msgstr "Advanced Notes"
+
+#~ msgid "这里只有兼容旧流程或外部制品系统的入口。"
+#~ msgstr "This area is only for legacy flows or external artifact systems."
+
+#~ msgid "已选择文件数："
+#~ msgstr "Files selected: "
+
+#~ msgid "未提供模板说明。"
+#~ msgstr "No template description."
+
+#~ msgid "高级场景"
+#~ msgstr "Advanced"
+
+#~ msgid "正在校验路径..."
+#~ msgstr "Validating workspace path..."
+
+#~ msgid "路径校验失败"
+#~ msgstr "Workspace validation failed"
+
+#~ msgid "工作区根"
+#~ msgstr "Workspace Root"
+
+#~ msgid "配置路径"
+#~ msgstr "Configured Path"
+
+#~ msgid "(空)"
+#~ msgstr "(empty)"
+
+#~ msgid "解析路径"
+#~ msgstr "Resolved Path"
+
+#~ msgid "真实路径"
+#~ msgstr "Real Path"
+
+#~ msgid "存在"
+#~ msgstr "Exists"
+
+#~ msgid "是"
+#~ msgstr "Yes"
+
+#~ msgid "否"
+#~ msgstr "No"
+
+#~ msgid "目录"
+#~ msgstr "Directory"
+
+#~ msgid "软链接"
+#~ msgstr "Symlink"
+
+#~ msgid "不存在"
+#~ msgstr "Not found"
+
+#~ msgid "打包脚本"
+#~ msgstr "Package Script"
+
+#~ msgid "正在上传制品："
+#~ msgstr "Uploading artifacts: "
+
+#~ msgid "上传完成，正在跳转。"
+#~ msgstr "Upload complete, redirecting."
+
+#~ msgid "上传失败"
+#~ msgstr "Upload failed"
+
+#~ msgid "上传失败，请检查网络或服务器状态。"
+#~ msgstr "Upload failed. Check network or server status."
+
+#~ msgid "详情页左侧只保留路径感和返回动作。"
+#~ msgstr ""
+
+#~ msgid "返"
+#~ msgstr ""
+
+#~ msgid "返回项目构建发布"
+#~ msgstr "Back to Project Build & Deploy"
+
+#~ msgid "项"
+#~ msgstr "P"
+
+#~ msgid "构建详情"
+#~ msgstr "Build Details"
+
+#~ msgid "构建"
+#~ msgstr "Build"
+
+#~ msgid "生成后自动发布到"
+#~ msgstr "Auto-deploy to"
+
+#~ msgid "当前状态"
+#~ msgstr "Status"
+
+#~ msgid "进度"
+#~ msgstr "Progress"
+
+#~ msgid "输出版本"
+#~ msgstr "Output Version"
+
+#~ msgid "制品模式"
+#~ msgstr "Artifact Mode"
+
+#~ msgid "构建进度"
+#~ msgstr "Build Progress"
+
+#~ msgid "基本信息"
+#~ msgstr "Details"
+
+#~ msgid "模板"
+#~ msgstr "Template"
+
+#~ msgid "触发人"
+#~ msgstr "Triggered by"
+
+#~ msgid "开始时间"
+#~ msgstr "Started at"
+
+#~ msgid "完成时间"
+#~ msgstr "Finished at"
+
+#~ msgid "结果摘要"
+#~ msgstr "Result Summary"
+
+#~ msgid "暂无结果"
+#~ msgstr "No result"
+
+#~ msgid "阶段事件"
+#~ msgstr "Stage Events"
+
+#~ msgid "页面会自动轮询更新。"
+#~ msgstr "This page updates automatically by polling."
+
+#~ msgid "还没有阶段事件。"
+#~ msgstr "No stage events yet."
+
+#~ msgid "日志摘要"
+#~ msgstr "Log Excerpt"
+
+#~ msgid "暂无日志摘要"
+#~ msgstr "No log excerpt"
+
+#~ msgid "构建摘要"
+#~ msgstr "Build Summary"
+
+#~ msgid "把最关键的信息固定在右侧。"
+#~ msgstr ""
+
+#~ msgid "返回构建发布"
+#~ msgstr "Back to Project Build & Deploy"
+
+#~ msgid "快捷菜单"
+#~ msgstr ""
+
+#~ msgid "从总览直接进入最近最常用的动作。"
+#~ msgstr ""
+
+#~ msgid "进入项目工作台"
+#~ msgstr "Open Workspace"
+
+#~ msgid "发"
+#~ msgstr "D"
+
+#~ msgid "查看部署任务"
+#~ msgstr "View Deployments"
+
+#~ msgid "控制台总览"
+#~ msgstr "Console Overview"
+
+#~ msgid "从这里进入你真正要做的下一步"
+#~ msgstr "Start Here"
+
+#~ msgid "先看项目接入是否完成，再决定是生成制品、直接发布，还是进入部署任务排查异常。"
+#~ msgstr "Check onboarding, then build, deploy, or troubleshoot."
+
+#~ msgid "构建任务"
+#~ msgstr "Build Jobs"
+
+#~ msgid "进行中的部署"
+#~ msgstr "Running Deployments"
+
+#~ msgid "最近项目"
+#~ msgstr "Recent Projects"
+
+#~ msgid "优先进入项目工作台，不要从杂乱表单开始。"
+#~ msgstr "Go to the project workspace instead of starting from forms."
+
+#~ msgid "个环境"
+#~ msgstr "environments"
+
+#~ msgid "尚未填写项目说明。"
+#~ msgstr "No description provided."
+
+#~ msgid "接入配置"
+#~ msgstr "Onboarding"
+
+#~ msgid "构建发布"
+#~ msgstr "Build & Deploy"
+
+#~ msgid "还没有项目，先去项目页创建一个。"
+#~ msgstr "No projects yet. Create one on the Projects page."
+
+#~ msgid "最近动作"
+#~ msgstr "Recent Activity"
+
+#~ msgid "构建和部署都在这里快速回看。"
+#~ msgstr "Review recent builds and deployments at a glance."
+
+#~ msgid "生成中"
+#~ msgstr "Building..."
+
+#~ msgid "查看构建详情"
+#~ msgstr "View Build"
+
+#~ msgid "查看部署详情"
+#~ msgstr "View Deployment"
+
+#~ msgid "还没有构建或部署记录。"
+#~ msgstr "No builds or deployments yet."
+
+#~ msgid "下一步建议"
+#~ msgstr ""
+
+#~ msgid "让当前页始终给出下一步，而不是只堆展示信息。"
+#~ msgstr ""
+
+#~ msgid "推荐入口"
+#~ msgstr "Recommended"
+
+#~ msgid "项目接入与构建"
+#~ msgstr "Projects & Builds"
+
+#~ msgid "新增项目、配置构建模板、查看最近构建，统一从这里开始。"
+#~ msgstr "Add projects, configure templates, and view recent builds."
+
+#~ msgid "快速生成"
+#~ msgstr "Quick Build"
+
+#~ msgid "进入最近项目工作台"
+#~ msgstr "Go to Recent Project"
+
+#~ msgid "如果你正在连续发版，直接回到最近项目的构建发布区继续操作。"
+#~ msgstr "Continue building from your most recent project."
+
+#~ msgid "异常处理"
+#~ msgstr "Troubleshoot"
+
+#~ msgid "超时、失败、回滚和最终状态收敛都统一在部署任务页处理。"
+#~ msgstr "Handle timeouts, failures, rollbacks and status convergence."
+
+#~ msgid "部署导航"
+#~ msgstr "Deployment Navigation"
+
+#~ msgid "保留返回和任务定位。"
+#~ msgstr "Keep the way back and task context visible."
+
+#~ msgid "返回部署列表"
+#~ msgstr "Back to Deployment List"
+
+#~ msgid "部署详情"
+#~ msgstr "Deployment Details"
+
+#~ msgid "执行进度"
+#~ msgstr "Progress"
+
+#~ msgid "等待状态更新"
+#~ msgstr "Waiting for status update"
+
+#~ msgid "手动刷新状态"
+#~ msgstr "Refresh Status"
+
+#~ msgid "环境"
+#~ msgstr "Environment"
+
+#~ msgid "版本"
+#~ msgstr "Version"
+
+#~ msgid "状态"
+#~ msgstr "Status"
+
+#~ msgid "提交时间"
+#~ msgstr "Submitted at"
+
+#~ msgid "最近轮询"
+#~ msgstr "Last polled"
+
+#~ msgid "暂无 manifest 数据"
+#~ msgstr "No manifest data"
+
+#~ msgid "Release 组件"
+#~ msgstr "Release Components"
+
+#~ msgid "当前 release 没有已解析组件。"
+#~ msgstr "No resolved components in this release."
+
+#~ msgid "适配器返回"
+#~ msgstr "Adapter Response"
+
+#~ msgid "暂无数据"
+#~ msgstr "No data"
+
+#~ msgid "目标状态"
+#~ msgstr "Target Status"
+
+#~ msgid "回滚"
+#~ msgstr "Rollback"
+
+#~ msgid "高风险操作放在右侧，统一走确认弹层。"
+#~ msgstr ""
+#~ "High-risk actions stay on the "
+#~ "right and always use the confirmation"
+#~ " modal."
+
+#~ msgid "回滚目标版本"
+#~ msgstr "Rollback to version"
+
+#~ msgid "将影响的组件"
+#~ msgstr "Affected Components"
+
+#~ msgid "按所选 Release 的组件版本重新发布"
+#~ msgstr "Redeploy Using the Selected Release Components"
+
+#~ msgid "该 Release 未解析出组件"
+#~ msgstr "No components resolved for this release"
+
+#~ msgid "影响组件："
+#~ msgstr "Affected components: "
+
+#~ msgid "确认按 Release"
+#~ msgstr "Confirm redeploy with Release"
+
+#~ msgid "中记录的组件版本重新发布？"
+#~ msgstr "recorded component versions?"
+
+#~ msgid "状态概览"
+#~ msgstr "Status Overview"
+
+#~ msgid "左侧保留筛选思路和状态说明，主列表放在中间。"
+#~ msgstr ""
+#~ "The left panel keeps status context "
+#~ "and filtering hints, while the main "
+#~ "list stays in the center."
+
+#~ msgid "成功"
+#~ msgstr "Succeeded"
+
+#~ msgid "失败"
+#~ msgstr "Failed"
+
+#~ msgid "执行中"
+#~ msgstr "Running"
+
+#~ msgid "部署中心"
+#~ msgstr "Deployment Center"
+
+#~ msgid "发布过程默认异步执行"
+#~ msgstr "Deployments Run Asynchronously"
+
+#~ msgid "大制品场景下，控制台不再要求页面一直等待 webhook 返回。提交后进入任务详情页，自动轮询状态并聚合日志摘要。"
+#~ msgstr "For large artifacts, track status automatically after submitting."
+
+#~ msgid "最近任务"
+#~ msgstr "Recent Jobs"
+
+#~ msgid "最近部署记录"
+#~ msgstr "Recent Deployments"
+
+#~ msgid "中间列表负责选择任务，右侧展示当前任务摘要。"
+#~ msgstr ""
+#~ "The center list is for choosing "
+#~ "tasks, and the right panel shows "
+#~ "the current task summary."
+
+#~ msgid "共"
+#~ msgstr "Total"
+
+#~ msgid "查看摘要"
+#~ msgstr "View Summary"
+
+#~ msgid "查看详情"
+#~ msgstr "View Details"
+
+#~ msgid "还没有部署记录。"
+#~ msgstr "No deployments yet."
+
+#~ msgid "上一页"
+#~ msgstr "Previous"
+
+#~ msgid "下一页"
+#~ msgstr "Next"
+
+#~ msgid "当前部署摘要"
+#~ msgstr "Current Deployment Summary"
+
+#~ msgid "右侧保持当前任务的重点信息和跳转。"
+#~ msgstr ""
+
+#~ msgid "打开详情页"
+#~ msgstr ""
+
+#~ msgid "当前页还没有可选部署任务。"
+#~ msgstr "There is no selectable deployment on this page yet."
+
+#~ msgid "登录独立发布控制台"
+#~ msgstr "Sign in to DeployBox"
+
+#~ msgid "统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。"
+#~ msgstr ""
+#~ "Manage onboarding, build templates, artifacts,"
+#~ " deployments and rollbacks."
+
+#~ msgid "统一接入和模板配置"
+#~ msgstr "Onboarding"
+
+#~ msgid "版本化制品与日志跟踪"
+#~ msgstr ""
+
+#~ msgid "异步发布与回滚"
+#~ msgstr ""
+
+#~ msgid "登录"
+#~ msgstr "Sign In"
+
+#~ msgid "输入管理员账号进入控制台。"
+#~ msgstr ""
+
+#~ msgid "用户名"
+#~ msgstr "Username"
+
+#~ msgid "密码"
+#~ msgstr "Password"
+
+#~ msgid "项目操作"
+#~ msgstr "Project Actions"
+
+#~ msgid "新增和编辑表单默认收起，列表区只负责浏览与选择。"
+#~ msgstr ""
+#~ "Create and edit forms are collapsed "
+#~ "by default so the list stays "
+#~ "focused on browsing and selection."
+
+#~ msgid "你当前拥有只读权限，可浏览项目，但不能新增或编辑。"
+#~ msgstr ""
+#~ "You currently have read-only access "
+#~ "and can browse projects, but you "
+#~ "cannot create or edit them."
+
+#~ msgid "点击展开新增项目"
+#~ msgstr "Expand New Project"
+
+#~ msgid "项目名称"
+#~ msgstr "Project Name"
+
+#~ msgid "项目标识"
+#~ msgstr "Slug"
+
+#~ msgid "项目工作区路径"
+#~ msgstr "Workspace Path"
+
+#~ msgid "sample-service 或 services/sample-service"
+#~ msgstr "sample-service or services/sample-service"
+
+#~ msgid "浏览选择"
+#~ msgstr "Browse"
+
+#~ msgid "镜像仓库前缀"
+#~ msgstr "Registry Prefix"
+
+#~ msgid "registry.example.com/team 或留空使用本地镜像名"
+#~ msgstr "registry.example.com/team or leave empty for local image names"
+
+#~ msgid "默认制品仓库"
+#~ msgstr "Default Artifact Repository"
+
+#~ msgid "本地制品站 / 默认"
+#~ msgstr "Local Artifact Site / Default"
+
+#~ msgid "项目说明"
+#~ msgstr "Description"
+
+#~ msgid "描述此项目如何接入、部署到哪里、谁负责。"
+#~ msgstr ""
+#~ "Describe how this project is onboarded,"
+#~ " where it deploys, and who owns "
+#~ "it."
+
+#~ msgid "创建并进入接入流程"
+#~ msgstr "Create & Start Onboarding"
+
+#~ msgid "项目管理"
+#~ msgstr "Project Management"
+
+#~ msgid "把构建与发布收敛成一套可复用的流程"
+#~ msgstr "Standardize Your Build & Release Flow"
+
+#~ msgid "每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。"
+#~ msgstr ""
+#~ "Define the workspace path, environments, "
+#~ "and build template for each project "
+#~ "first. The project path is relative "
+#~ "to the shared workspace root and "
+#~ "can point to a real directory or"
+#~ " an admin-managed symlink."
+
+#~ msgid "项目总数"
+#~ msgstr "Total Projects"
+
+#~ msgid "环境总数"
+#~ msgstr "Total Environments"
+
+#~ msgid "已登记 Release"
+#~ msgstr "Registered Releases"
+
+#~ msgid "已接入项目"
+#~ msgstr "Onboarded Projects"
+
+#~ msgid "中间区域负责列表浏览，右侧区域负责当前选中项目的详细操作。"
+#~ msgstr ""
+#~ "The center column is for browsing "
+#~ "the list, and the right panel is"
+#~ " for the selected project's details "
+#~ "and actions."
+
+#~ msgid "个 Release"
+#~ msgstr "releases"
+
+#~ msgid "个构建任务"
+#~ msgstr "builds"
+
+#~ msgid "本地制品站"
+#~ msgstr "Local"
+
+#~ msgid "进入工作台"
+#~ msgstr "Open Workspace"
+
+#~ msgid "还没有项目，先创建一个项目开始接入。"
+#~ msgstr "No projects yet. Create one to get started."
+
+#~ msgid "选择项目工作区路径"
+#~ msgstr "Select Workspace Path"
+
+#~ msgid "关闭"
+#~ msgstr "Close"
+
+#~ msgid "返回上级"
+#~ msgstr "Go Up"
+
+#~ msgid "使用当前目录"
+#~ msgstr "Use Current Directory"
+
+#~ msgid "正在加载目录..."
+#~ msgstr "Loading..."
+
+#~ msgid "当前目录下没有子目录。"
+#~ msgstr "No subdirectories in the current directory."
+
+#~ msgid "进入"
+#~ msgstr "Open"
+
+#~ msgid "选择"
+#~ msgstr "Select"
+
+#~ msgid "目录加载失败"
+#~ msgstr "Failed to load directory"
+
+#~ msgid "浏览根目录："
+#~ msgstr "Root: "
+
+#~ msgid "当前目录："
+#~ msgstr "Current: "
+
+#~ msgid "选择一个目录，或直接使用当前目录。"
+#~ msgstr "Select a directory or use the current one."
+
+#~ msgid "当前选中项目"
+#~ msgstr "Selected Project"
+
+#~ msgid "右侧保持单个对象的上下文，避免列表和表单混在一起。"
+#~ msgstr ""
+
+#~ msgid "工作区路径："
+#~ msgstr "Workspace: "
+
+#~ msgid "未设置，默认使用全局工作区根"
+#~ msgstr "Not set, defaults to workspace root"
+
+#~ msgid "镜像仓库前缀："
+#~ msgstr "Registry Prefix: "
+
+#~ msgid "未设置，默认不拼接 registry 前缀"
+#~ msgstr "Not set, no registry prefix"
+
+#~ msgid "默认制品仓库："
+#~ msgstr ""
+
+#~ msgid "点击展开编辑项目"
+#~ msgstr "Expand Edit Project"
+
+#~ msgid "校验路径"
+#~ msgstr "Validate Path"
+
+#~ msgid "保存项目信息"
+#~ msgstr "Save Project"
+
+#~ msgid "确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。"
+#~ msgstr ""
+#~ "Delete this project? This also deletes"
+#~ " its environments, releases, build jobs,"
+#~ " and deployment records."
+
+#~ msgid "删除项目"
+#~ msgstr "Delete Project"
+
+#~ msgid "当前页还没有可选项目。"
+#~ msgstr "There is no selectable project on this page yet."
+
+#~ msgid "正在校验..."
+#~ msgstr "Validating..."
+
+#~ msgid "校验失败"
+#~ msgstr "Validation failed"
+
+#~ msgid "设置导航"
+#~ msgstr "Settings Navigation"
+
+#~ msgid "用户与权限"
+#~ msgstr "Users & Permissions"
+
+#~ msgid "制品仓库"
+#~ msgstr "Artifact Repositories"
+
+#~ msgid "界面与语言"
+#~ msgstr "Interface & Language"
+
+#~ msgid "系统与安全"
+#~ msgstr "System & Security"
+
+#~ msgid "审计日志"
+#~ msgstr "Audit Logs"
+
+#~ msgid "系统设置"
+#~ msgstr "System Settings"
+
+#~ msgid "统一管理账户、仓库、语言与审计"
+#~ msgstr "Manage accounts, repositories, language, and audits in one place"
+
+#~ msgid "设置页承担多人协作的基础设施管理，不再把权限和系统配置散落在各个页面里。"
+#~ msgstr ""
+#~ "The settings page centralizes collaboration"
+#~ " infrastructure so permissions and platform"
+#~ " configuration are no longer scattered "
+#~ "across multiple pages."
+
+#~ msgid "用户列表"
+#~ msgstr "User List"
+
+#~ msgid "启用"
+#~ msgstr "Enabled"
+
+#~ msgid "停用"
+#~ msgstr "Disabled"
+
+#~ msgid "还没有用户。"
+#~ msgstr "No users yet."
+
+#~ msgid "制品仓库列表"
+#~ msgstr "Artifact Repository List"
+
+#~ msgid "默认"
+#~ msgstr "Default"
+
+#~ msgid "还没有制品仓库。"
+#~ msgstr "No artifact repositories yet."
+
+#~ msgid "当前语言"
+#~ msgstr "Current Language"
+
+#~ msgid "页头的语言下拉与这里操作的是同一套用户偏好。"
+#~ msgstr ""
+#~ "The header language selector and this"
+#~ " form update the same user "
+#~ "preference."
+
+#~ msgid "保存语言偏好"
+#~ msgstr "Save Language Preference"
+
+#~ msgid "部署触发超时秒数"
+#~ msgstr "Deployment Trigger Timeout (seconds)"
+
+#~ msgid "部署轮询间隔秒数"
+#~ msgstr "Deployment Poll Interval (seconds)"
+
+#~ msgid "部署观察超时秒数"
+#~ msgstr "Deployment Watch Timeout (seconds)"
+
+#~ msgid "工作区根路径"
+#~ msgstr "Workspace Root Path"
+
+#~ msgid "默认打包脚本"
+#~ msgstr "Default Package Script"
+
+#~ msgid "公开制品地址"
+#~ msgstr "Public Artifact Base URL"
+
+#~ msgid "本地制品目录"
+#~ msgstr "Local Artifact Directory"
+
+#~ msgid "保存系统设置"
+#~ msgstr "Save System Settings"
+
+#~ msgid "还没有审计日志。"
+#~ msgstr "No audit logs yet."
+
+#~ msgid "显示名"
+#~ msgstr "Display Name"
+
+#~ msgid "新建用户必填；编辑时留空表示不修改"
+#~ msgstr ""
+#~ "Required for new users; leave blank "
+#~ "when editing to keep the current "
+#~ "password"
+
+#~ msgid "语言"
+#~ msgstr "Language"
+
+#~ msgid "超级管理员"
+#~ msgstr "Super Administrator"
+
+#~ msgid "保存用户"
+#~ msgstr "Save User"
+
+#~ msgid "仓库详情"
+#~ msgstr "Repository Details"
+
+#~ msgid "名称"
+#~ msgstr "Name"
+
+#~ msgid "标识"
+#~ msgstr "Slug"
+
+#~ msgid "提供商"
+#~ msgstr "Provider"
+
+#~ msgid "Bucket"
+#~ msgstr ""
+
+#~ msgid "Region"
+#~ msgstr ""
+
+#~ msgid "Endpoint"
+#~ msgstr ""
+
+#~ msgid "自定义域名"
+#~ msgstr "Custom Domain"
+
+#~ msgid "路径前缀"
+#~ msgstr "Path Prefix"
+
+#~ msgid "Access Key ID"
+#~ msgstr ""
+
+#~ msgid "留空表示不修改"
+#~ msgstr "Leave blank to keep the current value"
+
+#~ msgid "Secret Access Key"
+#~ msgstr ""
+
+#~ msgid "设为默认"
+#~ msgstr "Set as Default"
+
+#~ msgid "保存仓库"
+#~ msgstr "Save Repository"
+
+#~ msgid "当前用户偏好"
+#~ msgstr "Current User Preferences"
+
+#~ msgid "语言切换可以在这里保存，也可以直接从页头下拉快速切换。"
+#~ msgstr ""
+#~ "You can save language preferences here"
+#~ " or switch quickly from the header"
+#~ " dropdown."
+
+#~ msgid "系统说明"
+#~ msgstr "System Notes"
+
+#~ msgid "这些设置优先用于平台级行为控制，不会替代项目内的构建模板覆盖项。"
+#~ msgstr ""
+#~ "These settings affect platform-level "
+#~ "behavior and do not replace project-"
+#~ "level build template overrides."
+
+#~ msgid "审计说明"
+#~ msgstr "Audit Notes"
+
+#~ msgid "所有关键写操作都会留下责任人、对象和时间。"
+#~ msgstr ""
+#~ "Every critical write operation records "
+#~ "the responsible user, target, and "
+#~ "timestamp."
+
+#~ msgid "系统管理员"
+#~ msgstr "System Administrator"
+
+#~ msgid "接入管理员"
+#~ msgstr "Onboarding Administrator"
+
+#~ msgid "构建管理员"
+#~ msgstr "Build Administrator"
+
+#~ msgid "发布管理员"
+#~ msgstr "Release Administrator"
+
+#~ msgid "审计查看者"
+#~ msgstr "Audit Viewer"
+
+#~ msgid "你当前拥有只读权限，可浏览接入信息，但不能修改组件、环境或模板。"
+#~ msgstr ""
+#~ "You currently have read-only access "
+#~ "and can review onboarding details, but"
+#~ " you cannot modify components, "
+#~ "environments, or templates."
+
+#~ msgid "你当前没有构建权限，但仍可查看构建记录与 Release。"
+#~ msgstr ""
+#~ "You do not currently have build "
+#~ "permission, but you can still review "
+#~ "build records and releases."
+
+#~ msgid "需要同时具备构建与发布权限，才会显示此快捷流程。"
+#~ msgstr ""
+#~ "This shortcut is available only when "
+#~ "you have both build and release "
+#~ "permissions."
+
+#~ msgid "你当前没有发布权限。"
+#~ msgstr "You do not currently have release permission."
+
+#~ msgid "你当前没有接入配置修改权限，以下表单仅对接入管理员开放。"
+#~ msgstr ""
+#~ "You do not currently have onboarding "
+#~ "configuration permission. The forms below "
+#~ "are available only to onboarding "
+#~ "administrators."
+
+#~ msgid "你当前没有发布权限，手动登记、上传制品和同步 manifest 均不可用。"
+#~ msgstr ""
+#~ "You do not currently have release "
+#~ "permission, so manual registration, artifact"
+#~ " upload, and manifest sync are "
+#~ "unavailable."
+
+#~ msgid "系统首次启动时，会自动按启动配置创建默认管理员，并确保其带有 system_admin 角色。"
+#~ msgstr ""
+#~ "On first startup, the system creates "
+#~ "the default administrator from the "
+#~ "startup configuration and ensures it has"
+#~ " the system_admin role."
+
+#~ msgid "本次将处理组件: {components}"
+#~ msgstr "Components to process: {components}"
+
+#~ msgid "使用模板 {template}"
+#~ msgstr "Using template {template}"
+
+#~ msgid "工作目录不存在: {path}"
+#~ msgstr "Workspace does not exist: {path}"
+
+#~ msgid "打包脚本不存在: {path}"
+#~ msgstr "Package script not found: {path}"
+
+#~ msgid "未找到 manifest 文件: {path}"
+#~ msgstr "Manifest file not found: {path}"
+
+#~ msgid "未找到组件文件: {name}"
+#~ msgstr "Component artifact not found: {name}"
+
+#~ msgid "Release {version} 已生成"
+#~ msgstr "Release {version} created"
+
+#~ msgid "组件 {component} 为外部镜像，跳过 tar 上传"
+#~ msgstr "Component {component} is an external image. Skipping tar upload"
+
+#~ msgid "正在构建组件 {current}/{total}: {name}"
+#~ msgstr "Building component {current}/{total}: {name}"
+
+#~ msgid "已完成组件 {current}/{total}: {name}"
+#~ msgstr "Completed component {current}/{total}: {name}"
+
+#~ msgid "已上传组件 {current}/{total}: {name}"
+#~ msgstr "Uploaded component {current}/{total}: {name}"
+
+#~ msgid "项目"
+#~ msgstr "Project"
+
+#~ msgid "部署"
+#~ msgstr "Deployment"
+
+#~ msgid "设置"
+#~ msgstr ""
+
+#~ msgid "部署任务"
+#~ msgstr "Deployments"
+
+#~ msgid "用户、仓库、审计"
+#~ msgstr ""
+
+#~ msgid "构建导航"
+#~ msgstr "Build Navigation"
+
+#~ msgid "绑定到项目"
+#~ msgstr "Bind to Projects"
+
+#~ msgid "新建仓库"
+#~ msgstr "New Repository"
+
+#~ msgid "编辑仓库"
+#~ msgstr "Edit Repository"
+
+#~ msgid "新建用户"
+#~ msgstr "New User"
+
+#~ msgid "编辑用户"
+#~ msgstr "Edit User"
 

@@ -2,8 +2,6 @@ from urllib.parse import quote
 
 import oss2
 
-from ..config import Settings
-
 
 def _normalize_endpoint(endpoint: str) -> str:
     value = endpoint.strip()
@@ -20,30 +18,38 @@ def _normalize_base_url(base_url: str) -> str:
 
 
 class AliyunOssStorage:
-    def __init__(self, settings: Settings):
-        self._settings = settings
-        auth = oss2.Auth(settings.oss_access_key_id, settings.oss_access_key_secret)
+    def __init__(self, config: dict):
+        self._config = config
+        auth = oss2.Auth(config["access_key_id"], config["secret_access_key"])
+        self._path_prefix = str(config.get("path_prefix") or "").strip().strip("/")
         self._bucket = oss2.Bucket(
             auth,
-            _normalize_endpoint(settings.oss_endpoint),
-            settings.oss_bucket_name,
-            region=settings.oss_region or None,
+            _normalize_endpoint(str(config.get("endpoint") or "")),
+            str(config["bucket_name"]).strip(),
+            region=str(config.get("region") or "").strip() or None,
         )
-        if settings.oss_custom_domain:
-            self._public_base_url = _normalize_base_url(settings.oss_custom_domain)
+        if config.get("custom_domain"):
+            self._public_base_url = _normalize_base_url(str(config["custom_domain"]))
         else:
             self._public_base_url = _normalize_base_url(
-                f"{settings.oss_bucket_name}.{settings.oss_endpoint}"
+                f"{config['bucket_name']}.{config['endpoint']}"
             )
 
+    def _resolve_path(self, remote_path: str) -> str:
+        relative = remote_path.lstrip("/")
+        if self._path_prefix:
+            return f"{self._path_prefix}/{relative}"
+        return relative
+
     def upload_bytes(self, *, data: bytes, remote_path: str, content_type: str | None = None) -> str:
+        resolved_path = self._resolve_path(remote_path)
         headers = {}
         if content_type:
             headers["Content-Type"] = content_type
-        result = self._bucket.put_object(remote_path, data, headers=headers or None)
+        result = self._bucket.put_object(resolved_path, data, headers=headers or None)
         if result.status not in {200, 201}:
             raise RuntimeError(f"oss upload failed: status={result.status}")
-        return self.build_public_url(remote_path)
+        return self.build_public_url(resolved_path)
 
     def build_public_url(self, remote_path: str) -> str:
         path = "/".join(quote(part, safe="-_.~/") for part in remote_path.split("/"))

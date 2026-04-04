@@ -12,7 +12,7 @@
       <header class="sticky top-0 z-40 border-b border-sand-300/80 bg-white/80 backdrop-blur">
         <div class="mx-auto flex max-w-[1680px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 xl:px-8">
           <div class="flex min-w-0 items-center gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-pine-200 bg-pine-50 text-lg font-semibold text-pine-800 shadow-sm">D</div>
+            <img src="{{ request.url_for('static', path='branding/deploybox-logo.svg') }}" alt="DeployBox" class="h-12 w-12 shrink-0 rounded-2xl bg-white/70 object-contain shadow-sm">
             <div class="min-w-0">
               <div class="truncate text-lg font-semibold tracking-tight text-slate-900">DeployBox</div>
               <div class="truncate text-sm text-slate-500">{{ _('构建、制品与发布统一工作台') }}</div>
@@ -22,16 +22,17 @@
             <a href="/console/dashboard" class="button-ghost {% if current_path.startswith('/console/dashboard') %}!bg-pine-50 !text-pine-900{% endif %}">{{ _('总览') }}</a>
             <a href="/console/projects" class="button-ghost {% if current_path.startswith('/console/projects') or current_path.startswith('/console/build-jobs') %}!bg-pine-50 !text-pine-900{% endif %}">{{ _('项目') }}</a>
             <a href="/console/deployments" class="button-ghost {% if current_path.startswith('/console/deployments') %}!bg-pine-50 !text-pine-900{% endif %}">{{ _('部署') }}</a>
+            {% if has_system_manage_permission %}
+            <a href="/console/settings" class="button-ghost {% if current_path.startswith('/console/settings') %}!bg-pine-50 !text-pine-900{% endif %}">{{ _('设置') }}</a>
+            {% endif %}
           </nav>
           <div class="flex flex-wrap items-center justify-end gap-2">
             <span class="soft-badge hidden md:inline-flex">{{ _('当前用户：') }}{{ current_user.username }}</span>
-            <form method="post" action="/console/settings/lang" class="contents">
-              <input type="hidden" name="lang" value="zh">
-              <button type="submit" class="{% if current_lang == 'zh' %}button-secondary{% else %}button-ghost{% endif %} !min-h-9 !rounded-xl !px-3 !py-2">CN</button>
-            </form>
-            <form method="post" action="/console/settings/lang" class="contents">
-              <input type="hidden" name="lang" value="en">
-              <button type="submit" class="{% if current_lang == 'en' %}button-secondary{% else %}button-ghost{% endif %} !min-h-9 !rounded-xl !px-3 !py-2">EN</button>
+            <form method="post" action="/console/settings/lang" class="flex items-center gap-2">
+              <select name="lang" class="field-select !min-h-9 !w-24 !rounded-xl !py-2" onchange="this.form.submit()">
+                <option value="zh" {% if current_lang == 'zh' %}selected{% endif %}>中文</option>
+                <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+              </select>
             </form>
             <form method="post" action="/logout" class="contents">
               <button type="submit" class="button-secondary !min-h-9 !rounded-xl !px-3 !py-2">{{ _('退出登录') }}</button>
@@ -81,6 +82,15 @@
                     <span class="block truncate text-xs text-slate-500">{{ _('状态、日志、回滚') }}</span>
                   </span>
                 </a>
+                {% if has_system_manage_permission %}
+                <a href="/console/settings" class="workspace-nav-link {% if current_path.startswith('/console/settings') %}workspace-nav-link-active{% endif %}">
+                  <span class="soft-badge !rounded-xl !px-2 !py-1">04</span>
+                  <span class="min-w-0">
+                    <span class="block truncate font-medium">{{ _('设置') }}</span>
+                    <span class="block truncate text-xs text-slate-500">{{ _('用户、仓库、审计') }}</span>
+                  </span>
+                </a>
+                {% endif %}
               </nav>
             </section>
             {% endblock %}

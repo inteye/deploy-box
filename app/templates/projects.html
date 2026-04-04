@@ -4,6 +4,9 @@
 <section class="panel-card">
   <div class="section-title">{{ _('项目操作') }}</div>
   <p class="section-copy">{{ _('新增和编辑表单默认收起，列表区只负责浏览与选择。') }}</p>
+  {% if not has_project_manage_permission %}
+  <div class="mt-4 list-card text-sm text-slate-500">{{ _('你当前拥有只读权限，可浏览项目，但不能新增或编辑。') }}</div>
+  {% else %}
   <div class="mt-4 space-y-3">
     <details class="group">
       <summary class="summary-toggle">{{ _('点击展开新增项目') }}</summary>
@@ -24,6 +27,14 @@
           <label class="field-label">{{ _('镜像仓库前缀') }}
             <input class="field-input" type="text" name="image_registry_prefix" placeholder="{{ _('registry.example.com/team 或留空使用本地镜像名') }}">
           </label>
+          <label class="field-label">{{ _('默认制品仓库') }}
+            <select class="field-select" name="default_artifact_repository_id">
+              <option value="">{{ _('本地制品站 / 默认') }}</option>
+              {% for repository in repositories %}
+              <option value="{{ repository.id }}">{{ repository.name }} · {{ repository.provider }}</option>
+              {% endfor %}
+            </select>
+          </label>
           <label class="field-label">{{ _('项目说明') }}
             <textarea class="field-textarea" name="description" placeholder="{{ _('描述此项目如何接入、部署到哪里、谁负责。') }}"></textarea>
           </label>
@@ -32,6 +43,7 @@
       </form>
     </details>
   </div>
+  {% endif %}
 </section>
 {% endblock %}
 
@@ -72,6 +84,7 @@
             <span>{{ project.environments|length }} {{ _('个环境') }}</span>
             <span>{{ project.releases|length }} {{ _('个 Release') }}</span>
             <span>{{ project.build_jobs|length }} {{ _('个构建任务') }}</span>
+            <span>{{ project.default_artifact_repository.name if project.default_artifact_repository else _('本地制品站') }}</span>
           </div>
         </div>
         <div class="flex flex-wrap gap-2">
@@ -235,11 +248,15 @@
       <div class="meta-line mt-2">
         <span>{{ _('镜像仓库前缀：') }}{{ selected_project.image_registry_prefix or _('未设置，默认不拼接 registry 前缀') }}</span>
       </div>
+      <div class="meta-line mt-2">
+        <span>{{ _('默认制品仓库：') }}{{ selected_project.default_artifact_repository.name if selected_project.default_artifact_repository else _('本地制品站') }}</span>
+      </div>
       <div class="mt-4 flex flex-wrap gap-3">
         <a class="button-primary" href="/console/projects/{{ selected_project.id }}">{{ _('进入项目工作台') }}</a>
       </div>
     </article>
 
+    {% if has_project_manage_permission %}
     <details>
       <summary class="summary-toggle">{{ _('点击展开编辑项目') }}</summary>
       <form method="post" action="/console/projects/{{ selected_project.id }}/update" class="mt-4 space-y-4">
@@ -259,6 +276,14 @@
           <label class="field-label">{{ _('镜像仓库前缀') }}
             <input class="field-input" type="text" name="image_registry_prefix" value="{{ selected_project.image_registry_prefix or '' }}" placeholder="{{ _('registry.example.com/team 或留空使用本地镜像名') }}">
           </label>
+          <label class="field-label">{{ _('默认制品仓库') }}
+            <select class="field-select" name="default_artifact_repository_id">
+              <option value="">{{ _('本地制品站 / 默认') }}</option>
+              {% for repository in repositories %}
+              <option value="{{ repository.id }}" {% if selected_project.default_artifact_repository_id == repository.id %}selected{% endif %}>{{ repository.name }} · {{ repository.provider }}</option>
+              {% endfor %}
+            </select>
+          </label>
           <label class="field-label">{{ _('项目说明') }}
             <textarea class="field-textarea" name="description">{{ selected_project.description or '' }}</textarea>
           </label>
@@ -274,6 +299,7 @@
     <form method="post" action="/console/projects/{{ selected_project.id }}/delete" data-confirm-message="{{ _('确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。') }}">
       <button type="submit" class="button-danger w-full">{{ _('删除项目') }}</button>
     </form>
+    {% endif %}
   </div>
   {% else %}
   <div class="mt-4 list-card text-sm text-slate-500">{{ _('当前页还没有可选项目。') }}</div>

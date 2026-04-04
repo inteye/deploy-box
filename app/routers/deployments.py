@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import get_current_user
+from ..auth import get_current_user, require_permission
 from ..database import get_db
 from ..models import Deployment, Environment, OperatorUser, Project, Release
 from ..schemas import DeploymentCreate, DeploymentRead
-from ..services import refresh_deployment_status, run_deployment
+from ..services import refresh_deployment_status as refresh_deployment_status_service, run_deployment
 
 
 router = APIRouter(prefix="/api/deployments", tags=["deployments"], dependencies=[Depends(get_current_user)])
@@ -29,7 +29,7 @@ def get_deployment(deployment_id: int, db: Session = Depends(get_db)):
 def create_deployment(
     payload: DeploymentCreate,
     db: Session = Depends(get_db),
-    current_user: OperatorUser = Depends(get_current_user),
+    current_user: OperatorUser = Depends(require_permission("release.manage")),
 ):
     project = db.get(Project, payload.project_id)
     environment = db.get(Environment, payload.environment_id)
@@ -48,12 +48,16 @@ def create_deployment(
 
 
 @router.post("/{deployment_id}/refresh-status", response_model=DeploymentRead)
-def refresh_deployment_status(deployment_id: int, db: Session = Depends(get_db)):
+def refresh_deployment_status(
+    deployment_id: int,
+    db: Session = Depends(get_db),
+    current_user: OperatorUser = Depends(require_permission("release.manage")),
+):
     deployment = db.get(Deployment, deployment_id)
     if not deployment:
         raise HTTPException(status_code=404, detail="deployment_not_found")
     try:
-        deployment = refresh_deployment_status(deployment, db)
+        deployment = refresh_deployment_status_service(deployment, db)
     except Exception as exc:  # pragma: no cover - defensive path
         raise HTTPException(status_code=502, detail=f"status_refresh_failed: {exc}") from exc
     return deployment

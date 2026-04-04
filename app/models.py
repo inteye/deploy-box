@@ -19,6 +19,9 @@ class Project(Base):
     adapter_type: Mapped[str] = mapped_column(String(80), nullable=False, default="webhook_manifest_v1")
     workspace_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
     image_registry_prefix: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    default_artifact_repository_id: Mapped[int | None] = mapped_column(
+        ForeignKey("deploy_artifact_repositories.id"), nullable=True
+    )
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
@@ -34,6 +37,16 @@ class Project(Base):
     )
     build_jobs: Mapped[list["BuildJob"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     components: Mapped[list["ProjectComponent"]] = relationship(
+        back_populates="project", cascade="all, delete-orphan"
+    )
+    default_artifact_repository: Mapped["ArtifactRepository | None"] = relationship(
+        foreign_keys=[default_artifact_repository_id]
+    )
+    role_assignments: Mapped[list["OperatorUserRole"]] = relationship(back_populates="project")
+    governance: Mapped["ProjectGovernance | None"] = relationship(
+        back_populates="project", cascade="all, delete-orphan", uselist=False
+    )
+    quality_checks: Mapped[list["QualityCheckRun"]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
 
@@ -244,7 +257,117 @@ class OperatorUser(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     preferred_lang: Mapped[str | None] = mapped_column(String(10), nullable=True, default=None)
+    display_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
     )
+    role_assignments: Mapped[list["OperatorUserRole"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="actor")
+
+
+class OperatorUserRole(Base):
+    __tablename__ = "deploy_operator_user_roles"
+    __table_args__ = (UniqueConstraint("user_id", "role_code", "project_id", name="uq_deploy_operator_user_role"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("deploy_operator_users.id"), nullable=False)
+    role_code: Mapped[str] = mapped_column(String(80), nullable=False)
+    project_id: Mapped[int | None] = mapped_column(ForeignKey("deploy_projects.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    user: Mapped["OperatorUser"] = relationship(back_populates="role_assignments")
+    project: Mapped["Project | None"] = relationship(back_populates="role_assignments")
+
+
+class ArtifactRepository(Base):
+    __tablename__ = "deploy_artifact_repositories"
+    __table_args__ = (
+        UniqueConstraint("slug", name="uq_deploy_artifact_repository_slug"),
+        UniqueConstraint("name", name="uq_deploy_artifact_repository_name"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    slug: Mapped[str] = mapped_column(String(120), nullable=False)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False)
+    bucket_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    region: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    endpoint: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    custom_domain: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    path_prefix: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    access_key_id_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
+    secret_access_key_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
+    )
+
+
+class SystemSetting(Base):
+    __tablename__ = "deploy_system_settings"
+
+    key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
+    )
+
+
+class AuditLog(Base):
+    __tablename__ = "deploy_audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    actor_user_id: Mapped[int | None] = mapped_column(ForeignKey("deploy_operator_users.id"), nullable=True)
+    actor_username: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    action: Mapped[str] = mapped_column(String(120), nullable=False)
+    target_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    target_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    detail_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    request_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    request_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    actor: Mapped["OperatorUser | None"] = relationship(back_populates="audit_logs")
+
+
+class ProjectGovernance(Base):
+    __tablename__ = "deploy_project_governance"
+    __table_args__ = (UniqueConstraint("project_id", name="uq_deploy_project_governance_project"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("deploy_projects.id"), nullable=False)
+    owner_user_id: Mapped[int | None] = mapped_column(ForeignKey("deploy_operator_users.id"), nullable=True)
+    release_owner_user_id: Mapped[int | None] = mapped_column(ForeignKey("deploy_operator_users.id"), nullable=True)
+    risk_level: Mapped[str] = mapped_column(String(40), nullable=False, default="medium")
+    release_checklist_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
+    )
+
+    project: Mapped["Project"] = relationship(back_populates="governance")
+    owner_user: Mapped["OperatorUser | None"] = relationship(foreign_keys=[owner_user_id])
+    release_owner_user: Mapped["OperatorUser | None"] = relationship(foreign_keys=[release_owner_user_id])
+
+
+class QualityCheckRun(Base):
+    __tablename__ = "deploy_quality_check_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("deploy_projects.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(40), nullable=False, default="pending")
+    score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    result_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    triggered_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    project: Mapped["Project"] = relationship(back_populates="quality_checks")

@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block left_panel_extra %}
+<section class="panel-card">
+  <div class="section-title">{{ _('设置导航') }}</div>
+  <div class="mt-4 space-y-2">
+    <a class="workspace-nav-link {% if settings_tab == 'users' %}workspace-nav-link-active{% endif %}" href="/console/settings?tab=users">{{ _('用户与权限') }}</a>
+    <a class="workspace-nav-link {% if settings_tab == 'repositories' %}workspace-nav-link-active{% endif %}" href="/console/settings?tab=repositories">{{ _('制品仓库') }}</a>
+    <a class="workspace-nav-link {% if settings_tab == 'preferences' %}workspace-nav-link-active{% endif %}" href="/console/settings?tab=preferences">{{ _('界面与语言') }}</a>
+    <a class="workspace-nav-link {% if settings_tab == 'system' %}workspace-nav-link-active{% endif %}" href="/console/settings?tab=system">{{ _('系统与安全') }}</a>
+    <a class="workspace-nav-link {% if settings_tab == 'audit' %}workspace-nav-link-active{% endif %}" href="/console/settings?tab=audit">{{ _('审计日志') }}</a>
+  </div>
+</section>
+{% endblock %}
+
+{% block center_panel %}
+<section class="panel-card">
+  <div class="soft-badge">{{ _('系统设置') }}</div>
+  <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{{ _('统一管理账户、仓库、语言与审计') }}</h1>
+  <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{{ _('设置页承担多人协作的基础设施管理，不再把权限和系统配置散落在各个页面里。') }}</p>
+  <div class="mt-4 list-card text-sm leading-6 text-slate-500">
+    {{ _('系统首次启动时，会自动按启动配置创建默认管理员，并确保其带有 system_admin 角色。') }}
+  </div>
+</section>
+
+{% if settings_tab == 'users' %}
+<section class="panel-card">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="section-title">{{ _('用户列表') }}</div>
+    <a class="button-secondary" href="/console/settings?tab=users">{{ _('新建用户') }}</a>
+  </div>
+  <div class="mt-5 space-y-3">
+    {% for user in users %}
+    <article class="list-card {% if selected_user and selected_user.id == user.id %}list-card-active{% endif %}">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          <div class="meta-line">
+            <span class="soft-badge">{{ user.username }}</span>
+            <span>{{ user.display_name or '-' }}</span>
+            <span>{{ _('启用') if user.is_active else _('停用') }}</span>
+          </div>
+          <div class="mt-2 break-words text-sm text-slate-500">{{ user.preferred_lang or '-' }} · {{ user.last_login_at.strftime('%Y-%m-%d %H:%M:%S') if user.last_login_at else '-' }}</div>
+          <div class="mt-2 break-words text-sm text-slate-500">
+            {% if user.role_assignments %}
+              {% for assignment in user.role_assignments %}
+                {{ assignment.role_code }}{% if assignment.project %}@{{ assignment.project.slug }}{% endif %}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}
+              {{ 'system_admin' if user.is_superuser else '-' }}
+            {% endif %}
+          </div>
+        </div>
+        <a class="button-secondary" href="/console/settings?tab=users&user_id={{ user.id }}">{{ _('查看详情') }}</a>
+      </div>
+    </article>
+    {% else %}
+    <div class="list-card text-sm text-slate-500">{{ _('还没有用户。') }}</div>
+    {% endfor %}
+  </div>
+</section>
+{% elif settings_tab == 'repositories' %}
+<section class="panel-card">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="section-title">{{ _('制品仓库列表') }}</div>
+    <a class="button-secondary" href="/console/settings?tab=repositories">{{ _('新建仓库') }}</a>
+  </div>
+  <div class="mt-5 space-y-3">
+    {% for repository in repositories %}
+    <article class="list-card {% if selected_repository and selected_repository.id == repository.id %}list-card-active{% endif %}">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          <div class="meta-line">
+            <span class="soft-badge">{{ repository.name }}</span>
+            <span>{{ repository.provider }}</span>
+            <span>{{ repository.bucket_name }}</span>
+            {% if repository.is_default %}<span>{{ _('默认') }}</span>{% endif %}
+          </div>
+          <div class="mt-2 break-words text-sm text-slate-500">{{ repository.endpoint or '-' }} · {{ repository.region or '-' }}</div>
+          <div class="mt-2 break-words text-sm text-slate-500">{{ repository.custom_domain or '-' }}</div>
+        </div>
+        <a class="button-secondary" href="/console/settings?tab=repositories&repository_id={{ repository.id }}">{{ _('查看详情') }}</a>
+      </div>
+    </article>
+    {% else %}
+    <div class="list-card text-sm text-slate-500">{{ _('还没有制品仓库。') }}</div>
+    {% endfor %}
+  </div>
+</section>
+{% elif settings_tab == 'preferences' %}
+<section class="panel-card">
+  <div class="section-title">{{ _('界面与语言') }}</div>
+  <article class="list-card mt-5">
+    <div class="meta-line"><span class="soft-badge">{{ _('当前语言') }}</span></div>
+    <div class="mt-3 text-base font-semibold text-slate-900">{{ current_lang }}</div>
+    <p class="mt-2 text-sm leading-6 text-slate-500">{{ _('页头的语言下拉与这里操作的是同一套用户偏好。') }}</p>
+    <form method="post" action="/console/settings/lang" class="mt-4 flex flex-wrap items-center gap-3">
+      <select name="lang" class="field-select !w-44">
+        <option value="zh" {% if current_lang == 'zh' %}selected{% endif %}>中文</option>
+        <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+      </select>
+      <button type="submit" class="button-primary">{{ _('保存语言偏好') }}</button>
+    </form>
+  </article>
+</section>
+{% elif settings_tab == 'system' %}
+<section class="panel-card">
+  <div class="section-title">{{ _('系统与安全') }}</div>
+  <form method="post" action="/console/settings/system" class="mt-5 grid gap-4 md:grid-cols-2">
+    <label class="field-label">{{ _('部署触发超时秒数') }}<input class="field-input" type="text" name="deployment_trigger_timeout_seconds" value="{{ system_settings_map.get('deployment_trigger_timeout_seconds') or '' }}"></label>
+    <label class="field-label">{{ _('部署轮询间隔秒数') }}<input class="field-input" type="text" name="deployment_poll_interval_seconds" value="{{ system_settings_map.get('deployment_poll_interval_seconds') or '' }}"></label>
+    <label class="field-label">{{ _('部署观察超时秒数') }}<input class="field-input" type="text" name="deployment_watch_timeout_seconds" value="{{ system_settings_map.get('deployment_watch_timeout_seconds') or '' }}"></label>
+    <label class="field-label">{{ _('启用自动质量巡检') }}
+      <span class="mt-2 flex items-center gap-2 text-sm font-normal text-slate-600">
+        <input type="checkbox" name="quality_auto_check_enabled" {% if (system_settings_map.get('quality_auto_check_enabled') or 'true') in ['true', '1', 'yes', 'on'] %}checked{% endif %}>
+        <span>{{ _('按周期自动为到期项目执行质量检查') }}</span>
+      </span>
+    </label>
+    <label class="field-label">{{ _('自动巡检间隔（分钟）') }}<input class="field-input" type="text" name="quality_auto_check_interval_minutes" value="{{ system_settings_map.get('quality_auto_check_interval_minutes') or '180' }}"></label>
+    <label class="field-label">{{ _('工作区根路径') }}<input class="field-input" type="text" name="workspace_path" value="{{ system_settings_map.get('workspace_path') or '' }}"></label>
+    <label class="field-label">{{ _('默认打包脚本') }}<input class="field-input" type="text" name="package_script" value="{{ system_settings_map.get('package_script') or '' }}"></label>
+    <label class="field-label">{{ _('公开制品地址') }}<input class="field-input" type="text" name="package_artifact_public_base_url" value="{{ system_settings_map.get('package_artifact_public_base_url') or '' }}"></label>
+    <label class="field-label md:col-span-2">{{ _('本地制品目录') }}<input class="field-input" type="text" name="local_artifacts_path" value="{{ system_settings_map.get('local_artifacts_path') or '' }}"></label>
+    <div class="md:col-span-2"><button type="submit" class="button-primary">{{ _('保存系统设置') }}</button></div>
+  </form>
+</section>
+{% else %}
+<section class="panel-card">
+  <div class="section-title">{{ _('审计日志') }}</div>
+  <div class="mt-5 space-y-3">
+    {% for log in audits %}
+    <article class="list-card">
+      <div class="meta-line">
+        <span class="soft-badge">{{ log.action }}</span>
+        <span>{{ log.actor_username or '-' }}</span>
+        <span>{{ log.target_type }}</span>
+        <span>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+      </div>
+      <div class="mt-3 break-words text-sm text-slate-900">{{ log.summary }}</div>
+      {% if log.detail_json %}
+      <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-3 text-xs leading-6 text-slate-100">{{ log.detail_json }}</pre>
+      {% endif %}
+    </article>
+    {% else %}
+    <div class="list-card text-sm text-slate-500">{{ _('还没有审计日志。') }}</div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block right_panel %}
+{% if settings_tab == 'users' %}
+<section class="panel-card">
+  <div class="section-title">{{ _('编辑用户') if selected_user else _('新建用户') }}</div>
+  <form method="post" action="/console/settings/users" class="mt-5 space-y-4">
+    <input type="hidden" name="user_id" value="{{ selected_user.id if selected_user else '' }}">
+    <label class="field-label">{{ _('用户名') }}<input class="field-input" type="text" name="username" value="{{ selected_user.username if selected_user else '' }}" required></label>
+    <label class="field-label">{{ _('显示名') }}<input class="field-input" type="text" name="display_name" value="{{ selected_user.display_name if selected_user else '' }}"></label>
+    <label class="field-label">{{ _('密码') }}<input class="field-input" type="password" name="password" placeholder="{{ _('新建用户必填；编辑时留空表示不修改') }}"></label>
+    <label class="field-label">{{ _('语言') }}
+      <select class="field-select" name="preferred_lang">
+        <option value="">{{ _('默认') }}</option>
+        <option value="zh" {% if selected_user and selected_user.preferred_lang == 'zh' %}selected{% endif %}>中文</option>
+        <option value="en" {% if selected_user and selected_user.preferred_lang == 'en' %}selected{% endif %}>English</option>
+      </select>
+    </label>
+    <div class="meta-line">
+      <label><input type="checkbox" name="is_active" {% if not selected_user or selected_user.is_active %}checked{% endif %}> {{ _('启用') }}</label>
+      <label><input type="checkbox" name="is_superuser" {% if selected_user and selected_user.is_superuser %}checked{% endif %}> {{ _('超级管理员') }}</label>
+    </div>
+    <div class="space-y-2">
+      {% for role_code, role in role_definitions.items() %}
+      {% set global_checked = selected_user and selected_user.role_assignments and (selected_user.role_assignments | selectattr('role_code', 'equalto', role_code) | selectattr('project_id', 'equalto', none) | list) %}
+      <div class="list-card space-y-3">
+        <label class="flex items-start gap-3">
+          <input class="mt-1" type="checkbox" name="role_codes" value="{{ role_code }}" {% if global_checked %}checked{% endif %}>
+          <span>
+            <span class="block text-sm font-medium text-slate-900">{{ role_code }}</span>
+            <span class="mt-1 block text-sm text-slate-500">{{ _(role.name) }}</span>
+          </span>
+        </label>
+        {% if role_code != 'system_admin' and projects %}
+        <div class="grid gap-2 pl-6">
+          <div class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ _('绑定到项目') }}</div>
+          <div class="grid gap-2">
+            {% for project in projects %}
+            {% set scoped_checked = selected_user and selected_user.role_assignments and (selected_user.role_assignments | selectattr('role_code', 'equalto', role_code) | selectattr('project_id', 'equalto', project.id) | list) %}
+            <label class="flex items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" name="scoped_role_bindings" value="{{ role_code }}:{{ project.id }}" {% if scoped_checked %}checked{% endif %}>
+              <span class="break-words">{{ project.name }} <span class="text-slate-400">({{ project.slug }})</span></span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="button-primary w-full">{{ _('保存用户') }}</button>
+  </form>
+</section>
+{% elif settings_tab == 'repositories' %}
+<section class="panel-card">
+  <div class="section-title">{{ _('编辑仓库') if selected_repository else _('新建仓库') }}</div>
+  <form method="post" action="/console/settings/repositories" class="mt-5 space-y-4">
+    <input type="hidden" name="repository_id" value="{{ selected_repository.id if selected_repository else '' }}">
+    <label class="field-label">{{ _('名称') }}<input class="field-input" type="text" name="name" value="{{ selected_repository.name if selected_repository else '' }}" required></label>
+    <label class="field-label">{{ _('标识') }}<input class="field-input" type="text" name="slug" value="{{ selected_repository.slug if selected_repository else '' }}" required></label>
+    <label class="field-label">{{ _('提供商') }}
+      <select class="field-select" name="provider">
+        <option value="aliyun_oss" {% if selected_repository and selected_repository.provider == 'aliyun_oss' %}selected{% endif %}>Aliyun OSS</option>
+        <option value="amazon_s3" {% if selected_repository and selected_repository.provider == 'amazon_s3' %}selected{% endif %}>Amazon S3</option>
+      </select>
+    </label>
+    <label class="field-label">{{ _('Bucket') }}<input class="field-input" type="text" name="bucket_name" value="{{ selected_repository.bucket_name if selected_repository else '' }}" required></label>
+    <label class="field-label">{{ _('Region') }}<input class="field-input" type="text" name="region" value="{{ selected_repository.region if selected_repository else '' }}"></label>
+    <label class="field-label">{{ _('Endpoint') }}<input class="field-input" type="text" name="endpoint" value="{{ selected_repository.endpoint if selected_repository else '' }}"></label>
+    <label class="field-label">{{ _('自定义域名') }}<input class="field-input" type="text" name="custom_domain" value="{{ selected_repository.custom_domain if selected_repository else '' }}"></label>
+    <label class="field-label">{{ _('路径前缀') }}<input class="field-input" type="text" name="path_prefix" value="{{ selected_repository.path_prefix if selected_repository else '' }}"></label>
+    <label class="field-label">{{ _('Access Key ID') }}<input class="field-input" type="text" name="access_key_id" placeholder="{{ _('留空表示不修改') }}"></label>
+    <label class="field-label">{{ _('Secret Access Key') }}<input class="field-input" type="password" name="secret_access_key" placeholder="{{ _('留空表示不修改') }}"></label>
+    <div class="meta-line">
+      <label><input type="checkbox" name="is_active" {% if not selected_repository or selected_repository.is_active %}checked{% endif %}> {{ _('启用') }}</label>
+      <label><input type="checkbox" name="is_default" {% if selected_repository and selected_repository.is_default %}checked{% endif %}> {{ _('设为默认') }}</label>
+    </div>
+    <button type="submit" class="button-primary w-full">{{ _('保存仓库') }}</button>
+  </form>
+</section>
+{% elif settings_tab == 'preferences' %}
+<section class="panel-card">
+  <div class="section-title">{{ _('当前用户偏好') }}</div>
+  <article class="list-card mt-5">
+    <div class="meta-line"><span class="soft-badge">{{ current_user.username }}</span></div>
+    <p class="mt-3 text-sm leading-6 text-slate-500">{{ _('语言切换可以在这里保存，也可以直接从页头下拉快速切换。') }}</p>
+  </article>
+</section>
+{% elif settings_tab == 'system' %}
+<section class="panel-card">
+  <div class="section-title">{{ _('系统说明') }}</div>
+  <article class="list-card mt-5">
+    <p class="text-sm leading-6 text-slate-500">{{ _('这些设置优先用于平台级行为控制，不会替代项目内的构建模板覆盖项。') }}</p>
+  </article>
+</section>
+{% else %}
+<section class="panel-card">
+  <div class="section-title">{{ _('审计说明') }}</div>
+  <article class="list-card mt-5">
+    <p class="text-sm leading-6 text-slate-500">{{ _('所有关键写操作都会留下责任人、对象和时间。') }}</p>
+  </article>
+</section>
+{% endif %}
+{% endblock %}

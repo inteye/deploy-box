@@ -1,0 +1,50 @@
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="boxTop" x1="20" y1="78" x2="142" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2FD6E8"/>
+      <stop offset="1" stop-color="#2ABCCF"/>
+    </linearGradient>
+    <linearGradient id="boxSide" x1="30" y1="110" x2="80" y2="146" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1A4E96"/>
+      <stop offset="1" stop-color="#1C5A9D"/>
+    </linearGradient>
+    <linearGradient id="boxSideRight" x1="80" y1="108" x2="132" y2="144" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2787C8"/>
+      <stop offset="1" stop-color="#1B72B6"/>
+    </linearGradient>
+    <linearGradient id="rocketBody" x1="80" y1="16" x2="80" y2="76" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#44DB90"/>
+      <stop offset="1" stop-color="#1DBB6D"/>
+    </linearGradient>
+    <linearGradient id="rocketWing" x1="48" y1="40" x2="114" y2="86" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#23B7EB"/>
+      <stop offset="1" stop-color="#1766BF"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M16 114L80 88L144 114L80 148L16 114Z" fill="#DDE8F3"/>
+  <path d="M20 85L80 60L140 85L80 122L20 85Z" fill="url(#boxTop)"/>
+  <path d="M80 122V149L34 128V101L80 122Z" fill="url(#boxSide)"/>
+  <path d="M80 122V149L126 128V101L80 122Z" fill="url(#boxSideRight)"/>
+  <path d="M20 85L80 60L80 122L20 85Z" fill="#30C4E3"/>
+  <path d="M140 85L80 60L80 122L140 85Z" fill="#39D2DB"/>
+  <path d="M35 87L80 69L80 118L35 92V87Z" fill="#103E86" fill-opacity=".85"/>
+  <path d="M125 87L80 69L80 118L125 92V87Z" fill="#134D98" fill-opacity=".82"/>
+
+  <path d="M80 16C71 25 68 37 68 50V63L80 78L92 63V50C92 37 89 25 80 16Z" fill="url(#rocketBody)"/>
+  <path d="M80 16C87 22 91 30 93 40L80 26L67 40C69 30 73 22 80 16Z" fill="#6BE9A9" fill-opacity=".48"/>
+  <circle cx="80" cy="42" r="8" fill="#F3FBFF"/>
+  <path d="M68 49L61 63L69 61L73 69L73 57L68 49Z" fill="#22B96C"/>
+  <path d="M92 49L99 63L91 61L87 69L87 57L92 49Z" fill="#22B96C"/>
+  <path d="M76 72L80 84L84 72H76Z" fill="#0E8D58"/>
+
+  <path d="M59 58L44 73L52 74L67 62L59 58Z" fill="url(#rocketWing)"/>
+  <path d="M101 58L116 73L108 74L93 62L101 58Z" fill="url(#rocketWing)"/>
+
+  <path d="M74 76C74 84 70 89 66 92C72 92 75 87 76 83C77 88 74 94 71 98C79 94 82 86 82 80V76H74Z" fill="#2FD6E8"/>
+  <path d="M86 76C86 84 90 89 94 92C88 92 85 87 84 83C83 88 86 94 89 98C81 94 78 86 78 80V76H86Z" fill="#2FD6E8"/>
+
+  <path d="M52 25L55 31L61 34L55 37L52 43L49 37L43 34L49 31L52 25Z" fill="#35D4EC"/>
+  <path d="M29 43L31 47L35 49L31 51L29 55L27 51L23 49L27 47L29 43Z" fill="#35D4EC"/>
+  <path d="M109 39L111 43L115 45L111 47L109 51L107 47L103 45L107 43L109 39Z" fill="#35D4EC"/>
+</svg>

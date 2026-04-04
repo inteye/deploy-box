@@ -8,7 +8,8 @@ from .auth import bootstrap_admin
 from .config import get_settings
 from .database import Base, SessionLocal, engine, ensure_schema_compatibility
 from .routers import build_jobs, deployments, projects, releases, web
-from .services import ensure_builtin_templates
+from .services import ensure_builtin_templates, start_quality_scheduler
+from .task_runner import stop_background_scheduler
 
 
 settings = get_settings()
@@ -27,6 +28,12 @@ def startup() -> None:
         ensure_builtin_templates(db)
     finally:
         db.close()
+    start_quality_scheduler()
+
+
+@app.on_event("shutdown")
+def shutdown() -> None:
+    stop_background_scheduler()
 
 
 @app.get("/health")

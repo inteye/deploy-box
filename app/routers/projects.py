@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import get_current_user
+from ..auth import get_current_user, require_permission
 from ..database import get_db
 from ..models import BuildTemplate, Environment, Project, ProjectBuildConfig
 from ..schemas import EnvironmentCreate, EnvironmentRead, EnvironmentUpdate, ProjectCreate, ProjectRead, ProjectUpdate
@@ -20,7 +20,11 @@ def list_projects(db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=ProjectRead)
-def create_project(payload: ProjectCreate, db: Session = Depends(get_db)):
+def create_project(
+    payload: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("project.manage")),
+):
     if db.scalar(select(Project).where(Project.slug == payload.slug)):
         raise HTTPException(status_code=409, detail="project_slug_exists")
     project = Project(
@@ -29,6 +33,7 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)):
         adapter_type=payload.adapter_type,
         workspace_path=(payload.workspace_path or "").strip() or None,
         image_registry_prefix=(payload.image_registry_prefix or "").strip().rstrip("/") or None,
+        default_artifact_repository_id=payload.default_artifact_repository_id,
         description=payload.description,
     )
     db.add(project)
@@ -40,7 +45,12 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{project_id}", response_model=ProjectRead)
-def update_project(project_id: int, payload: ProjectUpdate, db: Session = Depends(get_db)):
+def update_project(
+    project_id: int,
+    payload: ProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("project.manage")),
+):
     project = db.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="project_not_found")
@@ -51,6 +61,7 @@ def update_project(project_id: int, payload: ProjectUpdate, db: Session = Depend
     project.slug = payload.slug
     project.workspace_path = (payload.workspace_path or "").strip() or None
     project.image_registry_prefix = (payload.image_registry_prefix or "").strip().rstrip("/") or None
+    project.default_artifact_repository_id = payload.default_artifact_repository_id
     project.description = payload.description
     db.add(project)
     db.commit()
@@ -59,7 +70,11 @@ def update_project(project_id: int, payload: ProjectUpdate, db: Session = Depend
 
 
 @router.delete("/{project_id}", status_code=204)
-def delete_project(project_id: int, db: Session = Depends(get_db)):
+def delete_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("project.manage")),
+):
     project = db.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="project_not_found")
@@ -78,7 +93,12 @@ def list_environments(project_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{project_id}/environments", response_model=EnvironmentRead)
-def create_environment(project_id: int, payload: EnvironmentCreate, db: Session = Depends(get_db)):
+def create_environment(
+    project_id: int,
+    payload: EnvironmentCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("project.manage")),
+):
     project = db.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="project_not_found")
@@ -95,6 +115,7 @@ def update_environment(
     environment_id: int,
     payload: EnvironmentUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(require_permission("project.manage")),
 ):
     project = db.get(Project, project_id)
     if not project:
@@ -111,7 +132,12 @@ def update_environment(
 
 
 @router.delete("/{project_id}/environments/{environment_id}", status_code=204)
-def delete_environment(project_id: int, environment_id: int, db: Session = Depends(get_db)):
+def delete_environment(
+    project_id: int,
+    environment_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("project.manage")),
+):
     project = db.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="project_not_found")
@@ -154,7 +180,12 @@ def get_project_build_config(project_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{project_id}/build-config")
-def update_project_build_config(project_id: int, payload: dict, db: Session = Depends(get_db)):
+def update_project_build_config(
+    project_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("project.manage")),
+):
     project = db.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="project_not_found")

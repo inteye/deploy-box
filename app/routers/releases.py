@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
-from ..auth import get_current_user
+from ..auth import get_current_user, require_permission
 from ..database import get_db
 from ..models import Project, Release
 from ..schemas import ReleaseCreate, ReleaseRead
@@ -31,7 +31,11 @@ def get_release(release_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=ReleaseRead)
-def create_release(payload: ReleaseCreate, db: Session = Depends(get_db)):
+def create_release(
+    payload: ReleaseCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("release.manage")),
+):
     project = db.get(Project, payload.project_id)
     if not project:
         raise HTTPException(status_code=404, detail="project_not_found")
@@ -47,7 +51,11 @@ def create_release(payload: ReleaseCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/{release_id}/sync-manifest", response_model=ReleaseRead)
-def sync_manifest(release_id: int, db: Session = Depends(get_db)):
+def sync_manifest(
+    release_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("release.manage")),
+):
     release = db.execute(
         select(Release).options(joinedload(Release.components)).where(Release.id == release_id)
     ).unique().scalar_one_or_none()
