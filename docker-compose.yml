@@ -43,3 +43,5 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "${DEPLOY_CONSOLE_PORT:-18101}:8100"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
