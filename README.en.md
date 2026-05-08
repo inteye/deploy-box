@@ -175,7 +175,9 @@ services:
     image: ${DEPLOY_IMAGE_BACKEND:-registry.example.com/myapp-backend:latest}
 ```
 
-`deploy-agent` injects `DEPLOY_IMAGE_<SERVICE>` automatically from release manifest.
+`deploy-agent` injects `DEPLOY_IMAGE_<SERVICE>` automatically from the release manifest so the deployment uses exact release images. After `docker compose up -d` succeeds, deploy-agent also tags the same images as each repository's `:latest`, so a bare `docker compose up -d` after reboot falls back to the most recent successful image.
+
+The deployment detail page shows the exact images injected for the release and the stable `latest` tags maintained by deploy-agent, which makes restart and compose-recreate issues easier to diagnose.
 
 ## deploy-agent Setup
 

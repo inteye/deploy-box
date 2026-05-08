@@ -18,6 +18,9 @@
 {% endblock %}
 
 {% block center_panel %}
+{% set runtime_image_status = parsed_status if parsed_status and (parsed_status.get('deployed_images') or parsed_status.get('stable_image_tags')) else parsed_response %}
+{% set deployed_images = runtime_image_status.get('deployed_images') if runtime_image_status else {} %}
+{% set stable_image_tags = runtime_image_status.get('stable_image_tags') if runtime_image_status else {} %}
 <section class="panel-card">
   <div class="soft-badge">{{ _('部署详情') }}</div>
   <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-900">{{ _('部署') }} #{{ deployment.id }}</h1>
@@ -70,6 +73,36 @@
   </article>
 </section>
 
+<section class="panel-card">
+  <div class="section-title">{{ _('当前镜像环境') }}</div>
+  <p class="section-copy">{{ _('deploy-agent 发布时注入当前 release 的 DEPLOY_IMAGE_*，部署成功后维护同仓库 latest，方便服务器重启后裸 docker compose up -d。') }}</p>
+  <div id="deployed-images-list" class="mt-4 space-y-3">
+    {% if deployed_images %}
+      {% for env_key, image in deployed_images|dictsort %}
+      <article class="list-card">
+        <div class="meta-line"><span class="soft-badge">{{ env_key }}</span></div>
+        <div class="mt-3 break-words text-sm font-medium text-slate-900">{{ image }}</div>
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="list-card text-sm text-slate-500">{{ _('目标状态暂未返回本次发布镜像信息。') }}</div>
+    {% endif %}
+  </div>
+  <div class="mt-6 section-title text-base">{{ _('稳定 latest 标签') }}</div>
+  <div id="stable-image-tags-list" class="mt-4 space-y-3">
+    {% if stable_image_tags %}
+      {% for service, image in stable_image_tags|dictsort %}
+      <article class="list-card">
+        <div class="meta-line"><span class="soft-badge">{{ service }}</span></div>
+        <div class="mt-3 break-words text-sm font-medium text-slate-900">{{ image }}</div>
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="list-card text-sm text-slate-500">{{ _('目标状态暂未返回稳定 latest 标签。') }}</div>
+    {% endif %}
+  </div>
+</section>
+
 <section class="grid gap-4 xl:grid-cols-2">
   <article class="panel-card">
     <div class="section-title">{{ _('Release 组件') }}</div>
@@ -119,9 +152,63 @@
     const targetStatusNode = document.getElementById("target-status");
     const adapterResponseNode = document.getElementById("adapter-response");
     const logExcerptNode = document.getElementById("log-excerpt");
+    const deployedImagesListNode = document.getElementById("deployed-images-list");
+    const stableImageTagsListNode = document.getElementById("stable-image-tags-list");
 
     function shouldKeepPolling(status) {
       return ["queued", "submitted", "running", "timed_out_but_running"].includes(status);
+    }
+
+    function renderRuntimeImages(rawStatus) {
+      if (!deployedImagesListNode || !stableImageTagsListNode) return;
+      let statusPayload = {};
+      try {
+        statusPayload = rawStatus ? JSON.parse(rawStatus) : {};
+      } catch (_error) {
+        statusPayload = {};
+      }
+      const images = statusPayload.deployed_images || {};
+      const stableTags = statusPayload.stable_image_tags || {};
+      deployedImagesListNode.innerHTML = "";
+      stableImageTagsListNode.innerHTML = "";
+      const entries = Object.entries(images).sort(([left], [right]) => left.localeCompare(right));
+      if (!entries.length) {
+        const empty = document.createElement("div");
+        empty.className = "list-card text-sm text-slate-500";
+        empty.textContent = "{{ _('目标状态暂未返回本次发布镜像信息。') }}";
+        deployedImagesListNode.appendChild(empty);
+      } else {
+        for (const [envKey, image] of entries) {
+          deployedImagesListNode.appendChild(renderImageCard(envKey, image));
+        }
+      }
+      const stableEntries = Object.entries(stableTags).sort(([left], [right]) => left.localeCompare(right));
+      if (!stableEntries.length) {
+        const empty = document.createElement("div");
+        empty.className = "list-card text-sm text-slate-500";
+        empty.textContent = "{{ _('目标状态暂未返回稳定 latest 标签。') }}";
+        stableImageTagsListNode.appendChild(empty);
+      } else {
+        for (const [service, image] of stableEntries) {
+          stableImageTagsListNode.appendChild(renderImageCard(service, image));
+        }
+      }
+    }
+
+    function renderImageCard(label, image) {
+      const item = document.createElement("article");
+      item.className = "list-card";
+      const meta = document.createElement("div");
+      meta.className = "meta-line";
+      const badge = document.createElement("span");
+      badge.className = "soft-badge";
+      badge.textContent = label;
+      meta.appendChild(badge);
+      const value = document.createElement("div");
+      value.className = "mt-3 break-words text-sm font-medium text-slate-900";
+      value.textContent = image;
+      item.append(meta, value);
+      return item;
     }
 
     async function poll() {
@@ -140,6 +227,7 @@
         adapterResponseNode.textContent = payload.adapter_response_json || "{{ _('暂无数据') }}";
         targetStatusNode.textContent = payload.last_status_json || "{{ _('暂无数据') }}";
         logExcerptNode.textContent = payload.log_excerpt || "{{ _('暂无日志摘要') }}";
+        renderRuntimeImages(payload.last_status_json || payload.adapter_response_json);
         return shouldKeepPolling(payload.status);
       } catch (_error) {
         return true;

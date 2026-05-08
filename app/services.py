@@ -1822,9 +1822,20 @@ def _release_image_fallback(image: str) -> str:
     value = _unwrap_compose_image_reference(image)
     if not value:
         return ""
-    if value.endswith(":__VERSION__"):
-        return value[: -len("__VERSION__")] + "latest"
-    return value
+    return _stable_image_tag(value)
+
+
+def _stable_image_tag(image: str) -> str:
+    value = _unwrap_compose_image_reference(image)
+    if not value:
+        return ""
+    without_digest = value.split("@", 1)[0]
+    last_slash = without_digest.rfind("/")
+    last_colon = without_digest.rfind(":")
+    repository = without_digest[:last_colon] if last_colon > last_slash else without_digest
+    if not repository:
+        return value
+    return f"{repository}:latest"
 
 
 def _normalize_component_image(project: Project, service_name: str, image: str, build_enabled: bool) -> str:
@@ -1928,21 +1939,22 @@ def analyze_compose_release_readiness(
                 }
             )
 
-        if original_image.endswith(":latest"):
+        has_deploy_image_env = "${" + env_key in str(original_config.get("image") or "")
+        if original_image.endswith(":latest") and not has_deploy_image_env and original_image != fallback_image:
             issues.append(
                 {
                     "severity": "warning",
                     "summary": f"service `{service_name}` 使用 latest 标签",
-                    "detail": "latest 不利于追踪版本，建议使用固定版本或由 DEPLOY_IMAGE_* 注入。",
+                    "detail": "裸 latest 不利于追踪版本；建议使用推荐写法 image: ${DEPLOY_IMAGE_<SERVICE>:-同仓库:latest}，发布时用精确版本，重启时回退到 deploy-agent 维护的 latest。",
                 }
             )
 
-        if component and "${" + env_key not in str(original_config.get("image") or ""):
+        if component and not has_deploy_image_env:
             issues.append(
                 {
                     "severity": "info",
                     "summary": f"service `{service_name}` 未接入 {env_key}",
-                    "detail": "建议改成 image: ${DEPLOY_IMAGE_<SERVICE>:-默认镜像}，这样发布时才能稳定切换到新镜像。",
+                    "detail": "建议改成 image: ${DEPLOY_IMAGE_<SERVICE>:-同仓库:latest}。发布时 deploy-agent 注入精确版本；部署成功后再维护同仓库 latest，裸 docker compose up -d 也能复用最新成功镜像。",
                 }
             )
 
@@ -2294,6 +2306,10 @@ def _render_starter_readme(
                ```
             6. After the endpoint is reachable, fill webhook URL, status URL, and shared secret back into DeployBox.
 
+            During deployment, deploy-agent injects exact release images through `DEPLOY_IMAGE_<SERVICE>`. After `docker compose up -d` succeeds, it also tags each deployed image as the same repository's `:latest`. A business compose file such as `image: ${{DEPLOY_IMAGE_API:-registry.example.com/app-api:latest}}` therefore uses the exact release image during deployment, and falls back to the latest successful image after a server reboot or a bare `docker compose up -d`.
+
+            The `/deploy/status` response and DeployBox deployment detail page expose `deployed_images` and `stable_image_tags` for restart diagnostics.
+
             ## Private OSS Buckets
 
             If release artifacts are stored in a private OSS bucket, the deploy-agent must download them with OSS credentials instead of relying on a public URL.
@@ -2459,7 +2475,10 @@ def _render_starter_readme(
         - `DEPLOY_PROJECT_WORKSPACE_HOST_PATH` 必须填写“目标机宿主机上的真实项目目录”，不是容器内 `/workspace`
         - deploy-agent 会同时用这个路径做目录挂载和 `docker compose --project-directory`
         - starter 默认会把这个真实目录同时挂载到容器内同名绝对路径，避免 `env_file` 或宿主机绝对路径在容器里解析失败
-        - deploy-agent 会按组件 `service` 自动注入 `DEPLOY_IMAGE_<SERVICE>` 环境变量，推荐你的业务 compose 用这个变量引用发布镜像
+        - deploy-agent 会按组件 `service` 自动注入 `DEPLOY_IMAGE_<SERVICE>` 环境变量，推荐业务 compose 使用 `image: ${{DEPLOY_IMAGE_API:-registry.example.com/app-api:latest}}` 这类写法
+        - 部署时会使用 manifest 里的精确版本镜像；`docker compose up -d` 成功后，deploy-agent 会把本次成功镜像再标成同仓库 `:latest`
+        - 这样服务器重启后即使只执行裸 `docker compose up -d`，compose 也会回退到最近一次成功部署维护出来的 `latest`
+        - `/deploy/status` 和 DeployBox 部署详情页会展示 `deployed_images` 与 `stable_image_tags`，方便确认重启后使用哪组镜像
         - 如果目标机是 Docker Desktop（macOS/Windows），请先把这个真实目录加入 File Sharing
         - 多项目场景下，不建议把所有项目都写死到同一个 compose；更合理的是每个项目/环境维护一份独立 deploy-agent 配置
 
@@ -2478,6 +2497,7 @@ def _render_starter_readme(
         - 加载 release 中的镜像 tar
         - 按 manifest 中的 `service` 定位要更新的服务
         - 自动注入 `DEPLOY_IMAGE_<SERVICE>` 环境变量，例如 `backend` 会得到 `DEPLOY_IMAGE_BACKEND`
+        - 部署成功后为本次镜像维护同仓库 `:latest` tag，供服务器重启后的裸 `docker compose up -d` 使用
         - 通过 `docker compose --project-directory <宿主机真实目录> up -d ...` 让 compose 用宿主机路径解析 bind mount 和相对路径
 
         如果一台机器上有多个项目，推荐做法是：
@@ -2557,6 +2577,8 @@ def _render_deploy_agent_compose(project_slug: str) -> str:
               # can resolve --project-directory, env_file, and bind mounts against
               # the real host path instead of the in-container /workspace path.
               - ${{DEPLOY_PROJECT_WORKSPACE_HOST_PATH:-/srv/apps/{project_slug}}}:${{DEPLOY_PROJECT_WORKSPACE_HOST_PATH:-/srv/apps/{project_slug}}}
+            extra_hosts:
+              - "host.docker.internal:host-gateway"
         """
     )
 
@@ -2671,6 +2693,16 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
             STATUS_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+        def load_json_file(path: Path) -> dict:
+            if not path.exists():
+                return {{}}
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                return {{}}
+            return payload if isinstance(payload, dict) else {{}}
+
+
         def verify_signature(raw_body: bytes, signature_header: str | None) -> None:
             secret = os.environ.get("DEPLOY_SHARED_SECRET", "").encode("utf-8")
             if not secret:
@@ -2706,6 +2738,7 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
             release_dir = STATE_DIR / "releases" / version
             release_dir.mkdir(parents=True, exist_ok=True)
             manifest_path = release_dir / "manifest.json"
+            deploy_result_path = release_dir / "deploy-result.json"
 
             save_status(
                 {{
@@ -2728,6 +2761,7 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
             env["DEPLOY_VERSION"] = version
             env["DEPLOY_MANIFEST_URL"] = manifest_url
             env["DEPLOY_MANIFEST_PATH"] = str(manifest_path)
+            env["DEPLOY_RESULT_PATH"] = str(deploy_result_path)
             env["DEPLOY_TRIGGERED_BY"] = str(payload.get("triggered_by") or "deploybox")
             env["DEPLOY_COMMIT"] = str(payload.get("commit") or "")
             env["DEPLOY_ENVIRONMENT"] = str(payload.get("environment") or env.get("DEPLOY_ENVIRONMENT", "prod"))
@@ -2741,6 +2775,7 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
             )
             stdout = (process.stdout or "").strip()
             stderr = (process.stderr or "").strip()
+            deploy_result = load_json_file(deploy_result_path)
             if process.returncode != 0:
                 save_status(
                     {{
@@ -2750,6 +2785,8 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                         "stdout": stdout[-4000:],
                         "stderr": stderr[-4000:],
                         "detail": "{failed_detail}",
+                        "deployed_images": deploy_result.get("deployed_images", {{}}),
+                        "stable_image_tags": deploy_result.get("stable_image_tags", {{}}),
                     }}
                 )
                 return {{
@@ -2757,6 +2794,8 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                     "version": version,
                     "stdout": stdout[-4000:],
                     "stderr": stderr[-4000:],
+                    "deployed_images": deploy_result.get("deployed_images", {{}}),
+                    "stable_image_tags": deploy_result.get("stable_image_tags", {{}}),
                 }}
 
             save_status(
@@ -2767,6 +2806,8 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                     "stdout": stdout[-4000:],
                     "stderr": stderr[-4000:],
                     "detail": "{success_detail}",
+                    "deployed_images": deploy_result.get("deployed_images", {{}}),
+                    "stable_image_tags": deploy_result.get("stable_image_tags", {{}}),
                 }}
             )
             return {{
@@ -2774,6 +2815,8 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                 "version": version,
                 "stdout": stdout[-4000:],
                 "stderr": stderr[-4000:],
+                "deployed_images": deploy_result.get("deployed_images", {{}}),
+                "stable_image_tags": deploy_result.get("stable_image_tags", {{}}),
             }}
         """
     ).format(
@@ -2879,6 +2922,52 @@ def _render_deploy_release_script() -> str:
             return provider, oss2.Bucket(auth, endpoint, bucket_name, region=region), bucket_name
 
 
+        def stable_image_tag(image: str) -> str:
+            value = str(image or "").strip()
+            if not value:
+                return ""
+            without_digest = value.split("@", 1)[0]
+            last_slash = without_digest.rfind("/")
+            last_colon = without_digest.rfind(":")
+            repository = without_digest[:last_colon] if last_colon > last_slash else without_digest
+            if not repository:
+                return value
+            return f"{repository}:latest"
+
+
+        def inspect_image_id(image: str) -> str:
+            if not image:
+                return ""
+            process = subprocess.run(
+                ["docker", "image", "inspect", "--format", "{{.Id}}", image],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if process.returncode != 0:
+                return ""
+            return process.stdout.strip()
+
+
+        def restore_stable_tags(previous: dict[str, str]) -> None:
+            for stable_image, previous_id in previous.items():
+                if previous_id:
+                    subprocess.run(["docker", "tag", previous_id, stable_image], check=False)
+                else:
+                    subprocess.run(["docker", "rmi", stable_image], check=False)
+
+
+        def apply_stable_tags(stable_tags: dict[str, str], overrides: dict[str, str]) -> None:
+            for service, stable_image in stable_tags.items():
+                env_key = "DEPLOY_IMAGE_" + "".join(ch if ch.isalnum() else "_" for ch in service).upper()
+                source_image = overrides.get(env_key)
+                if source_image and stable_image != source_image:
+                    subprocess.run(["docker", "tag", source_image, stable_image], check=True)
+                    print(f"tagged stable image: {stable_image} -> {source_image}")
+                elif source_image:
+                    print(f"stable image already current: {stable_image}")
+
+
         manifest_path = Path(os.environ["DEPLOY_MANIFEST_PATH"])
         project_root = Path(os.environ.get("DEPLOY_PROJECT_ROOT", "/workspace"))
         project_host_root = str(
@@ -2891,6 +2980,9 @@ def _render_deploy_release_script() -> str:
         services = []
         compose_env = os.environ.copy()
         compose_cmd = compose_base_command()
+        image_overrides = {}
+        stable_image_tags = {}
+        previous_stable_image_ids = {}
         artifact_storage = payload.get("artifact_storage") if isinstance(payload.get("artifact_storage"), dict) else {}
         storage_client = None
         storage_provider = None
@@ -2905,6 +2997,11 @@ def _render_deploy_release_script() -> str:
             if service and image:
                 env_key = "DEPLOY_IMAGE_" + "".join(ch if ch.isalnum() else "_" for ch in service).upper()
                 compose_env[env_key] = image
+                image_overrides[env_key] = image
+                stable_image = stable_image_tag(image)
+                if stable_image:
+                    stable_image_tags[service] = stable_image
+                    previous_stable_image_ids[stable_image] = inspect_image_id(stable_image)
                 print(f"compose image override: {env_key}={image}")
             if object_key:
                 tar_name = Path(object_key).name
@@ -2931,17 +3028,19 @@ def _render_deploy_release_script() -> str:
         if compose_path.exists():
             print(f"restarting compose stack: {compose_path}")
             print(f"compose project directory: {project_host_root}")
-            command = [
-                *compose_cmd,
-                "-f",
-                str(compose_path),
-                "--project-directory",
-                project_host_root,
-                "up",
-                "-d",
-                "--no-deps",
-                "--no-build",
-            ]
+            command = [*compose_cmd]
+            command.extend(
+                [
+                    "-f",
+                    str(compose_path),
+                    "--project-directory",
+                    project_host_root,
+                    "up",
+                    "-d",
+                    "--no-deps",
+                    "--no-build",
+                ]
+            )
             if services:
                 deduped = []
                 seen = set()
@@ -2950,9 +3049,32 @@ def _render_deploy_release_script() -> str:
                         seen.add(service)
                         deduped.append(service)
                 command.extend(deduped)
-            subprocess.run(command, cwd=project_root, env=compose_env, check=True)
+            try:
+                apply_stable_tags(stable_image_tags, image_overrides)
+                subprocess.run(command, cwd=project_root, env=compose_env, check=True)
+            except subprocess.CalledProcessError:
+                restore_stable_tags(previous_stable_image_ids)
+                raise
         else:
             print("docker-compose.yml not found under project root, skip compose up")
+            apply_stable_tags(stable_image_tags, image_overrides)
+
+        deploy_result_path = str(os.environ.get("DEPLOY_RESULT_PATH") or "").strip()
+        if deploy_result_path:
+            result_path = Path(deploy_result_path)
+            result_path.parent.mkdir(parents=True, exist_ok=True)
+            result_path.write_text(
+                json.dumps(
+                    {
+                        "version": version,
+                        "deployed_images": image_overrides,
+                        "stable_image_tags": stable_image_tags,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
 
         print(f"deployment finished for version {version}")
         PY
@@ -3005,6 +3127,12 @@ def _render_deploy_agent_env(
             # On Docker Desktop, add this path to File Sharing first.
             DEPLOY_PROJECT_WORKSPACE_HOST_PATH=/srv/apps/{remote_prefix.split('/')[0]}
 
+            # Recommended business compose image pattern:
+            # image: ${{DEPLOY_IMAGE_API:-registry.example.com/app-api:latest}}
+            # Deploy-time compose uses the exact DEPLOY_IMAGE_* value.
+            # After success, deploy-agent tags that image as the same repository's :latest.
+            # A bare docker compose up -d after reboot can therefore use the latest fallback.
+
             # Reference values for DeployBox onboarding. These are not read directly by deploy-agent.
             # webhook_url={webhook_url}
             # status_url={status_url}
@@ -3045,6 +3173,11 @@ def _render_deploy_agent_env(
         #
         # Docker Desktop 还需要把这个目录加入 File Sharing。
         DEPLOY_PROJECT_WORKSPACE_HOST_PATH=/srv/apps/{remote_prefix.split('/')[0]}
+
+        # 推荐业务 compose 镜像写法：
+        # image: ${{DEPLOY_IMAGE_API:-registry.example.com/app-api:latest}}
+        # 发布时 compose 使用精确的 DEPLOY_IMAGE_*；成功后 deploy-agent 会把同一个镜像标成同仓库 :latest。
+        # 服务器重启后裸跑 docker compose up -d，也能使用 latest fallback 对应的最近一次成功镜像。
 
         # 下方是给接入平台时参考的，不会直接被 deploy-agent 读取
         # webhook_url={webhook_url}

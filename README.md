@@ -167,7 +167,7 @@ http://127.0.0.1:18101
 - 生产发布链路尽量不依赖 `build:`
 - 用 `DEPLOY_IMAGE_<SERVICE>` 引用发布镜像
 - 避免源码挂载覆盖镜像文件系统（如 `./backend:/app`）
-- 业务镜像避免长期使用 `latest`
+- 推荐写法是“发布时注入精确版本，重启时回退到 deploy-agent 维护的 latest”
 
 示例：
 
@@ -177,7 +177,9 @@ services:
     image: ${DEPLOY_IMAGE_BACKEND:-registry.example.com/myapp-backend:latest}
 ```
 
-`deploy-agent` 会根据 manifest 自动注入 `DEPLOY_IMAGE_<SERVICE>`。
+`deploy-agent` 会根据 manifest 自动注入 `DEPLOY_IMAGE_<SERVICE>`，让本次发布使用精确版本镜像；`docker compose up -d` 成功后，会把同一个镜像再标成同仓库的 `:latest`。因此目标机重启后即使只是裸跑 `docker compose up -d`，上面的 fallback 也会落到最近一次成功部署的镜像。
+
+部署任务详情页的“当前镜像环境”会展示本次发布注入的精确镜像，以及 deploy-agent 维护的稳定 `latest` tag，方便排查服务器重启或 compose 重建后的镜像来源。
 
 ## deploy-agent 接入
 

@@ -9,7 +9,6 @@ COPY app/static/src /ui/app/static/src
 RUN npm install --no-audit --no-fund
 RUN node ./node_modules/tailwindcss/lib/cli.js -i ./app/static/src/app.css -o ./app/static/dist/app.css --minify
 
-
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
