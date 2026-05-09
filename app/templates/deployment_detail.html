@@ -18,9 +18,10 @@
 {% endblock %}
 
 {% block center_panel %}
-{% set runtime_image_status = parsed_status if parsed_status and (parsed_status.get('deployed_images') or parsed_status.get('stable_image_tags')) else parsed_response %}
+{% set runtime_image_status = parsed_status if parsed_status and (parsed_status.get('deployed_images') or parsed_status.get('stable_image_tags') or parsed_status.get('pre_compose_up_hooks')) else parsed_response %}
 {% set deployed_images = runtime_image_status.get('deployed_images') if runtime_image_status else {} %}
 {% set stable_image_tags = runtime_image_status.get('stable_image_tags') if runtime_image_status else {} %}
+{% set pre_compose_up_hooks = runtime_image_status.get('pre_compose_up_hooks') if runtime_image_status else [] %}
 <section class="panel-card">
   <div class="soft-badge">{{ _('部署详情') }}</div>
   <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-900">{{ _('部署') }} #{{ deployment.id }}</h1>
@@ -46,6 +47,30 @@
   </div>
   <div class="mt-4 h-3 overflow-hidden rounded-full bg-sand-200">
     <div id="deployment-progress-bar" class="h-full rounded-full bg-pine-700 transition-all" style="width:{{ deployment.progress_percent or 0 }}%;"></div>
+  </div>
+</section>
+
+<section class="panel-card">
+  <div class="section-title">{{ _('Pre Compose Up 步骤') }}</div>
+  <p class="section-copy">{{ _('deploy-agent 会在 compose up 前按 release manifest 执行结构化一次性步骤；任一必需步骤失败会中断部署。') }}</p>
+  <div id="pre-compose-hooks-list" class="mt-4 space-y-3">
+    {% if pre_compose_up_hooks %}
+      {% for hook in pre_compose_up_hooks %}
+      <article class="list-card">
+        <div class="meta-line">
+          <span class="soft-badge">{{ hook.name or '-' }}</span>
+          <span class="soft-badge">{{ hook.status or '-' }}</span>
+          <span class="soft-badge">{{ hook.service or '-' }}</span>
+        </div>
+        <div class="mt-3 break-words text-sm font-medium text-slate-900">{{ hook.command | tojson }}</div>
+        {% if hook.stderr %}
+        <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-3 text-xs leading-6 text-slate-100">{{ hook.stderr }}</pre>
+        {% endif %}
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="list-card text-sm text-slate-500">{{ _('当前 release 没有返回 pre_compose_up 执行记录。') }}</div>
+    {% endif %}
   </div>
 </section>
 
@@ -154,13 +179,14 @@
     const logExcerptNode = document.getElementById("log-excerpt");
     const deployedImagesListNode = document.getElementById("deployed-images-list");
     const stableImageTagsListNode = document.getElementById("stable-image-tags-list");
+    const preComposeHooksListNode = document.getElementById("pre-compose-hooks-list");
 
     function shouldKeepPolling(status) {
       return ["queued", "submitted", "running", "timed_out_but_running"].includes(status);
     }
 
     function renderRuntimeImages(rawStatus) {
-      if (!deployedImagesListNode || !stableImageTagsListNode) return;
+      if (!deployedImagesListNode || !stableImageTagsListNode || !preComposeHooksListNode) return;
       let statusPayload = {};
       try {
         statusPayload = rawStatus ? JSON.parse(rawStatus) : {};
@@ -169,8 +195,10 @@
       }
       const images = statusPayload.deployed_images || {};
       const stableTags = statusPayload.stable_image_tags || {};
+      const preComposeHooks = statusPayload.pre_compose_up_hooks || [];
       deployedImagesListNode.innerHTML = "";
       stableImageTagsListNode.innerHTML = "";
+      preComposeHooksListNode.innerHTML = "";
       const entries = Object.entries(images).sort(([left], [right]) => left.localeCompare(right));
       if (!entries.length) {
         const empty = document.createElement("div");
@@ -193,6 +221,16 @@
           stableImageTagsListNode.appendChild(renderImageCard(service, image));
         }
       }
+      if (!preComposeHooks.length) {
+        const empty = document.createElement("div");
+        empty.className = "list-card text-sm text-slate-500";
+        empty.textContent = "{{ _('当前 release 没有返回 pre_compose_up 执行记录。') }}";
+        preComposeHooksListNode.appendChild(empty);
+      } else {
+        for (const hook of preComposeHooks) {
+          preComposeHooksListNode.appendChild(renderHookCard(hook));
+        }
+      }
     }
 
     function renderImageCard(label, image) {
@@ -208,6 +246,30 @@
       value.className = "mt-3 break-words text-sm font-medium text-slate-900";
       value.textContent = image;
       item.append(meta, value);
+      return item;
+    }
+
+    function renderHookCard(hook) {
+      const item = document.createElement("article");
+      item.className = "list-card";
+      const meta = document.createElement("div");
+      meta.className = "meta-line";
+      for (const label of [hook.name || "-", hook.status || "-", hook.service || "-"]) {
+        const badge = document.createElement("span");
+        badge.className = "soft-badge";
+        badge.textContent = label;
+        meta.appendChild(badge);
+      }
+      const command = document.createElement("div");
+      command.className = "mt-3 break-words text-sm font-medium text-slate-900";
+      command.textContent = JSON.stringify(hook.command || []);
+      item.append(meta, command);
+      if (hook.stderr) {
+        const stderr = document.createElement("pre");
+        stderr.className = "mt-3 overflow-auto rounded-2xl bg-slate-950 p-3 text-xs leading-6 text-slate-100";
+        stderr.textContent = hook.stderr;
+        item.appendChild(stderr);
+      }
       return item;
     }
 

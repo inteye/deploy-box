@@ -880,6 +880,9 @@ def build_starter_bundle(
             "version_strategy": "date-shortsha",
         },
         "components": release_components,
+        "release_hooks": {
+            "pre_compose_up": [],
+        },
     }
     environment_name = environment.name if environment else "prod"
     webhook_url = environment.webhook_url if environment else "https://deploy-agent.example.com/deploy/hook"
@@ -1366,6 +1369,7 @@ def _run_manifest_script_build(
         raise RuntimeError(f"工作目录不存在: {workspace}")
     if not package_script.exists():
         raise RuntimeError(f"打包脚本不存在: {package_script}")
+    _merge_release_hooks_from_project_config(resolved, package_script)
 
     resolved_storage_mode, repository = resolve_project_artifact_mode(db, project=project, artifact_mode=job.artifact_mode)
     use_remote_storage = resolved_storage_mode != "local"
@@ -1585,6 +1589,23 @@ def _resolve_build_config(settings, build_config: ProjectBuildConfig) -> dict:
     resolved.update(template_config)
     resolved.update(override_config)
     return resolved
+
+
+def _merge_release_hooks_from_project_config(resolved: dict, package_script: Path) -> None:
+    if isinstance(resolved.get("release_hooks"), dict):
+        return
+    release_config_path = (package_script.parent.parent / "release.config.json").resolve()
+    if not release_config_path.exists() or not release_config_path.is_file():
+        return
+    try:
+        release_config = json.loads(release_config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not isinstance(release_config, dict):
+        return
+    release_hooks = release_config.get("release_hooks")
+    if isinstance(release_hooks, dict):
+        resolved["release_hooks"] = release_hooks
 
 
 def _parse_json_object(raw: str | None) -> dict:
@@ -2162,6 +2183,7 @@ def _render_build_release_script() -> str:
         from pathlib import Path
 
         version = os.environ["VERSION"]
+        config = json.loads(Path(os.environ["CONFIG_FILE"]).read_text(encoding="utf-8"))
         output_dir = Path(os.environ["OUTPUT_DIR"])
         artifact_base_url = os.environ["ARTIFACT_BASE_URL"].rstrip("/")
         items = []
@@ -2176,7 +2198,10 @@ def _render_build_release_script() -> str:
                     "image_tar_sha256": record["sha"] or None,
                 }
             )
+        release_hooks = config.get("release_hooks")
         manifest = {"version": version, "components": items}
+        if isinstance(release_hooks, dict):
+            manifest["release_hooks"] = release_hooks
         (output_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
         sha_lines = []
         for item in items:
@@ -2308,7 +2333,7 @@ def _render_starter_readme(
 
             During deployment, deploy-agent injects exact release images through `DEPLOY_IMAGE_<SERVICE>`. After `docker compose up -d` succeeds, it also tags each deployed image as the same repository's `:latest`. A business compose file such as `image: ${{DEPLOY_IMAGE_API:-registry.example.com/app-api:latest}}` therefore uses the exact release image during deployment, and falls back to the latest successful image after a server reboot or a bare `docker compose up -d`.
 
-            The `/deploy/status` response and DeployBox deployment detail page expose `deployed_images` and `stable_image_tags` for restart diagnostics.
+            The `/deploy/status` response and DeployBox deployment detail page expose `deployed_images`, `stable_image_tags`, and `pre_compose_up_hooks` for diagnostics.
 
             ## Private OSS Buckets
 
@@ -2323,6 +2348,28 @@ def _render_starter_readme(
             - `DEPLOY_OSS_REGION`
 
             The current deploy protocol will send the manifest payload directly in the webhook request. New OSS releases include `artifact_storage` and `image_tar_object_key`, and the deploy-agent will use OSS SDK download first, then fall back to `image_tar_url` for older releases.
+
+            ## Pre Compose Up Hooks
+
+            Add language-agnostic one-off steps to `deploy/release.config.json` when a release must run migrations before `docker compose up -d`:
+
+            ```json
+            {{
+              "release_hooks": {{
+                "pre_compose_up": [
+                  {{
+                    "name": "db_migrate",
+                    "service": "api",
+                    "command": ["python", "manage.py", "migrate", "--noinput"],
+                    "timeout_seconds": 300,
+                    "required": true
+                  }}
+                ]
+              }}
+            }}
+            ```
+
+            deploy-agent only accepts array commands and runs them as `docker compose run --rm --no-deps <service> ...`. Required hook failure stops the deployment before `compose up` and before stable `latest` tags are updated.
 
             ## Minimal Hook Payload
 
@@ -2468,6 +2515,28 @@ def _render_starter_readme(
 
         当前协议下，DeployBox 会把 manifest 内容直接放进 webhook 请求里。新生成的 OSS release 会额外带上 `artifact_storage` 和 `image_tar_object_key`，deploy-agent 会优先按对象 key 走 OSS SDK 下载；只有旧 release 才继续回退到 `image_tar_url`。
 
+        ## Pre Compose Up 步骤
+
+        如果 release 需要在 `docker compose up -d` 前执行迁移、索引准备等一次性操作，请在 `deploy/release.config.json` 配置：
+
+        ```json
+        {{
+          "release_hooks": {{
+            "pre_compose_up": [
+              {{
+                "name": "db_migrate",
+                "service": "api",
+                "command": ["python", "manage.py", "migrate", "--noinput"],
+                "timeout_seconds": 300,
+                "required": true
+              }}
+            ]
+          }}
+        }}
+        ```
+
+        deploy-agent 只接受数组命令，并通过 `docker compose run --rm --no-deps <service> ...` 执行。必需 hook 失败会在 `compose up` 和稳定 `latest` 标签更新前中断部署。
+
         说明：
 
         - starter 已经附带 deploy-agent 的最小实现代码，会在目标机本地构建镜像
@@ -2478,7 +2547,7 @@ def _render_starter_readme(
         - deploy-agent 会按组件 `service` 自动注入 `DEPLOY_IMAGE_<SERVICE>` 环境变量，推荐业务 compose 使用 `image: ${{DEPLOY_IMAGE_API:-registry.example.com/app-api:latest}}` 这类写法
         - 部署时会使用 manifest 里的精确版本镜像；`docker compose up -d` 成功后，deploy-agent 会把本次成功镜像再标成同仓库 `:latest`
         - 这样服务器重启后即使只执行裸 `docker compose up -d`，compose 也会回退到最近一次成功部署维护出来的 `latest`
-        - `/deploy/status` 和 DeployBox 部署详情页会展示 `deployed_images` 与 `stable_image_tags`，方便确认重启后使用哪组镜像
+        - `/deploy/status` 和 DeployBox 部署详情页会展示 `deployed_images`、`stable_image_tags` 与 `pre_compose_up_hooks`，方便确认重启后使用哪组镜像和 hook 执行结果
         - 如果目标机是 Docker Desktop（macOS/Windows），请先把这个真实目录加入 File Sharing
         - 多项目场景下，不建议把所有项目都写死到同一个 compose；更合理的是每个项目/环境维护一份独立 deploy-agent 配置
 
@@ -2787,6 +2856,7 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                         "detail": "{failed_detail}",
                         "deployed_images": deploy_result.get("deployed_images", {{}}),
                         "stable_image_tags": deploy_result.get("stable_image_tags", {{}}),
+                        "pre_compose_up_hooks": deploy_result.get("pre_compose_up_hooks", []),
                     }}
                 )
                 return {{
@@ -2796,6 +2866,7 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                     "stderr": stderr[-4000:],
                     "deployed_images": deploy_result.get("deployed_images", {{}}),
                     "stable_image_tags": deploy_result.get("stable_image_tags", {{}}),
+                    "pre_compose_up_hooks": deploy_result.get("pre_compose_up_hooks", []),
                 }}
 
             save_status(
@@ -2808,6 +2879,7 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                     "detail": "{success_detail}",
                     "deployed_images": deploy_result.get("deployed_images", {{}}),
                     "stable_image_tags": deploy_result.get("stable_image_tags", {{}}),
+                    "pre_compose_up_hooks": deploy_result.get("pre_compose_up_hooks", []),
                 }}
             )
             return {{
@@ -2817,6 +2889,7 @@ def _render_deploy_agent_app(lang: str = "zh") -> str:
                 "stderr": stderr[-4000:],
                 "deployed_images": deploy_result.get("deployed_images", {{}}),
                 "stable_image_tags": deploy_result.get("stable_image_tags", {{}}),
+                "pre_compose_up_hooks": deploy_result.get("pre_compose_up_hooks", []),
             }}
         """
     ).format(
@@ -2845,6 +2918,7 @@ def _render_deploy_release_script() -> str:
         import os
         import shutil
         import subprocess
+        import time
         from pathlib import Path
         from urllib.request import urlretrieve
 
@@ -2968,6 +3042,162 @@ def _render_deploy_release_script() -> str:
                     print(f"stable image already current: {stable_image}")
 
 
+        def truncate_text(value: str, limit: int = 4000) -> str:
+            return (value or "")[-limit:]
+
+
+        def validate_hook_command(command) -> list[str]:
+            if not isinstance(command, list) or not command:
+                raise RuntimeError("release hook command must be a non-empty array")
+            normalized = []
+            blocked_launchers = {"sh", "bash", "zsh", "fish", "cmd", "cmd.exe", "powershell", "pwsh"}
+            for part in command:
+                if not isinstance(part, str):
+                    raise RuntimeError("release hook command entries must be strings")
+                value = part.strip()
+                if not value or "\\n" in value or "\\r" in value:
+                    raise RuntimeError("release hook command contains an invalid argument")
+                normalized.append(value)
+            launcher = Path(normalized[0]).name.lower()
+            if launcher in blocked_launchers:
+                raise RuntimeError("release hook command must not launch a shell")
+            return normalized
+
+
+        def normalize_pre_compose_hooks(payload: dict) -> list[dict]:
+            release_hooks = payload.get("release_hooks")
+            if not isinstance(release_hooks, dict):
+                return []
+            raw_hooks = release_hooks.get("pre_compose_up") or []
+            if not isinstance(raw_hooks, list):
+                raise RuntimeError("release_hooks.pre_compose_up must be an array")
+            hooks = []
+            for index, item in enumerate(raw_hooks, start=1):
+                if not isinstance(item, dict):
+                    raise RuntimeError("release hook entries must be objects")
+                if item.get("enabled", True) is False:
+                    continue
+                service = str(item.get("service") or "").strip()
+                if not service:
+                    raise RuntimeError("release hook service is required")
+                name = str(item.get("name") or f"pre_compose_up_{index}").strip()
+                command = validate_hook_command(item.get("command"))
+                try:
+                    timeout_seconds = int(item.get("timeout_seconds") or 300)
+                except (TypeError, ValueError):
+                    raise RuntimeError(f"invalid timeout_seconds for release hook: {name}")
+                hooks.append(
+                    {
+                        "name": name,
+                        "service": service,
+                        "command": command,
+                        "timeout_seconds": max(1, min(timeout_seconds, 3600)),
+                        "required": item.get("required", True) is not False,
+                    }
+                )
+            return hooks
+
+
+        def compose_project_services(compose_cmd: list[str], compose_path: Path, project_directory: str, env: dict) -> set[str]:
+            process = subprocess.run(
+                [
+                    *compose_cmd,
+                    "-f",
+                    str(compose_path),
+                    "--project-directory",
+                    project_directory,
+                    "config",
+                    "--services",
+                ],
+                cwd=compose_path.parent,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return {line.strip() for line in process.stdout.splitlines() if line.strip()}
+
+
+        def run_pre_compose_hooks(
+            hooks: list[dict],
+            *,
+            compose_cmd: list[str],
+            compose_path: Path,
+            project_directory: str,
+            env: dict,
+            deploy_result: dict,
+        ) -> None:
+            if not hooks:
+                return
+            if not compose_path.exists():
+                raise RuntimeError("release hooks require docker-compose.yml under project root")
+            available_services = compose_project_services(compose_cmd, compose_path, project_directory, env)
+            hook_results = deploy_result.setdefault("pre_compose_up_hooks", [])
+            for hook in hooks:
+                if hook["service"] not in available_services:
+                    raise RuntimeError(f"release hook service not found in compose: {hook['service']}")
+                command = [
+                    *compose_cmd,
+                    "-f",
+                    str(compose_path),
+                    "--project-directory",
+                    project_directory,
+                    "run",
+                    "--rm",
+                    "--no-deps",
+                    hook["service"],
+                    *hook["command"],
+                ]
+                print(f"running pre_compose_up hook {hook['name']}: service={hook['service']}")
+                started_at = time.monotonic()
+                try:
+                    process = subprocess.run(
+                        command,
+                        cwd=compose_path.parent,
+                        env=env,
+                        capture_output=True,
+                        text=True,
+                        timeout=hook["timeout_seconds"],
+                        check=False,
+                    )
+                except subprocess.TimeoutExpired as exc:
+                    result = {
+                        "name": hook["name"],
+                        "service": hook["service"],
+                        "command": hook["command"],
+                        "status": "timed_out",
+                        "timeout_seconds": hook["timeout_seconds"],
+                        "stdout": truncate_text(exc.stdout if isinstance(exc.stdout, str) else ""),
+                        "stderr": truncate_text(exc.stderr if isinstance(exc.stderr, str) else ""),
+                        "duration_seconds": round(time.monotonic() - started_at, 3),
+                    }
+                    hook_results.append(result)
+                    raise RuntimeError(f"pre_compose_up hook timed out: {hook['name']}")
+                result = {
+                    "name": hook["name"],
+                    "service": hook["service"],
+                    "command": hook["command"],
+                    "status": "success" if process.returncode == 0 else "failed",
+                    "returncode": process.returncode,
+                    "stdout": truncate_text(process.stdout),
+                    "stderr": truncate_text(process.stderr),
+                    "duration_seconds": round(time.monotonic() - started_at, 3),
+                }
+                hook_results.append(result)
+                if process.returncode != 0:
+                    if hook["required"]:
+                        raise RuntimeError(f"pre_compose_up hook failed: {hook['name']}")
+                    print(f"optional pre_compose_up hook failed: {hook['name']}")
+
+
+        def write_deploy_result(path_value: str, payload: dict) -> None:
+            if not path_value:
+                return
+            result_path = Path(path_value)
+            result_path.parent.mkdir(parents=True, exist_ok=True)
+            result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
         manifest_path = Path(os.environ["DEPLOY_MANIFEST_PATH"])
         project_root = Path(os.environ.get("DEPLOY_PROJECT_ROOT", "/workspace"))
         project_host_root = str(
@@ -2977,6 +3207,7 @@ def _render_deploy_release_script() -> str:
         ).strip()
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
         version = str(payload.get("version") or "")
+        pre_compose_hooks = normalize_pre_compose_hooks(payload)
         services = []
         compose_env = os.environ.copy()
         compose_cmd = compose_base_command()
@@ -2986,6 +3217,7 @@ def _render_deploy_release_script() -> str:
         artifact_storage = payload.get("artifact_storage") if isinstance(payload.get("artifact_storage"), dict) else {}
         storage_client = None
         storage_provider = None
+        deploy_result_path = str(os.environ.get("DEPLOY_RESULT_PATH") or "").strip()
 
         for component in payload.get("components", []):
             image = str(component.get("image") or "").strip()
@@ -3024,57 +3256,58 @@ def _render_deploy_release_script() -> str:
                 print(f"pulling external image: {image}")
                 subprocess.run(["docker", "pull", image], check=True)
 
+        deploy_result = {
+            "version": version,
+            "deployed_images": image_overrides,
+            "stable_image_tags": stable_image_tags,
+            "pre_compose_up_hooks": [],
+        }
         compose_path = project_root / "docker-compose.yml"
-        if compose_path.exists():
-            print(f"restarting compose stack: {compose_path}")
-            print(f"compose project directory: {project_host_root}")
-            command = [*compose_cmd]
-            command.extend(
-                [
-                    "-f",
-                    str(compose_path),
-                    "--project-directory",
-                    project_host_root,
-                    "up",
-                    "-d",
-                    "--no-deps",
-                    "--no-build",
-                ]
+        try:
+            run_pre_compose_hooks(
+                pre_compose_hooks,
+                compose_cmd=compose_cmd,
+                compose_path=compose_path,
+                project_directory=project_host_root,
+                env=compose_env,
+                deploy_result=deploy_result,
             )
-            if services:
-                deduped = []
-                seen = set()
-                for service in services:
-                    if service not in seen:
-                        seen.add(service)
-                        deduped.append(service)
-                command.extend(deduped)
-            try:
+            if compose_path.exists():
+                print(f"restarting compose stack: {compose_path}")
+                print(f"compose project directory: {project_host_root}")
+                command = [*compose_cmd]
+                command.extend(
+                    [
+                        "-f",
+                        str(compose_path),
+                        "--project-directory",
+                        project_host_root,
+                        "up",
+                        "-d",
+                        "--no-deps",
+                        "--no-build",
+                    ]
+                )
+                if services:
+                    deduped = []
+                    seen = set()
+                    for service in services:
+                        if service not in seen:
+                            seen.add(service)
+                            deduped.append(service)
+                    command.extend(deduped)
                 apply_stable_tags(stable_image_tags, image_overrides)
                 subprocess.run(command, cwd=project_root, env=compose_env, check=True)
-            except subprocess.CalledProcessError:
+            else:
+                print("docker-compose.yml not found under project root, skip compose up")
+                apply_stable_tags(stable_image_tags, image_overrides)
+        except Exception:
+            if previous_stable_image_ids:
                 restore_stable_tags(previous_stable_image_ids)
-                raise
-        else:
-            print("docker-compose.yml not found under project root, skip compose up")
-            apply_stable_tags(stable_image_tags, image_overrides)
+            write_deploy_result(deploy_result_path, deploy_result)
+            raise
 
-        deploy_result_path = str(os.environ.get("DEPLOY_RESULT_PATH") or "").strip()
-        if deploy_result_path:
-            result_path = Path(deploy_result_path)
-            result_path.parent.mkdir(parents=True, exist_ok=True)
-            result_path.write_text(
-                json.dumps(
-                    {
-                        "version": version,
-                        "deployed_images": image_overrides,
-                        "stable_image_tags": stable_image_tags,
-                    },
-                    ensure_ascii=False,
-                    indent=2,
-                ),
-                encoding="utf-8",
-            )
+        write_deploy_result(deploy_result_path, deploy_result)
 
         print(f"deployment finished for version {version}")
         PY

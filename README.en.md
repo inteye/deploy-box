@@ -179,6 +179,28 @@ services:
 
 The deployment detail page shows the exact images injected for the release and the stable `latest` tags maintained by deploy-agent, which makes restart and compose-recreate issues easier to diagnose.
 
+## Pre Compose Up Steps
+
+For migrations or other one-off operations that must run before `docker compose up -d`, configure a generic hook in `deploy/release.config.json`:
+
+```json
+{
+  "release_hooks": {
+    "pre_compose_up": [
+      {
+        "name": "db_migrate",
+        "service": "backend",
+        "command": ["python", "manage.py", "migrate", "--noinput"],
+        "timeout_seconds": 300,
+        "required": true
+      }
+    ]
+  }
+}
+```
+
+deploy-agent only accepts array commands and runs them through `docker compose run --rm --no-deps <service> ...`. If a required step fails, deployment stops before `compose up`, stable `latest` tags are not updated, and the deployment detail page shows the hook result.
+
 ## deploy-agent Setup
 
 Starter bundle includes:

@@ -181,6 +181,28 @@ services:
 
 部署任务详情页的“当前镜像环境”会展示本次发布注入的精确镜像，以及 deploy-agent 维护的稳定 `latest` tag，方便排查服务器重启或 compose 重建后的镜像来源。
 
+## Pre Compose Up 步骤
+
+需要在 `docker compose up -d` 前执行迁移、索引准备等一次性操作时，可以在 `deploy/release.config.json` 中配置通用 hook：
+
+```json
+{
+  "release_hooks": {
+    "pre_compose_up": [
+      {
+        "name": "db_migrate",
+        "service": "backend",
+        "command": ["python", "manage.py", "migrate", "--noinput"],
+        "timeout_seconds": 300,
+        "required": true
+      }
+    ]
+  }
+}
+```
+
+deploy-agent 只接受数组形式命令，并通过 `docker compose run --rm --no-deps <service> ...` 执行。必需步骤失败时不会继续 `compose up`，也不会更新稳定 `latest` 标签；部署详情页会展示 hook 执行结果。
+
 ## deploy-agent 接入
 
 starter 包会生成：
