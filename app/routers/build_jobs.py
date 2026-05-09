@@ -17,12 +17,32 @@ def list_build_jobs(db: Session = Depends(get_db)):
     return db.scalars(select(BuildJob).order_by(BuildJob.created_at.desc()).limit(100)).all()
 
 
-@router.get("/{build_job_id}", response_model=BuildJobRead)
-def get_build_job(build_job_id: int, db: Session = Depends(get_db)):
+@router.get("/{build_job_id}")
+def get_build_job(build_job_id: int, request: Request, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     build_job = db.get(BuildJob, build_job_id)
     if not build_job:
         raise HTTPException(status_code=404, detail="build_job_not_found")
-    return build_job
+    translation = get_translation(get_locale(request, current_user))
+    return {
+        "id": build_job.id,
+        "project_id": build_job.project_id,
+        "environment_id": build_job.environment_id,
+        "template_id": build_job.template_id,
+        "status": build_job.status,
+        "current_stage": build_job.current_stage,
+        "progress_percent": build_job.progress_percent,
+        "output_version": build_job.output_version,
+        "storage_mode": build_job.storage_mode,
+        "artifact_mode": build_job.artifact_mode,
+        "manifest_url": build_job.manifest_url,
+        "result_json": build_job.result_json,
+        "log_excerpt": translate_runtime_text(translation, build_job.log_excerpt),
+        "triggered_by": build_job.triggered_by,
+        "started_at": build_job.started_at,
+        "finished_at": build_job.finished_at,
+        "created_at": build_job.created_at,
+        "updated_at": build_job.updated_at,
+    }
 
 
 @router.get("/{build_job_id}/events", response_model=list[BuildJobEventRead])

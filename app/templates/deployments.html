@@ -46,7 +46,7 @@
           </div>
           <div class="mt-3 break-words text-lg font-semibold tracking-tight text-slate-900">{{ _('部署') }} #{{ deployment.id }} · {{ deployment.release.version }}</div>
           <p class="mt-1 break-words text-sm leading-6 text-slate-500">{{ deployment.triggered_by or '-' }} · {{ deployment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-          <p class="mt-2 break-words text-sm leading-6 text-slate-500">{{ deployment.status_reason or _('等待状态更新') }}</p>
+          <p class="mt-2 break-words text-sm leading-6 text-slate-500">{{ (deployment.status_reason or _('等待状态更新')) | rt }}</p>
         </div>
         <div class="flex flex-wrap gap-2">
           <a class="button-secondary" href="/console/deployments?deployment_id={{ deployment.id }}{% if deployments_pagination.page > 1 %}&page={{ deployments_pagination.page }}{% endif %}">{{ _('查看摘要') }}</a>
@@ -88,7 +88,7 @@
       </div>
       <div class="mt-3 text-xl font-semibold tracking-tight text-slate-900 break-words">{{ selected_deployment.release.version }}</div>
       <p class="mt-2 break-words text-sm leading-6 text-slate-500">{{ selected_deployment.project.name }}</p>
-      <p class="mt-2 break-words text-sm leading-6 text-slate-500">{{ selected_deployment.status_reason or _('等待状态更新') }}</p>
+      <p class="mt-2 break-words text-sm leading-6 text-slate-500">{{ (selected_deployment.status_reason or _('等待状态更新')) | rt }}</p>
       <div class="mt-4 flex flex-wrap gap-3">
         <a class="button-primary" href="/console/deployments/{{ selected_deployment.id }}">{{ _('打开详情页') }}</a>
       </div>

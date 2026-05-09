@@ -75,6 +75,7 @@ def render(request: Request, template_name: str, **context):
     lang = get_locale(request, user)
     translation = get_translation(lang)
     templates.env.install_gettext_translations(translation, newstyle=True)  # type: ignore[attr-defined]
+    templates.env.filters["rt"] = lambda text: translate_runtime_text(translation, text) or text
     base_context = {
         "request": request,
         "current_path": request.url.path,
@@ -588,7 +589,7 @@ def dashboard_page(
     return render(
         request,
         "dashboard.html",
-        title="Dashboard",
+        title=tr(request, current_user, "总览"),
         current_user=current_user,
         projects=projects,
         recent_builds=recent_builds,

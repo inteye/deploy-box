@@ -136,7 +136,7 @@
           <span>{{ check.project.name }}</span>
           <span>{{ check.score }}</span>
         </div>
-        <div class="mt-3 break-words text-sm text-slate-900">{{ check.summary }}</div>
+        <div class="mt-3 break-words text-sm text-slate-900">{{ check.summary | rt }}</div>
         <div class="mt-3">
           <a class="button-secondary" href="/console/projects/{{ check.project_id }}?tab=governance">{{ _('查看治理面板') }}</a>
         </div>

@@ -3359,3 +3359,351 @@ msgstr ""
 #~ msgid "构建导航"
 #~ msgstr "构建"
 
+msgid "当前项目未绑定制品仓库"
+msgstr "当前项目未绑定制品仓库"
+
+msgid "不支持的制品模式，只能是 auto、oss 或 local"
+msgstr "不支持的制品模式，只能是 auto、oss 或 local"
+
+msgid "组件名不能为空"
+msgstr "组件名不能为空"
+
+msgid "Compose service 名不能为空"
+msgstr "Compose service 名不能为空"
+
+msgid "镜像地址不能为空"
+msgstr "镜像地址不能为空"
+
+msgid "组件不存在"
+msgstr "组件不存在"
+
+msgid "构建模板不存在"
+msgstr "构建模板不存在"
+
+msgid "未在 compose 文件中解析到 services"
+msgstr "未在 compose 文件中解析到 services"
+
+msgid "未找到默认构建模板 manifest_script_v1"
+msgstr "未找到默认构建模板 manifest_script_v1"
+
+msgid "项目尚未绑定构建模板"
+msgstr "项目尚未绑定构建模板"
+
+msgid "当前项目还没有可用组件，请先在接入配置里维护组件"
+msgstr "当前项目还没有可用组件，请先在接入配置里维护组件"
+
+msgid "本次构建没有选中任何可发布组件"
+msgstr "本次构建没有选中任何可发布组件"
+
+msgid "打包脚本输出缺少 Version 或 Release package created at"
+msgstr "打包脚本输出缺少 Version 或 Release package created at"
+
+msgid "构建配置必须是 JSON 对象"
+msgstr "构建配置必须是 JSON 对象"
+
+msgid "当前项目没有启用中的组件，请先维护组件配置"
+msgstr "当前项目没有启用中的组件，请先维护组件配置"
+
+msgid "本次没有可构建组件，请至少选择一个启用中的组件"
+msgstr "本次没有可构建组件，请至少选择一个启用中的组件"
+
+msgid "manifest 中缺少有效 components"
+msgstr "manifest 中缺少有效 components"
+
+msgid "Compose 文件格式无效，根节点必须是对象"
+msgstr "Compose 文件格式无效，根节点必须是对象"
+
+msgid "Compose 文件缺少 services 配置"
+msgstr "Compose 文件缺少 services 配置"
+
+msgid "版本已存在，请更换版本号后重试"
+msgstr "版本已存在，请更换版本号后重试"
+
+msgid "组件名已存在"
+msgstr "组件名已存在"
+
+msgid "Compose service 已存在"
+msgstr "Compose service 已存在"
+
+msgid "Compose 文件不存在"
+msgstr "Compose 文件不存在"
+
+msgid "工作目录不存在"
+msgstr "工作目录不存在"
+
+msgid "打包脚本不存在"
+msgstr "打包脚本不存在"
+
+msgid "未找到 manifest 文件"
+msgstr "未找到 manifest 文件"
+
+msgid "未找到组件文件"
+msgstr "未找到组件文件"
+
+msgid "触发发布失败"
+msgstr "触发发布失败"
+
+msgid "轮询状态失败"
+msgstr "轮询状态失败"
+
+msgid "当前仅支持 manifest_script_v1，实际为"
+msgstr "当前仅支持 manifest_script_v1，实际为"
+
+msgid "项目负责人"
+msgstr "项目负责人"
+
+msgid "发布负责人"
+msgstr "发布负责人"
+
+msgid "发布检查清单"
+msgstr "发布检查清单"
+
+msgid "项目工作区"
+msgstr "项目工作区"
+
+msgid "构建模板"
+msgstr "构建模板"
+
+msgid "启用组件"
+msgstr "启用组件"
+
+msgid "构建型组件"
+msgstr "构建型组件"
+
+msgid "部署环境"
+msgstr "部署环境"
+
+msgid "默认制品仓库"
+msgstr "默认制品仓库"
+
+msgid "已指定项目负责人"
+msgstr "已指定项目负责人"
+
+msgid "未指定项目负责人"
+msgstr "未指定项目负责人"
+
+msgid "已指定发布负责人"
+msgstr "已指定发布负责人"
+
+msgid "建议指定发布负责人，便于变更追踪"
+msgstr "建议指定发布负责人，便于变更追踪"
+
+msgid "建议补充发布前检查清单"
+msgstr "建议补充发布前检查清单"
+
+msgid "工作区不可用"
+msgstr "工作区不可用"
+
+msgid "已配置构建模板"
+msgstr "已配置构建模板"
+
+msgid "未配置构建模板"
+msgstr "未配置构建模板"
+
+msgid "没有启用中的组件"
+msgstr "没有启用中的组件"
+
+msgid "当前没有构建型组件，默认依赖外部镜像"
+msgstr "当前没有构建型组件，默认依赖外部镜像"
+
+msgid "尚未配置部署环境"
+msgstr "尚未配置部署环境"
+
+msgid "已绑定项目默认制品仓库"
+msgstr "已绑定项目默认制品仓库"
+
+msgid "未绑定项目默认制品仓库，将回退全局存储模式"
+msgstr "未绑定项目默认制品仓库，将回退全局存储模式"
+
+msgid "已维护发布检查项"
+msgstr "已维护发布检查项"
+
+msgid "当前启用了个组件"
+msgstr "当前启用了个组件"
+
+msgid "当前有个构建型组件"
+msgstr "当前有个构建型组件"
+
+msgid "已配置了个环境"
+msgstr "已配置了个环境"
+
+msgid "项失败，项警告"
+msgstr "项失败，项警告"
+
+msgid "项警告，建议修正后再发布"
+msgstr "项警告，建议修正后再发布"
+
+msgid "关键检查全部通过"
+msgstr "关键检查全部通过"
+
+msgid "正在提交发布请求"
+msgstr "正在提交发布请求"
+
+msgid "已提交"
+msgstr "已提交"
+
+msgid "触发请求等待较久，已提交并改为后台轮询状态"
+msgstr "触发请求等待较久，已提交并改为后台轮询状态"
+
+msgid "长时间未能确认最终状态，请继续手动刷新"
+msgstr "长时间未能确认最终状态，请继续手动刷新"
+
+msgid "构建任务已创建"
+msgstr "构建任务已创建"
+
+msgid "开始执行打包脚本"
+msgstr "开始执行打包脚本"
+
+msgid "正在解析 manifest"
+msgstr "正在解析 manifest"
+
+msgid "开始上传到 OSS"
+msgstr "开始上传到 OSS"
+
+msgid "使用本地制品站登记 release"
+msgstr "使用本地制品站登记 release"
+
+msgid "登记 release 并同步组件"
+msgstr "登记 release 并同步组件"
+
+msgid "正在构建组件"
+msgstr "正在构建组件"
+
+msgid "已完成组件"
+msgstr "已完成组件"
+
+msgid "已完成外部镜像"
+msgstr "已完成外部镜像"
+
+msgid "已上传组件"
+msgstr "已上传组件"
+
+msgid "为外部镜像，跳过 tar 上传"
+msgstr "为外部镜像，跳过 tar 上传"
+
+msgid "自动执行项目的质量检查"
+msgstr "自动执行项目的质量检查"
+
+msgid "脚本打包模板"
+msgstr "脚本打包模板"
+
+msgid "执行项目已有打包脚本，产出 manifest 与多组件制品。"
+msgstr "执行项目已有打包脚本，产出 manifest 与多组件制品。"
+
+msgid "上传已有制品模板"
+msgstr "上传已有制品模板"
+
+msgid "适合已有外部构建系统，仅在控制台登记与上传已有 release。"
+msgstr "适合已有外部构建系统，仅在控制台登记与上传已有 release。"
+
+msgid "顶层 version 字段已过时"
+msgstr "顶层 version 字段已过时"
+
+msgid "Docker Compose v2 会忽略它，建议直接删除，避免误解。"
+msgstr "Docker Compose v2 会忽略它，建议直接删除，避免误解。"
+
+msgid "同时存在 build 配置"
+msgstr "同时存在 build 配置"
+
+msgid "发布态建议以 image 为准，避免 docker compose 在目标机上重新构建本地镜像。"
+msgstr "发布态建议以 image 为准，避免 docker compose 在目标机上重新构建本地镜像。"
+
+msgid "只有 build 没有 image"
+msgstr "只有 build 没有 image"
+
+msgid "这会导致部署后很难确认容器是否真的切换到本次 release 镜像。"
+msgstr "这会导致部署后很难确认容器是否真的切换到本次 release 镜像。"
+
+msgid "使用 latest 标签"
+msgstr "使用 latest 标签"
+
+msgid "裸 latest 不利于追踪版本；建议使用推荐写法，发布时用精确版本，重启时回退到 deploy-agent 维护的 latest。"
+msgstr "裸 latest 不利于追踪版本；建议使用推荐写法，发布时用精确版本，重启时回退到 deploy-agent 维护的 latest。"
+
+msgid "未接入"
+msgstr "未接入"
+
+msgid "建议改成推荐写法。发布时 deploy-agent 注入精确版本；部署成功后再维护同仓库 latest，裸 docker compose up -d 也能复用最新成功镜像。"
+msgstr "建议改成推荐写法。发布时 deploy-agent 注入精确版本；部署成功后再维护同仓库 latest，裸 docker compose up -d 也能复用最新成功镜像。"
+
+msgid "存在源码目录挂载"
+msgstr "存在源码目录挂载"
+
+msgid "会覆盖镜像内代码，发布后即使切换 tag 也可能看不到效果。"
+msgstr "会覆盖镜像内代码，发布后即使切换 tag 也可能看不到效果。"
+
+msgid "已为组件追加推荐 service"
+msgstr "已为组件追加推荐 service"
+
+msgid "该组件存在于 DeployBox 配置中，但当前 compose 文件里还没有对应 service，推荐文件已补上最小定义。"
+msgstr "该组件存在于 DeployBox 配置中，但当前 compose 文件里还没有对应 service，推荐文件已补上最小定义。"
+
+msgid "当前 compose 基本符合发布接入要求"
+msgstr "当前 compose 基本符合发布接入要求"
+
+msgid "仍建议保留固定镜像版本或 DEPLOY_IMAGE_* 注入，以方便追踪实际运行镜像。"
+msgstr "仍建议保留固定镜像版本或 DEPLOY_IMAGE_* 注入，以方便追踪实际运行镜像。"
+
+msgid "系统管理员"
+msgstr "系统管理员"
+
+msgid "接入管理员"
+msgstr "接入管理员"
+
+msgid "构建管理员"
+msgstr "构建管理员"
+
+msgid "发布管理员"
+msgstr "发布管理员"
+
+msgid "审计查看者"
+msgstr "审计查看者"
+
+msgid "还没有启用中的组件，请先在控制台里维护组件"
+msgstr "还没有启用中的组件，请先在控制台里维护组件"
+
+
+msgid "版本号不能为空，且 manifest 中未包含 version"
+msgstr "版本号不能为空，且 manifest 中未包含 version"
+
+msgid "表单版本号与 manifest 中的 version 不一致"
+msgstr "表单版本号与 manifest 中的 version 不一致"
+
+msgid "至少需要上传一个组件 tar 文件"
+msgstr "至少需要上传一个组件 tar 文件"
+
+msgid "缺少组件文件"
+msgstr "缺少组件文件"
+
+msgid "Release 已上传并登记"
+msgstr "Release 已上传并登记"
+
+msgid "OSS 未启用，请先设置 USE_OSS=true"
+msgstr "OSS 未启用，请先设置 USE_OSS=true"
+
+msgid "OSS 配置不完整，缺少"
+msgstr "OSS 配置不完整，缺少"
+
+msgid "Pre Compose Up 步骤"
+msgstr "Pre Compose Up 步骤"
+
+msgid "deploy-agent 会在 compose up 前按 release manifest 执行结构化一次性步骤；任一必需步骤失败会中断部署。"
+msgstr "deploy-agent 会在 compose up 前按 release manifest 执行结构化一次性步骤；任一必需步骤失败会中断部署。"
+
+msgid "deploy-agent 发布时注入当前 release 的 DEPLOY_IMAGE_*，部署成功后维护同仓库 latest，方便服务器重启后裸 docker compose up -d。"
+msgstr "deploy-agent 发布时注入当前 release 的 DEPLOY_IMAGE_*，部署成功后维护同仓库 latest，方便服务器重启后裸 docker compose up -d。"
+
+msgid "当前镜像环境"
+msgstr "当前镜像环境"
+
+msgid "当前 release 没有返回 pre_compose_up 执行记录。"
+msgstr "当前 release 没有返回 pre_compose_up 执行记录。"
+
+msgid "目标状态暂未返回本次发布镜像信息。"
+msgstr "目标状态暂未返回本次发布镜像信息。"
+
+msgid "稳定 latest 标签"
+msgstr "稳定 latest 标签"
+
+msgid "目标状态暂未返回稳定 latest 标签。"
+msgstr "目标状态暂未返回稳定 latest 标签。"

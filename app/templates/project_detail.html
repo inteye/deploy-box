@@ -83,7 +83,7 @@
   <div class="notice-card mt-4">{{ _('组件配置刚刚发生变化。推荐 `docker-compose.yml` 已按当前组件配置重新计算，建议重新下载并合并到你的项目中。') }}</div>
   {% endif %}
   {% if compose_analysis_error %}
-  <div class="error-card mt-4">{{ compose_analysis_error }}</div>
+  <div class="error-card mt-4">{{ compose_analysis_error | rt }}</div>
   {% elif compose_analysis %}
   <details class="mt-4">
     <summary class="summary-toggle">{{ _('点击展开 Compose 规范检查') }}</summary>
@@ -541,7 +541,7 @@
           <span>{{ check.score }}</span>
           <span>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
         </div>
-        <div class="mt-3 break-words text-sm text-slate-900">{{ check.summary }}</div>
+        <div class="mt-3 break-words text-sm text-slate-900">{{ check.summary | rt }}</div>
         {% if check.result_json %}
         <details class="mt-3">
           <summary class="summary-toggle">{{ _('点击展开检查结果') }}</summary>

@@ -48,10 +48,10 @@
         </div>
 
         {% if notice %}
-        <div class="notice-card mb-4">{{ notice }}</div>
+        <div class="notice-card mb-4">{{ notice | rt }}</div>
         {% endif %}
         {% if error %}
-        <div class="error-card mb-4">{{ error }}</div>
+        <div class="error-card mb-4">{{ error | rt }}</div>
         {% endif %}
 
         <div class="grid gap-6 xl:grid-cols-workspace">

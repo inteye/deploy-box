@@ -86,7 +86,7 @@
 
 <section class="panel-card">
   <div class="section-title">{{ _('日志摘要') }}</div>
-  <pre id="build-log" class="mt-5 overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100">{{ build_job.log_excerpt or _('暂无日志摘要') }}</pre>
+  <pre id="build-log" class="mt-5 overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100">{{ (build_job.log_excerpt or _('暂无日志摘要')) | rt }}</pre>
 </section>
 
 <script>
