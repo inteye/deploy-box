@@ -41,7 +41,6 @@ def get_build_job(build_job_id: int, request: Request, db: Session = Depends(get
         "started_at": build_job.started_at,
         "finished_at": build_job.finished_at,
         "created_at": build_job.created_at,
-        "updated_at": build_job.updated_at,
     }
 
 

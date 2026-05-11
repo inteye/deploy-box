@@ -24,13 +24,13 @@ def _translate_deployment(translation, deployment):
         "progress_percent": deployment.progress_percent,
         "triggered_by": deployment.triggered_by,
         "submitted_at": deployment.submitted_at,
+        "started_at": deployment.started_at,
         "finished_at": deployment.finished_at,
         "last_polled_at": deployment.last_polled_at,
         "log_excerpt": translate_runtime_text(translation, deployment.log_excerpt),
         "adapter_response_json": deployment.adapter_response_json,
         "last_status_json": deployment.last_status_json,
         "created_at": deployment.created_at,
-        "updated_at": deployment.updated_at,
     }
 
 
