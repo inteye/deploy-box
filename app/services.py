@@ -1043,7 +1043,7 @@ def execute_deployment_job(deployment_id: int) -> None:
                 deployment.progress_percent = 100
                 db.commit()
                 return
-        except httpx.TimeoutException as exc:
+        except (httpx.TimeoutException, httpx.RemoteProtocolError, httpx.ConnectError) as exc:
             deployment.submitted_at = datetime.now(timezone.utc)
             deployment.status = "timed_out_but_running"
             deployment.progress_percent = 25
@@ -1052,10 +1052,11 @@ def execute_deployment_job(deployment_id: int) -> None:
                 {
                     "detail": "trigger_request_timed_out_polling_in_background",
                     "message": "触发请求等待较久，已提交并改为后台轮询状态",
+                    "original_error": type(exc).__name__,
                 },
                 ensure_ascii=True,
             )
-            deployment.log_excerpt = "触发请求等待较久，已提交并改为后台轮询状态"
+            deployment.log_excerpt = f"触发请求等待较久，已提交并改为后台轮询状态\n({type(exc).__name__}: {exc})"
             db.commit()
         except httpx.HTTPStatusError as exc:
             deployment.status = "failed"
