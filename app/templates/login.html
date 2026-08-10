@@ -1,38 +1,53 @@
 {% extends "base.html" %}
 {% block auth_content %}
-<main class="flex min-h-screen items-center justify-center px-4 py-10">
-  <section class="grid w-full max-w-5xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-    <article class="panel-card flex flex-col justify-between">
-      <div>
+<main id="main-content" tabindex="-1" class="login-shell">
+  <section class="login-layout">
+    <article class="login-brand-panel">
+      <div class="relative z-10">
         <div class="inline-flex items-center gap-3">
-          <img src="{{ request.url_for('static', path='branding/deploybox-logo.svg') }}" alt="DeployBox" class="h-12 w-12 shrink-0 rounded-2xl bg-white/70 object-contain shadow-sm">
-          <div class="soft-badge">DeployBox</div>
+          <img src="{{ request.url_for('static', path='branding/deploybox-logo.svg') }}" alt="DeployBox" class="h-12 w-12 shrink-0 rounded-xl bg-white object-contain shadow-sm">
+          <div>
+            <div class="text-lg font-semibold tracking-[-0.025em] text-slate-950">DeployBox</div>
+            <div class="text-xs font-medium text-pine-800">{{ _('构建、制品与发布统一工作台') }}</div>
+          </div>
         </div>
-        <h1 class="mt-4 text-4xl font-semibold tracking-tight text-slate-900">{{ _('登录独立发布控制台') }}</h1>
-        <p class="mt-3 max-w-xl text-sm leading-7 text-slate-600">{{ _('统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。') }}</p>
-      </div>
-      <div class="mt-8 grid gap-3 sm:grid-cols-3">
-        <div class="list-card"><div class="text-base font-semibold text-slate-900">{{ _('项目') }}</div><p class="mt-1 text-sm text-slate-500">{{ _('统一接入和模板配置') }}</p></div>
-        <div class="list-card"><div class="text-base font-semibold text-slate-900">{{ _('构建') }}</div><p class="mt-1 text-sm text-slate-500">{{ _('版本化制品与日志跟踪') }}</p></div>
-        <div class="list-card"><div class="text-base font-semibold text-slate-900">{{ _('部署') }}</div><p class="mt-1 text-sm text-slate-500">{{ _('异步发布与回滚') }}</p></div>
+        <h1 class="mt-12 max-w-xl text-4xl font-semibold leading-[1.08] tracking-[-0.045em] text-slate-950 sm:text-5xl">{{ _('登录独立发布控制台') }}</h1>
+        <p class="mt-5 max-w-xl text-base leading-7 text-slate-600">{{ _('统一管理项目接入、构建模板、制品生成、发布任务和回滚操作。') }}</p>
+
+        <div class="workflow-line">
+          <div class="workflow-step">
+            <div class="text-sm font-semibold text-slate-900">{{ _('项目') }}</div>
+            <p class="mt-1 text-xs leading-5 text-slate-500">{{ _('统一接入和模板配置') }}</p>
+          </div>
+          <div class="workflow-step">
+            <div class="text-sm font-semibold text-slate-900">{{ _('构建') }}</div>
+            <p class="mt-1 text-xs leading-5 text-slate-500">{{ _('版本化制品与日志跟踪') }}</p>
+          </div>
+          <div class="workflow-step">
+            <div class="text-sm font-semibold text-slate-900">{{ _('部署') }}</div>
+            <p class="mt-1 text-xs leading-5 text-slate-500">{{ _('异步发布与回滚') }}</p>
+          </div>
+        </div>
       </div>
     </article>
 
-    <section class="panel-card">
-      <div class="section-title">{{ _('登录') }}</div>
-      <p class="section-copy">{{ _('输入管理员账号进入控制台。') }}</p>
+    <section class="login-form-panel">
+      <div class="soft-badge">DeployBox</div>
+      <h2 class="mt-6 text-2xl font-semibold tracking-[-0.035em] text-slate-950">{{ _('登录') }}</h2>
+      <p class="mt-2 text-sm leading-6 text-slate-500">{{ _('输入管理员账号进入控制台。') }}</p>
       {% if error %}
-      <div class="error-card mt-4">{{ error }}</div>
+      <div class="error-card mt-5">{{ error }}</div>
       {% endif %}
-      <form method="post" action="/login" class="mt-6 space-y-4">
+      <form method="post" action="/login" class="mt-8 space-y-5">
         <label class="field-label">{{ _('用户名') }}
-          <input class="field-input" type="text" name="username" required>
+          <input class="field-input" type="text" name="username" autocomplete="username" autofocus required>
         </label>
         <label class="field-label">{{ _('密码') }}
-          <input class="field-input" type="password" name="password" required>
+          <input class="field-input" type="password" name="password" autocomplete="current-password" required>
         </label>
-        <button type="submit" class="button-primary w-full">{{ _('登录') }}</button>
+        <button type="submit" class="button-primary mt-2 w-full">{{ _('登录') }}</button>
       </form>
+      <p class="mt-8 border-t border-slate-100 pt-5 text-xs leading-5 text-slate-400">{{ _('主路径：接入 → 生成 → 发布') }}</p>
     </section>
   </section>
 </main>

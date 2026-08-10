@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block left_panel_extra %}
+{% block page_subnav %}
 <section class="panel-card">
   <div class="section-title">{{ _('部署导航') }}</div>
   <p class="section-copy">{{ _('保留返回和任务定位。') }}</p>
@@ -28,7 +28,7 @@
   <p class="mt-2 break-words text-sm leading-7 text-slate-600">{{ deployment.project.name }} / {{ deployment.environment.name }} / {{ deployment.release.version }}</p>
 </section>
 
-<section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+<section class="metrics-grid">
   <article class="kpi-card"><strong id="deployment-status" class="kpi-value">{{ deployment.status }}</strong><span class="text-sm text-slate-500">{{ _('当前状态') }}</span></article>
   <article class="kpi-card"><strong class="kpi-value">{{ deployment.triggered_by or '-' }}</strong><span class="text-sm text-slate-500">{{ _('触发人') }}</span></article>
   <article class="kpi-card"><strong id="deployment-progress" class="kpi-value">{{ deployment.progress_percent or 0 }}%</strong><span class="text-sm text-slate-500">{{ _('进度') }}</span></article>
@@ -48,6 +48,7 @@
   <div class="mt-4 h-3 overflow-hidden rounded-full bg-sand-200">
     <div id="deployment-progress-bar" class="h-full rounded-full bg-pine-700 transition-all" style="width:{{ deployment.progress_percent or 0 }}%;"></div>
   </div>
+  <div id="deployment-poll-status" class="poll-status" aria-live="polite"></div>
 </section>
 
 <section class="panel-card">
@@ -69,12 +70,12 @@
       </article>
       {% endfor %}
     {% else %}
-      <div class="list-card text-sm text-slate-500">{{ _('当前 release 没有返回 pre_compose_up 执行记录。') }}</div>
+      <div class="empty-state">{{ _('当前 release 没有返回 pre_compose_up 执行记录。') }}</div>
     {% endif %}
   </div>
 </section>
 
-<section class="grid gap-4 xl:grid-cols-2">
+<section class="adaptive-two-column">
   <article class="panel-card">
     <div class="section-title">{{ _('基本信息') }}</div>
     <div class="mt-5 overflow-hidden rounded-3xl border border-sand-300/80">
@@ -110,7 +111,7 @@
       </article>
       {% endfor %}
     {% else %}
-      <div class="list-card text-sm text-slate-500">{{ _('目标状态暂未返回本次发布镜像信息。') }}</div>
+      <div class="empty-state">{{ _('目标状态暂未返回本次发布镜像信息。') }}</div>
     {% endif %}
   </div>
   <div class="mt-6 section-title text-base">{{ _('稳定 latest 标签') }}</div>
@@ -123,12 +124,12 @@
       </article>
       {% endfor %}
     {% else %}
-      <div class="list-card text-sm text-slate-500">{{ _('目标状态暂未返回稳定 latest 标签。') }}</div>
+      <div class="empty-state">{{ _('目标状态暂未返回稳定 latest 标签。') }}</div>
     {% endif %}
   </div>
 </section>
 
-<section class="grid gap-4 xl:grid-cols-2">
+<section class="adaptive-two-column">
   <article class="panel-card">
     <div class="section-title">{{ _('Release 组件') }}</div>
     <div class="mt-5 space-y-3">
@@ -141,7 +142,7 @@
         {% endif %}
       </article>
       {% else %}
-      <div class="list-card text-sm text-slate-500">{{ _('当前 release 没有已解析组件。') }}</div>
+      <div class="empty-state">{{ _('当前 release 没有已解析组件。') }}</div>
       {% endfor %}
     </div>
   </article>
@@ -152,7 +153,7 @@
   </article>
 </section>
 
-<section class="grid gap-4 xl:grid-cols-2">
+<section class="adaptive-two-column">
   <article class="panel-card">
     <div class="section-title">{{ _('适配器返回') }}</div>
     <pre id="adapter-response" class="mt-5 overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100">{{ parsed_response | tojson(indent=2) if parsed_response else (deployment.adapter_response_json or _('暂无数据')) }}</pre>
@@ -180,6 +181,7 @@
     const deployedImagesListNode = document.getElementById("deployed-images-list");
     const stableImageTagsListNode = document.getElementById("stable-image-tags-list");
     const preComposeHooksListNode = document.getElementById("pre-compose-hooks-list");
+    const pollStatusNode = document.getElementById("deployment-poll-status");
 
     function shouldKeepPolling(status) {
       return ["queued", "submitted", "running", "timed_out_but_running"].includes(status);
@@ -202,7 +204,7 @@
       const entries = Object.entries(images).sort(([left], [right]) => left.localeCompare(right));
       if (!entries.length) {
         const empty = document.createElement("div");
-        empty.className = "list-card text-sm text-slate-500";
+        empty.className = "empty-state";
         empty.textContent = "{{ _('目标状态暂未返回本次发布镜像信息。') }}";
         deployedImagesListNode.appendChild(empty);
       } else {
@@ -213,7 +215,7 @@
       const stableEntries = Object.entries(stableTags).sort(([left], [right]) => left.localeCompare(right));
       if (!stableEntries.length) {
         const empty = document.createElement("div");
-        empty.className = "list-card text-sm text-slate-500";
+        empty.className = "empty-state";
         empty.textContent = "{{ _('目标状态暂未返回稳定 latest 标签。') }}";
         stableImageTagsListNode.appendChild(empty);
       } else {
@@ -223,7 +225,7 @@
       }
       if (!preComposeHooks.length) {
         const empty = document.createElement("div");
-        empty.className = "list-card text-sm text-slate-500";
+        empty.className = "empty-state";
         empty.textContent = "{{ _('当前 release 没有返回 pre_compose_up 执行记录。') }}";
         preComposeHooksListNode.appendChild(empty);
       } else {
@@ -276,8 +278,18 @@
     async function poll() {
       try {
         const response = await fetch(`/api/deployments/${deploymentId}`, { credentials: "same-origin" });
-        if (!response.ok) return false;
+        if (!response.ok) {
+          if (pollStatusNode) {
+            pollStatusNode.textContent = "{{ _('状态刷新失败，请检查网络连接。') }}";
+            pollStatusNode.classList.add("poll-status-error");
+          }
+          return true;
+        }
         const payload = await response.json();
+        if (pollStatusNode) {
+          pollStatusNode.textContent = "";
+          pollStatusNode.classList.remove("poll-status-error");
+        }
         statusNode.textContent = payload.status;
         statusInlineNode.textContent = payload.status;
         progressNode.textContent = `${payload.progress_percent || 0}%`;
@@ -292,6 +304,10 @@
         renderRuntimeImages(payload.last_status_json || payload.adapter_response_json);
         return shouldKeepPolling(payload.status);
       } catch (_error) {
+        if (pollStatusNode) {
+          pollStatusNode.textContent = "{{ _('状态刷新失败，请检查网络连接。') }}";
+          pollStatusNode.classList.add("poll-status-error");
+        }
         return true;
       }
     }
@@ -311,22 +327,24 @@
 
 {% block right_panel %}
 <section class="panel-card">
-  <div class="section-title">{{ _('回滚') }}</div>
-  <p class="section-copy">{{ _('高风险操作放在右侧，统一走确认弹层。') }}</p>
-  <form method="post" action="/console/deployments/{{ deployment.id }}/rollback" class="mt-5 space-y-4" id="rollback-form" data-confirm-message="">
-    <label class="field-label">{{ _('回滚目标版本') }}
-      <select name="release_id" id="rollback-release-select" class="field-select">
-        {% for release in available_releases %}
-        <option value="{{ release.id }}" {% if release.id == deployment.release_id %}selected{% endif %}>{{ release.version }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <article class="list-card">
-      <div class="meta-line"><span class="soft-badge">{{ _('将影响的组件') }}</span></div>
-      <p id="rollback-components" class="mt-3 break-words text-sm leading-6 text-slate-500">-</p>
-    </article>
-    <button type="submit" id="rollback-submit-button" class="button-danger w-full">{{ _('按所选 Release 的组件版本重新发布') }}</button>
-  </form>
+  <details>
+    <summary class="summary-toggle text-rose-700 hover:border-rose-300 hover:text-rose-800">{{ _('回滚') }}</summary>
+    <p class="section-copy mt-4">{{ _('高风险操作放在右侧，统一走确认弹层。') }}</p>
+    <form method="post" action="/console/deployments/{{ deployment.id }}/rollback" class="mt-5 space-y-4" id="rollback-form" data-confirm-message="">
+      <label class="field-label">{{ _('回滚目标版本') }}
+        <select name="release_id" id="rollback-release-select" class="field-select">
+          {% for release in available_releases %}
+          <option value="{{ release.id }}" {% if release.id == deployment.release_id %}selected{% endif %}>{{ release.version }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <article class="list-card">
+        <div class="meta-line"><span class="soft-badge">{{ _('将影响的组件') }}</span></div>
+        <p id="rollback-components" class="mt-3 break-words text-sm leading-6 text-slate-500">-</p>
+      </article>
+      <button type="submit" id="rollback-submit-button" class="button-danger w-full">{{ _('按所选 Release 的组件版本重新发布') }}</button>
+    </form>
+  </details>
 </section>
 
 <script>

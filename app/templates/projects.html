@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block left_panel_extra %}
-<section class="panel-card">
+<section id="project-create-tools" class="panel-card scroll-mt-24">
   <div class="section-title">{{ _('项目操作') }}</div>
   <p class="section-copy">{{ _('新增和编辑表单默认收起，列表区只负责浏览与选择。') }}</p>
   {% if not has_project_manage_permission %}
@@ -19,9 +19,9 @@
             <input class="field-input" type="text" name="slug" placeholder="sample-service" required>
           </label>
           <label class="field-label">{{ _('项目工作区路径') }}
-            <div class="flex gap-2">
+            <div class="flex flex-col gap-2">
               <input class="field-input" type="text" name="workspace_path" placeholder="{{ _('sample-service 或 services/sample-service') }}" required>
-              <button type="button" class="button-secondary browse-directory-button whitespace-nowrap" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
+              <button type="button" class="button-secondary browse-directory-button w-full whitespace-nowrap" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
             </div>
           </label>
           <label class="field-label">{{ _('镜像仓库前缀') }}
@@ -49,12 +49,19 @@
 
 {% block center_panel %}
 <section class="panel-card">
-  <div class="soft-badge">{{ _('项目管理') }}</div>
-  <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{{ _('把构建与发布收敛成一套可复用的流程') }}</h1>
-  <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{{ _('每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。') }}</p>
+  <div class="relative z-10 flex flex-wrap items-start justify-between gap-5">
+    <div class="w-full min-w-0 sm:flex-1">
+      <div class="soft-badge">{{ _('项目管理') }}</div>
+      <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{{ _('把构建与发布收敛成一套可复用的流程') }}</h1>
+      <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{{ _('每个项目先定义工作区路径、环境和构建模板。项目路径相对于统一工作区根，可对应真实目录，也可对应管理员维护的软链接。') }}</p>
+    </div>
+    {% if has_project_manage_permission %}
+    <a class="button-secondary w-full sm:w-auto" href="#project-create-tools">{{ _('创建并进入接入流程') }}</a>
+    {% endif %}
+  </div>
 </section>
 
-<section class="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+<section class="metrics-grid">
   <article class="kpi-card"><strong class="kpi-value">{{ summary.projects }}</strong><span class="text-sm text-slate-500">{{ _('项目总数') }}</span></article>
   <article class="kpi-card"><strong class="kpi-value">{{ summary.environments }}</strong><span class="text-sm text-slate-500">{{ _('环境总数') }}</span></article>
   <article class="kpi-card"><strong class="kpi-value">{{ summary.releases }}</strong><span class="text-sm text-slate-500">{{ _('已登记 Release') }}</span></article>
@@ -94,7 +101,12 @@
       </div>
     </article>
     {% else %}
-    <div class="list-card text-sm text-slate-500">{{ _('还没有项目，先创建一个项目开始接入。') }}</div>
+    <div class="empty-state">
+      <p>{{ _('还没有项目，先创建一个项目开始接入。') }}</p>
+      {% if has_project_manage_permission %}
+      <a class="button-secondary mt-4" href="#project-create-tools">{{ _('创建并进入接入流程') }}</a>
+      {% endif %}
+    </div>
     {% endfor %}
   </div>
   {% if projects_pagination.total > 0 %}
@@ -113,7 +125,7 @@
   {% endif %}
 </section>
 
-<dialog id="directory-picker" class="w-[min(92vw,46rem)] rounded-[28px] border border-sand-300 bg-white p-0 shadow-shell backdrop:bg-slate-900/40">
+<dialog id="directory-picker" class="confirm-dialog w-[min(92vw,46rem)]">
   <div class="space-y-4 p-6">
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
@@ -268,9 +280,9 @@
             <input class="field-input" type="text" name="slug" value="{{ selected_project.slug }}" required>
           </label>
           <label class="field-label">{{ _('项目工作区路径') }}
-            <div class="flex gap-2">
+            <div class="flex flex-col gap-2">
               <input class="field-input" type="text" name="workspace_path" value="{{ selected_project.workspace_path or '' }}" placeholder="{{ _('sample-service 或 services/sample-service') }}" required>
-              <button type="button" class="button-secondary browse-directory-button whitespace-nowrap" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
+              <button type="button" class="button-secondary browse-directory-button w-full whitespace-nowrap" data-target-input="workspace_path">{{ _('浏览选择') }}</button>
             </div>
           </label>
           <label class="field-label">{{ _('镜像仓库前缀') }}
@@ -296,13 +308,16 @@
       <pre id="workspace-validation-{{ selected_project.id }}" class="mt-4 hidden overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100"></pre>
     </details>
 
-    <form method="post" action="/console/projects/{{ selected_project.id }}/delete" data-confirm-message="{{ _('确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。') }}">
-      <button type="submit" class="button-danger w-full">{{ _('删除项目') }}</button>
-    </form>
+    <details>
+      <summary class="summary-toggle text-rose-700 hover:border-rose-300 hover:text-rose-800">{{ _('删除项目') }}</summary>
+      <form method="post" action="/console/projects/{{ selected_project.id }}/delete" class="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3" data-confirm-message="{{ _('确认删除该项目？这会连同其环境、Release、构建任务和部署记录一起删除。') }}">
+        <button type="submit" class="button-danger w-full">{{ _('删除项目') }}</button>
+      </form>
+    </details>
     {% endif %}
   </div>
   {% else %}
-  <div class="mt-4 list-card text-sm text-slate-500">{{ _('当前页还没有可选项目。') }}</div>
+  <div class="empty-state mt-4">{{ _('当前页还没有可选项目。') }}</div>
   {% endif %}
 </section>
 

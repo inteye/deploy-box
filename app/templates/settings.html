@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block left_panel_extra %}
+{% block page_subnav %}
 <section class="panel-card">
   <div class="section-title">{{ _('设置导航') }}</div>
   <div class="mt-4 space-y-2">
@@ -16,7 +16,7 @@
 {% block center_panel %}
 <section class="panel-card">
   <div class="soft-badge">{{ _('系统设置') }}</div>
-  <h1 class="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{{ _('统一管理账户、仓库、语言与审计') }}</h1>
+  <h1 class="settings-hero-title mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{{ _('统一管理账户、仓库、语言与审计') }}</h1>
   <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{{ _('设置页承担多人协作的基础设施管理，不再把权限和系统配置散落在各个页面里。') }}</p>
   <div class="mt-4 list-card text-sm leading-6 text-slate-500">
     {{ _('系统首次启动时，会自动按启动配置创建默认管理员，并确保其带有 system_admin 角色。') }}
@@ -54,7 +54,7 @@
       </div>
     </article>
     {% else %}
-    <div class="list-card text-sm text-slate-500">{{ _('还没有用户。') }}</div>
+    <div class="empty-state">{{ _('还没有用户。') }}</div>
     {% endfor %}
   </div>
 </section>
@@ -82,7 +82,7 @@
       </div>
     </article>
     {% else %}
-    <div class="list-card text-sm text-slate-500">{{ _('还没有制品仓库。') }}</div>
+    <div class="empty-state">{{ _('还没有制品仓库。') }}</div>
     {% endfor %}
   </div>
 </section>
@@ -105,22 +105,46 @@
 {% elif settings_tab == 'system' %}
 <section class="panel-card">
   <div class="section-title">{{ _('系统与安全') }}</div>
-  <form method="post" action="/console/settings/system" class="mt-5 grid gap-4 md:grid-cols-2">
-    <label class="field-label">{{ _('部署触发超时秒数') }}<input class="field-input" type="text" name="deployment_trigger_timeout_seconds" value="{{ system_settings_map.get('deployment_trigger_timeout_seconds') or '' }}"></label>
-    <label class="field-label">{{ _('部署轮询间隔秒数') }}<input class="field-input" type="text" name="deployment_poll_interval_seconds" value="{{ system_settings_map.get('deployment_poll_interval_seconds') or '' }}"></label>
-    <label class="field-label">{{ _('部署观察超时秒数') }}<input class="field-input" type="text" name="deployment_watch_timeout_seconds" value="{{ system_settings_map.get('deployment_watch_timeout_seconds') or '' }}"></label>
-    <label class="field-label">{{ _('启用自动质量巡检') }}
-      <span class="mt-2 flex items-center gap-2 text-sm font-normal text-slate-600">
-        <input type="checkbox" name="quality_auto_check_enabled" {% if (system_settings_map.get('quality_auto_check_enabled') or 'true') in ['true', '1', 'yes', 'on'] %}checked{% endif %}>
-        <span>{{ _('按周期自动为到期项目执行质量检查') }}</span>
-      </span>
-    </label>
-    <label class="field-label">{{ _('自动巡检间隔（分钟）') }}<input class="field-input" type="text" name="quality_auto_check_interval_minutes" value="{{ system_settings_map.get('quality_auto_check_interval_minutes') or '180' }}"></label>
-    <label class="field-label">{{ _('工作区根路径') }}<input class="field-input" type="text" name="workspace_path" value="{{ system_settings_map.get('workspace_path') or '' }}"></label>
-    <label class="field-label">{{ _('默认打包脚本') }}<input class="field-input" type="text" name="package_script" value="{{ system_settings_map.get('package_script') or '' }}"></label>
-    <label class="field-label">{{ _('公开制品地址') }}<input class="field-input" type="text" name="package_artifact_public_base_url" value="{{ system_settings_map.get('package_artifact_public_base_url') or '' }}"></label>
-    <label class="field-label md:col-span-2">{{ _('本地制品目录') }}<input class="field-input" type="text" name="local_artifacts_path" value="{{ system_settings_map.get('local_artifacts_path') or '' }}"></label>
-    <div class="md:col-span-2"><button type="submit" class="button-primary">{{ _('保存系统设置') }}</button></div>
+  <form method="post" action="/console/settings/system" class="adaptive-two-column mt-5">
+    <section class="form-group form-wide">
+      <div class="section-title text-base">{{ _('部署') }}</div>
+      <div class="adaptive-two-column mt-4">
+        <label class="field-label">{{ _('部署触发超时秒数') }}<input class="field-input" type="number" min="1" inputmode="numeric" name="deployment_trigger_timeout_seconds" value="{{ system_settings_map.get('deployment_trigger_timeout_seconds') or '' }}"></label>
+        <label class="field-label">{{ _('部署轮询间隔秒数') }}<input class="field-input" type="number" min="1" inputmode="numeric" name="deployment_poll_interval_seconds" value="{{ system_settings_map.get('deployment_poll_interval_seconds') or '' }}"></label>
+        <label class="field-label">{{ _('部署观察超时秒数') }}<input class="field-input" type="number" min="1" inputmode="numeric" name="deployment_watch_timeout_seconds" value="{{ system_settings_map.get('deployment_watch_timeout_seconds') or '' }}"></label>
+      </div>
+    </section>
+
+    <section class="form-group form-wide">
+      <div class="section-title text-base">{{ _('质量治理') }}</div>
+      <div class="adaptive-two-column mt-4">
+        <label class="field-label">{{ _('启用自动质量巡检') }}
+          <span class="flex min-h-11 items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-normal text-slate-600">
+            <input type="checkbox" name="quality_auto_check_enabled" {% if (system_settings_map.get('quality_auto_check_enabled') or 'true') in ['true', '1', 'yes', 'on'] %}checked{% endif %}>
+            <span>{{ _('按周期自动为到期项目执行质量检查') }}</span>
+          </span>
+        </label>
+        <label class="field-label">{{ _('自动巡检间隔（分钟）') }}<input class="field-input" type="number" min="1" inputmode="numeric" name="quality_auto_check_interval_minutes" value="{{ system_settings_map.get('quality_auto_check_interval_minutes') or '180' }}"></label>
+      </div>
+    </section>
+
+    <section class="form-group form-wide">
+      <div class="section-title text-base">{{ _('项目工作区路径') }}</div>
+      <div class="adaptive-two-column mt-4">
+        <label class="field-label">{{ _('工作区根路径') }}<input class="field-input" type="text" name="workspace_path" value="{{ system_settings_map.get('workspace_path') or '' }}"></label>
+        <label class="field-label">{{ _('默认打包脚本') }}<input class="field-input" type="text" name="package_script" value="{{ system_settings_map.get('package_script') or '' }}"></label>
+      </div>
+    </section>
+
+    <section class="form-group form-wide">
+      <div class="section-title text-base">{{ _('制品仓库') }}</div>
+      <div class="adaptive-two-column mt-4">
+        <label class="field-label">{{ _('公开制品地址') }}<input class="field-input" type="url" name="package_artifact_public_base_url" value="{{ system_settings_map.get('package_artifact_public_base_url') or '' }}"></label>
+        <label class="field-label">{{ _('本地制品目录') }}<input class="field-input" type="text" name="local_artifacts_path" value="{{ system_settings_map.get('local_artifacts_path') or '' }}"></label>
+      </div>
+    </section>
+
+    <div class="form-actions form-wide"><button type="submit" class="button-primary">{{ _('保存系统设置') }}</button></div>
   </form>
 </section>
 {% else %}
@@ -141,7 +165,7 @@
       {% endif %}
     </article>
     {% else %}
-    <div class="list-card text-sm text-slate-500">{{ _('还没有审计日志。') }}</div>
+    <div class="empty-state">{{ _('还没有审计日志。') }}</div>
     {% endfor %}
   </div>
 </section>

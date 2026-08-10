@@ -3707,3 +3707,21 @@ msgstr "稳定 latest 标签"
 
 msgid "目标状态暂未返回稳定 latest 标签。"
 msgstr "目标状态暂未返回稳定 latest 标签。"
+
+msgid "DeployBox 构建、制品与发布统一工作台"
+msgstr "DeployBox 构建、制品与发布统一工作台"
+
+msgid "跳到主要内容"
+msgstr "跳到主要内容"
+
+msgid "主导航"
+msgstr "主导航"
+
+msgid "账户菜单"
+msgstr "账户菜单"
+
+msgid "页面导航"
+msgstr "页面导航"
+
+msgid "状态刷新失败，请检查网络连接。"
+msgstr "状态刷新失败，请检查网络连接。"

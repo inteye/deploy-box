@@ -2271,3 +2271,21 @@ msgstr "Stable latest Tags"
 
 msgid "目标状态暂未返回稳定 latest 标签。"
 msgstr "Target status has not returned stable latest tags yet."
+
+msgid "DeployBox 构建、制品与发布统一工作台"
+msgstr "DeployBox workspace for builds, artifacts, and releases"
+
+msgid "跳到主要内容"
+msgstr "Skip to main content"
+
+msgid "主导航"
+msgstr "Primary navigation"
+
+msgid "账户菜单"
+msgstr "Account menu"
+
+msgid "页面导航"
+msgstr "Page navigation"
+
+msgid "状态刷新失败，请检查网络连接。"
+msgstr "Status refresh failed. Check your network connection."

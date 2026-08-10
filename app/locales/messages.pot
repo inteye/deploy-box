@@ -1852,3 +1852,27 @@ msgstr ""
 msgid "所有关键写操作都会留下责任人、对象和时间。"
 msgstr ""
 
+#: app/templates/base.html:6
+msgid "DeployBox 构建、制品与发布统一工作台"
+msgstr ""
+
+#: app/templates/base.html:13
+msgid "跳到主要内容"
+msgstr ""
+
+#: app/templates/base.html:26 app/templates/base.html:113
+msgid "主导航"
+msgstr ""
+
+#: app/templates/base.html:36
+msgid "账户菜单"
+msgstr ""
+
+#: app/templates/base.html:75
+msgid "页面导航"
+msgstr ""
+
+#: app/templates/build_job_detail.html:139 app/templates/build_job_detail.html:164
+#: app/templates/deployment_detail.html:283 app/templates/deployment_detail.html:308
+msgid "状态刷新失败，请检查网络连接。"
+msgstr ""

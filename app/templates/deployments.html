@@ -19,7 +19,7 @@
   <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{{ _('大制品场景下，控制台不再要求页面一直等待 webhook 返回。提交后进入任务详情页，自动轮询状态并聚合日志摘要。') }}</p>
 </section>
 
-<section class="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+<section class="metrics-grid">
   <article class="kpi-card"><strong class="kpi-value">{{ summary.get('succeeded', 0) }}</strong><span class="text-sm text-slate-500">{{ _('成功') }}</span></article>
   <article class="kpi-card"><strong class="kpi-value">{{ summary.get('failed', 0) }}</strong><span class="text-sm text-slate-500">{{ _('失败') }}</span></article>
   <article class="kpi-card"><strong class="kpi-value">{{ summary.get('running', 0) }}</strong><span class="text-sm text-slate-500">{{ _('执行中') }}</span></article>
@@ -40,7 +40,7 @@
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0 flex-1">
           <div class="meta-line">
-            <span class="{% if deployment.status == 'failed' %}status-badge-danger{% elif deployment.status in ['queued', 'running', 'submitted', 'timed_out_but_running'] %}status-badge-warning{% else %}status-badge-neutral{% endif %}">{{ deployment.status }}</span>
+            <span class="{% if deployment.status == 'failed' %}status-badge-danger{% elif deployment.status in ['queued', 'running', 'submitted', 'timed_out_but_running'] %}status-badge-warning{% else %}status-badge-success{% endif %}">{{ deployment.status }}</span>
             <span>{{ deployment.project.name }}</span>
             <span>{{ deployment.environment.name }}</span>
           </div>
@@ -55,7 +55,10 @@
       </div>
     </article>
     {% else %}
-    <div class="list-card text-sm text-slate-500">{{ _('还没有部署记录。') }}</div>
+    <div class="empty-state">
+      <p>{{ _('还没有部署记录。') }}</p>
+      <a class="button-secondary mt-4" href="/console/projects">{{ _('进入项目工作台') }}</a>
+    </div>
     {% endfor %}
   </div>
   {% if deployments_pagination.total > 0 %}
@@ -83,7 +86,7 @@
   <div class="mt-5 space-y-4">
     <article class="list-card">
       <div class="meta-line">
-        <span class="{% if selected_deployment.status == 'failed' %}status-badge-danger{% elif selected_deployment.status in ['queued', 'running', 'submitted', 'timed_out_but_running'] %}status-badge-warning{% else %}status-badge-neutral{% endif %}">{{ selected_deployment.status }}</span>
+        <span class="{% if selected_deployment.status == 'failed' %}status-badge-danger{% elif selected_deployment.status in ['queued', 'running', 'submitted', 'timed_out_but_running'] %}status-badge-warning{% else %}status-badge-success{% endif %}">{{ selected_deployment.status }}</span>
         <span>{{ selected_deployment.environment.name }}</span>
       </div>
       <div class="mt-3 text-xl font-semibold tracking-tight text-slate-900 break-words">{{ selected_deployment.release.version }}</div>
@@ -95,7 +98,7 @@
     </article>
   </div>
   {% else %}
-  <div class="mt-4 list-card text-sm text-slate-500">{{ _('当前页还没有可选部署任务。') }}</div>
+  <div class="empty-state mt-4">{{ _('当前页还没有可选部署任务。') }}</div>
   {% endif %}
 </section>
 {% endblock %}

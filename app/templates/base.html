@@ -3,107 +3,90 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ _('DeployBox 构建、制品与发布统一工作台') }}">
+    <meta name="theme-color" content="#f5f4ef">
     <title>{{ title }}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ request.url_for('static', path='branding/deploybox-logo.svg') }}">
     <link rel="stylesheet" href="{{ request.url_for('static', path='dist/app.css') }}">
   </head>
   <body>
+    <a class="skip-link" href="#main-content">{{ _('跳到主要内容') }}</a>
     {% if current_user %}
-    <div class="min-h-screen">
-      <header class="sticky top-0 z-40 border-b border-sand-300/80 bg-white/80 backdrop-blur">
-        <div class="mx-auto flex max-w-[1680px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 xl:px-8">
-          <div class="flex min-w-0 items-center gap-4">
-            <img src="{{ request.url_for('static', path='branding/deploybox-logo.svg') }}" alt="DeployBox" class="h-12 w-12 shrink-0 rounded-2xl bg-white/70 object-contain shadow-sm">
-            <div class="min-w-0">
-              <div class="truncate text-lg font-semibold tracking-tight text-slate-900">DeployBox</div>
-              <div class="truncate text-sm text-slate-500">{{ _('构建、制品与发布统一工作台') }}</div>
-            </div>
-          </div>
-          <nav class="hidden items-center gap-2 lg:flex">
-            <a href="/console/dashboard" class="button-ghost {% if current_path.startswith('/console/dashboard') %}!bg-pine-50 !text-pine-900{% endif %}">{{ _('总览') }}</a>
-            <a href="/console/projects" class="button-ghost {% if current_path.startswith('/console/projects') or current_path.startswith('/console/build-jobs') %}!bg-pine-50 !text-pine-900{% endif %}">{{ _('项目') }}</a>
-            <a href="/console/deployments" class="button-ghost {% if current_path.startswith('/console/deployments') %}!bg-pine-50 !text-pine-900{% endif %}">{{ _('部署') }}</a>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="app-header-inner">
+          <a href="/console/dashboard" class="brand-lockup" aria-label="DeployBox">
+            <img src="{{ request.url_for('static', path='branding/deploybox-logo.svg') }}" alt="DeployBox" class="brand-mark">
+            <span class="min-w-0">
+              <span class="brand-name">DeployBox</span>
+              <span class="brand-tagline">{{ _('构建、制品与发布统一工作台') }}</span>
+            </span>
+          </a>
+
+          <nav class="desktop-global-nav" aria-label="{{ _('主导航') }}">
+            <a href="/console/dashboard" class="global-nav-link {% if current_path.startswith('/console/dashboard') %}global-nav-link-active{% endif %}" {% if current_path.startswith('/console/dashboard') %}aria-current="page"{% endif %}>{{ _('总览') }}</a>
+            <a href="/console/projects" class="global-nav-link {% if current_path.startswith('/console/projects') or current_path.startswith('/console/build-jobs') %}global-nav-link-active{% endif %}" {% if current_path.startswith('/console/projects') or current_path.startswith('/console/build-jobs') %}aria-current="page"{% endif %}>{{ _('项目') }}</a>
+            <a href="/console/deployments" class="global-nav-link {% if current_path.startswith('/console/deployments') %}global-nav-link-active{% endif %}" {% if current_path.startswith('/console/deployments') %}aria-current="page"{% endif %}>{{ _('部署') }}</a>
             {% if has_system_manage_permission %}
-            <a href="/console/settings" class="button-ghost {% if current_path.startswith('/console/settings') %}!bg-pine-50 !text-pine-900{% endif %}">{{ _('设置') }}</a>
+            <a href="/console/settings" class="global-nav-link {% if current_path.startswith('/console/settings') %}global-nav-link-active{% endif %}" {% if current_path.startswith('/console/settings') %}aria-current="page"{% endif %}>{{ _('设置') }}</a>
             {% endif %}
           </nav>
-          <div class="flex flex-wrap items-center justify-end gap-2">
-            <span class="soft-badge hidden md:inline-flex">{{ _('当前用户：') }}{{ current_user.username }}</span>
-            <form method="post" action="/console/settings/lang" class="flex items-center gap-2">
-              <select name="lang" class="field-select !min-h-9 !w-24 !rounded-xl !py-2" onchange="this.form.submit()">
-                <option value="zh" {% if current_lang == 'zh' %}selected{% endif %}>中文</option>
-                <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
-              </select>
-            </form>
-            <form method="post" action="/logout" class="contents">
-              <button type="submit" class="button-secondary !min-h-9 !rounded-xl !px-3 !py-2">{{ _('退出登录') }}</button>
-            </form>
-          </div>
+
+          <details class="account-menu">
+            <summary class="account-trigger" aria-label="{{ _('账户菜单') }}">
+              <span class="account-avatar" aria-hidden="true">{{ current_user.username[:1] | upper }}</span>
+              <span class="account-name">{{ current_user.username }}</span>
+              <svg class="account-chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 8 4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="account-popover">
+              <div class="account-popover-heading">
+                <span class="text-xs text-slate-500">{{ _('当前用户：') }}</span>
+                <strong class="mt-1 block text-sm font-semibold text-slate-900">{{ current_user.username }}</strong>
+              </div>
+              <form method="post" action="/console/settings/lang" class="space-y-2">
+                <label class="field-label" for="account-language">{{ _('界面与语言') }}</label>
+                <select id="account-language" name="lang" class="field-select !min-h-10 !py-2" onchange="this.form.submit()">
+                  <option value="zh" {% if current_lang == 'zh' %}selected{% endif %}>中文</option>
+                  <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+                </select>
+              </form>
+              <form method="post" action="/logout">
+                <button type="submit" class="button-secondary w-full">{{ _('退出登录') }}</button>
+              </form>
+            </div>
+          </details>
         </div>
       </header>
 
-      <main class="mx-auto flex w-full max-w-[1680px] flex-1 flex-col px-4 py-6 sm:px-6 xl:px-8">
-        <div class="mb-6 flex flex-wrap items-center gap-3">
-          <span class="soft-badge">{{ title }}</span>
-          <span class="soft-badge hidden md:inline-flex">{{ _('主路径：接入 → 生成 → 发布') }}</span>
+      <main id="main-content" tabindex="-1" class="app-main">
+        <div class="page-context-row">
+          <span class="page-eyebrow">{{ title }}</span>
+          <span class="page-path">{{ _('接入') }} <span aria-hidden="true">/</span> {{ _('生成') }} <span aria-hidden="true">/</span> {{ _('发布') }}</span>
         </div>
 
         {% if notice %}
-        <div class="notice-card mb-4">{{ notice | rt }}</div>
+        <div class="notice-card" role="status" aria-live="polite">{{ notice | rt }}</div>
         {% endif %}
         {% if error %}
-        <div class="error-card mb-4">{{ error | rt }}</div>
+        <div class="error-card" role="alert">{{ error | rt }}</div>
         {% endif %}
 
-        <div class="grid gap-6 xl:grid-cols-workspace">
-          <aside class="space-y-4 xl:sticky xl:top-28 xl:self-start">
-            {% block left_panel %}
-            <section class="panel-card">
-              <div class="section-title">{{ _('入口导航') }}</div>
-              <p class="section-copy">{{ _('保持当前阶段聚焦，避免在长页面里来回找入口。') }}</p>
-              <nav class="mt-5 space-y-2">
-                <a href="/console/dashboard" class="workspace-nav-link {% if current_path.startswith('/console/dashboard') %}workspace-nav-link-active{% endif %}">
-                  <span class="soft-badge !rounded-xl !px-2 !py-1">01</span>
-                  <span class="min-w-0">
-                    <span class="block truncate font-medium">{{ _('总览') }}</span>
-                    <span class="block truncate text-xs text-slate-500">{{ _('系统概览与最近动作') }}</span>
-                  </span>
-                </a>
-                <a href="/console/projects" class="workspace-nav-link {% if current_path.startswith('/console/projects') or current_path.startswith('/console/build-jobs') %}workspace-nav-link-active{% endif %}">
-                  <span class="soft-badge !rounded-xl !px-2 !py-1">02</span>
-                  <span class="min-w-0">
-                    <span class="block truncate font-medium">{{ _('项目与构建') }}</span>
-                    <span class="block truncate text-xs text-slate-500">{{ _('接入、模板、制品生成') }}</span>
-                  </span>
-                </a>
-                <a href="/console/deployments" class="workspace-nav-link {% if current_path.startswith('/console/deployments') %}workspace-nav-link-active{% endif %}">
-                  <span class="soft-badge !rounded-xl !px-2 !py-1">03</span>
-                  <span class="min-w-0">
-                    <span class="block truncate font-medium">{{ _('部署任务') }}</span>
-                    <span class="block truncate text-xs text-slate-500">{{ _('状态、日志、回滚') }}</span>
-                  </span>
-                </a>
-                {% if has_system_manage_permission %}
-                <a href="/console/settings" class="workspace-nav-link {% if current_path.startswith('/console/settings') %}workspace-nav-link-active{% endif %}">
-                  <span class="soft-badge !rounded-xl !px-2 !py-1">04</span>
-                  <span class="min-w-0">
-                    <span class="block truncate font-medium">{{ _('设置') }}</span>
-                    <span class="block truncate text-xs text-slate-500">{{ _('用户、仓库、审计') }}</span>
-                  </span>
-                </a>
-                {% endif %}
-              </nav>
-            </section>
-            {% endblock %}
+        <div class="workspace-layout">
+          <nav class="workspace-subnav" aria-label="{{ _('页面导航') }}">
+            {% block page_subnav %}{% endblock %}
+          </nav>
+
+          <aside class="workspace-tools">
             {% block left_panel_extra %}{% endblock %}
           </aside>
 
-          <section class="min-w-0 space-y-6">
+          <section class="workspace-main">
             {% block center_panel %}
             {% block content %}{% endblock %}
             {% endblock %}
           </section>
 
-          <aside class="space-y-4 xl:sticky xl:top-28 xl:self-start">
+          <aside class="workspace-context">
             {% block right_panel %}
             <section class="panel-card">
               <div class="section-title">{{ _('当前页面') }}</div>
@@ -114,26 +97,43 @@
         </div>
       </main>
 
-      <footer class="border-t border-sand-300/80 bg-white/70">
-        <div class="mx-auto grid max-w-[1680px] gap-4 px-4 py-6 text-sm text-slate-600 sm:px-6 xl:grid-cols-3 xl:px-8">
-          <div class="space-y-1">
-            <div class="font-medium text-slate-900">DeployBox</div>
-            <div>{{ _('开源的独立发布平台，面向项目接入、制品生成与自动部署。') }}</div>
+      <footer class="app-footer">
+        <div class="app-footer-inner">
+          <div>
+            <span class="font-semibold text-slate-900">DeployBox</span>
+            <span class="ml-2">{{ _('开源的独立发布平台，面向项目接入、制品生成与自动部署。') }}</span>
           </div>
-          <div class="space-y-1">
-            <div>{{ _('声明：本系统仅负责发布编排与可观测性，不替代你的代码审查与变更治理。') }}</div>
-            <div>© 2026 DeployBox</div>
-          </div>
-          <div class="space-y-1 xl:text-right">
-            <div>{{ _('仓库地址：') }}<a class="text-pine-800 underline decoration-pine-300 underline-offset-4" href="https://github.com/inteye/deploy-box" target="_blank" rel="noreferrer">github.com/inteye/deploy-box</a></div>
-            <div>{{ _('欢迎基于此项目二次开发、接入更多部署适配器并反馈问题。') }}</div>
+          <div class="app-footer-meta">
+            <span>© 2026 DeployBox</span>
+            <a href="https://github.com/inteye/deploy-box" target="_blank" rel="noreferrer">GitHub</a>
           </div>
         </div>
       </footer>
+
+      <nav class="mobile-global-nav" aria-label="{{ _('主导航') }}">
+        <a href="/console/dashboard" class="mobile-nav-link {% if current_path.startswith('/console/dashboard') %}mobile-nav-link-active{% endif %}" {% if current_path.startswith('/console/dashboard') %}aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          <span>{{ _('总览') }}</span>
+        </a>
+        <a href="/console/projects" class="mobile-nav-link {% if current_path.startswith('/console/projects') or current_path.startswith('/console/build-jobs') %}mobile-nav-link-active{% endif %}" {% if current_path.startswith('/console/projects') or current_path.startswith('/console/build-jobs') %}aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 7.5h6l2-2h9v13h-17v-11Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          <span>{{ _('项目') }}</span>
+        </a>
+        <a href="/console/deployments" class="mobile-nav-link {% if current_path.startswith('/console/deployments') %}mobile-nav-link-active{% endif %}" {% if current_path.startswith('/console/deployments') %}aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 8h12m0 0-3-3m3 3-3 3M19 16H7m0 0 3 3m-3-3 3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>{{ _('部署') }}</span>
+        </a>
+        {% if has_system_manage_permission %}
+        <a href="/console/settings" class="mobile-nav-link {% if current_path.startswith('/console/settings') %}mobile-nav-link-active{% endif %}" {% if current_path.startswith('/console/settings') %}aria-current="page"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h9m3 0h2M5 12h2m3 0h9M5 17h7m3 0h4M14 5v4M7 10v4m5 1v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span>{{ _('设置') }}</span>
+        </a>
+        {% endif %}
+      </nav>
     </div>
 
-    <dialog id="confirm-dialog" class="w-[min(92vw,28rem)] rounded-[28px] border border-sand-300 bg-white p-0 shadow-shell backdrop:bg-slate-900/40">
-      <form method="dialog" class="space-y-4 p-6">
+    <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
+      <form method="dialog" class="space-y-5 p-6">
         <div>
           <div id="confirm-dialog-title" class="text-lg font-semibold tracking-tight text-slate-900">{{ _('请确认操作') }}</div>
           <p id="confirm-dialog-message" class="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600"></p>
@@ -149,7 +149,13 @@
       (() => {
         const dialog = document.getElementById("confirm-dialog");
         const messageNode = document.getElementById("confirm-dialog-message");
+        const accountMenu = document.querySelector(".account-menu");
+        const activePageNav = document.querySelector(".workspace-subnav .workspace-nav-link-active");
         let pendingForm = null;
+
+        if (activePageNav && window.innerWidth < 1440) {
+          activePageNav.scrollIntoView({ block: "nearest", inline: "center" });
+        }
 
         function openConfirm(form, message) {
           if (!dialog || !messageNode) return;
@@ -180,10 +186,21 @@
             pendingForm = null;
           });
         }
+
+        document.addEventListener("click", (event) => {
+          if (accountMenu?.open && !accountMenu.contains(event.target)) {
+            accountMenu.removeAttribute("open");
+          }
+        });
       })();
     </script>
     {% else %}
       {% block auth_content %}{% endblock %}
     {% endif %}
+    <script>
+      document.querySelector(".skip-link")?.addEventListener("click", () => {
+        window.requestAnimationFrame(() => document.getElementById("main-content")?.focus());
+      });
+    </script>
   </body>
 </html>

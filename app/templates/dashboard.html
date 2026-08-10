@@ -24,7 +24,7 @@
   <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{{ _('先看项目接入是否完成，再决定是生成制品、直接发布，还是进入部署任务排查异常。') }}</p>
 </section>
 
-<section class="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+<section class="metrics-grid">
   <article class="kpi-card"><strong class="kpi-value">{{ summary.projects }}</strong><span class="text-sm text-slate-500">{{ _('项目') }}</span></article>
   <article class="kpi-card"><strong class="kpi-value">{{ summary.builds }}</strong><span class="text-sm text-slate-500">{{ _('构建任务') }}</span></article>
   <article class="kpi-card"><strong class="kpi-value">{{ summary.deployments }}</strong><span class="text-sm text-slate-500">{{ _('部署任务') }}</span></article>
@@ -33,7 +33,7 @@
   <article class="kpi-card"><strong class="kpi-value">{{ summary.quality_failed }}</strong><span class="text-sm text-slate-500">{{ _('近 7 天失败巡检') }}</span></article>
 </section>
 
-<section class="grid gap-4 lg:grid-cols-2">
+<section class="adaptive-two-column">
   <article class="panel-card">
     <div class="section-title">{{ _('最近项目') }}</div>
     <p class="section-copy">{{ _('优先进入项目工作台，不要从杂乱表单开始。') }}</p>
@@ -54,7 +54,10 @@
         </div>
       </article>
       {% else %}
-      <div class="list-card text-sm text-slate-500">{{ _('还没有项目，先去项目页创建一个。') }}</div>
+      <div class="empty-state">
+        <p>{{ _('还没有项目，先去项目页创建一个。') }}</p>
+        <a class="button-secondary mt-4" href="/console/projects">{{ _('进入项目工作台') }}</a>
+      </div>
       {% endfor %}
     </div>
   </article>
@@ -66,7 +69,7 @@
       {% for build in recent_builds %}
       <article class="list-card">
         <div class="meta-line">
-          <span class="{% if build.status == 'failed' %}status-badge-danger{% elif build.status in ['queued', 'running'] %}status-badge-warning{% else %}status-badge-neutral{% endif %}">{{ build.status }}</span>
+          <span class="{% if build.status == 'failed' %}status-badge-danger{% elif build.status in ['queued', 'running'] %}status-badge-warning{% else %}status-badge-success{% endif %}">{{ build.status }}</span>
           <span>{{ _('构建') }} #{{ build.id }}</span>
           <span class="break-all">{{ build.output_version or _('生成中') }}</span>
         </div>
@@ -78,7 +81,7 @@
       {% for deployment in recent_deployments %}
       <article class="list-card">
         <div class="meta-line">
-          <span class="{% if deployment.status == 'failed' %}status-badge-danger{% elif deployment.status in ['queued', 'submitted', 'running', 'timed_out_but_running'] %}status-badge-warning{% else %}status-badge-neutral{% endif %}">{{ deployment.status }}</span>
+          <span class="{% if deployment.status == 'failed' %}status-badge-danger{% elif deployment.status in ['queued', 'submitted', 'running', 'timed_out_but_running'] %}status-badge-warning{% else %}status-badge-success{% endif %}">{{ deployment.status }}</span>
           <span>{{ deployment.project.name }}</span>
           <span class="break-all">{{ deployment.release.version }}</span>
         </div>
@@ -88,7 +91,10 @@
       </article>
       {% endfor %}
       {% if not recent_builds and not recent_deployments %}
-      <div class="list-card text-sm text-slate-500">{{ _('还没有构建或部署记录。') }}</div>
+      <div class="empty-state">
+        <p>{{ _('还没有构建或部署记录。') }}</p>
+        <a class="button-secondary mt-4" href="/console/projects">{{ _('构建发布') }}</a>
+      </div>
       {% endif %}
     </div>
   </article>
@@ -106,7 +112,7 @@
     </form>
     {% endif %}
   </div>
-  <div class="mt-5 grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+  <div class="adaptive-two-column mt-5">
     <article class="list-card">
       <div class="meta-line">
         <span class="soft-badge">{{ _('质量趋势') }}</span>
@@ -132,7 +138,7 @@
       {% for check in recent_quality_checks %}
       <article class="list-card">
         <div class="meta-line">
-          <span class="{% if check.status == 'failed' %}status-badge-danger{% elif check.status == 'warning' %}status-badge-warning{% else %}status-badge-neutral{% endif %}">{{ check.status }}</span>
+          <span class="{% if check.status == 'failed' %}status-badge-danger{% elif check.status == 'warning' %}status-badge-warning{% else %}status-badge-success{% endif %}">{{ check.status }}</span>
           <span>{{ check.project.name }}</span>
           <span>{{ check.score }}</span>
         </div>
@@ -142,7 +148,7 @@
         </div>
       </article>
       {% else %}
-      <div class="list-card text-sm text-slate-500">{{ _('还没有质量检查记录。') }}</div>
+      <div class="empty-state">{{ _('还没有质量检查记录。') }}</div>
       {% endfor %}
     </div>
   </div>
